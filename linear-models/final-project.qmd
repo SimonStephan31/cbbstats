@@ -1,0 +1,28 @@
+---
+title: "Final project"
+subtitle: "Your data, your model"
+---
+
+In the last days of the course, every participant analyses a dataset (their own or one provided) and presents it briefly. This links the course directly to individual [consultation](../consultation.qmd).
+
+## What you do
+
+1. **Question.** State the research question and the hypothesis or quantity of interest.
+2. **Design.** Describe the unit of observation, grouping factors (nesting) and the type of response.
+3. **Model.** Derive the model from the question and justify each term. Simulate data from it.
+4. **Fit and check.** Fit the model in R and check its assumptions.
+5. **Interpret.** Show effect sizes and predictions on the response scale, with an effect plot.
+6. **Report.** Write the results as you would in a paper.
+
+## Format
+
+- A short presentation (about 10 minutes plus discussion)
+- A Quarto document with the full analysis, rendered to HTML
+
+## Datasets
+
+Bring your own data if you have them. Otherwise, choose one of the provided datasets in the [`data/`](https://github.com/SimonStephan31/cbbstats/tree/main/data) folder.
+
+::: {.box}
+**Tip:** If your own data are not yet collected, simulate them from your planned model. This doubles as a power analysis and a first draft of your preregistration (see the course [Open, Replicable, and Ethical Science](../ores/index.qmd)).
+:::

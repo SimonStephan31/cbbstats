@@ -1,0 +1,56 @@
+---
+title: "03 · Multiple regression"
+subtitle: "Week 1"
+---
+
+::: {.guiding-q}
+What if there are several predictors?
+:::
+
+## In this session
+
+- Partial effects: the effect of one predictor *holding the others constant*
+- Why simple and multiple regression can give different answers
+- Standardising predictors (z-transformation) and comparing effects
+- Collinearity and variance inflation
+- Diagnostics in multiple regression
+
+::: {.key-terms}
+**Key terms:** [Collinearity](../../glossary.qmd#collinearity), [z-transformation (standardisation)](../../glossary.qmd#z-transformation), [Centring](../../glossary.qmd#centring)
+:::
+
+## Learning goals
+
+After this session you can
+
+- fit and interpret a model with several predictors,
+- explain why an estimate changes when another predictor is added,
+- diagnose collinearity.
+
+## Simulate first
+
+Age and body size are correlated, but only age affects the response. The simple regression on size finds an "effect" that disappears once age is in the model.
+
+```{r}
+set.seed(3)
+n    <- 200
+age  <- rnorm(n)
+size <- 0.7 * age + rnorm(n, 0, 0.7)       # size depends on age
+y    <- 1 + 0.5 * age + rnorm(n)           # y depends on age only
+
+round(coef(lm(y ~ size)), 2)               # size seems to matter ...
+round(coef(lm(y ~ size + age)), 2)         # ... until age is controlled for
+```
+
+## Materials
+
+::: {.materials}
+- Slides <span class="tag">coming soon</span>
+- R script <span class="tag">coming soon</span>
+- Exercises <span class="tag">coming soon</span>
+:::
+
+## Reading
+
+- Gelman, Hill & Vehtari (2020), ch. 10–11.
+- Fox (2016), ch. 5 and 13.

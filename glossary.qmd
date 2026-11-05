@@ -1,0 +1,431 @@
+---
+title: "Glossary"
+subtitle: "Key terms from the courses, in brief, and what to do when something goes wrong"
+toc-depth: 2
+toc-title: "A–Z"
+---
+
+Short explanations of terms that come up again and again. Labels show where a term is introduced: **LM** = [Linear Models in R](linear-models/index.qmd) (with session number), **ORES** = [Open, Replicable, and Ethical Science](ores/index.qmd), **TAE** = [Testing for Absence and Equivalence](tae/index.qmd), **WS** = [short workshops](workshops/index.qmd).
+
+Entries marked [Problem]{.gl-tag .gl-problem-tag} describe something that can go wrong, with steps towards a solution under **What to do about it?**
+
+```{=html}
+<input id="gl-filter" class="form-control" type="search" placeholder="Filter terms … (e.g. converge, offset)" aria-label="Filter glossary">
+```
+
+## A
+
+### AIC (Akaike information criterion) {#aic}
+[LM 09]{.gl-tag}
+
+A measure of how well a model predicts new data, balancing fit against the number of parameters. Lower is better. Only differences between models fitted to the **same data** are meaningful; ΔAIC < 2 means the models are hard to tell apart. See also [model selection](#model-selection).
+
+### Alpha spending {#alpha-spending}
+[ORES]{.gl-tag}
+
+In a [sequential analysis](#sequential-analysis), the overall type I error rate (α, usually .05) is distributed ("spent") across the planned interim looks, so that the error rate over all looks stays at α. Common spending functions are Pocock and O'Brien–Fleming.
+
+### Assumptions (of the linear model) {#assumptions}
+[LM 02–03]{.gl-tag}
+
+The linear model assumes that (1) observations are **independent**, (2) the relationship between predictors and response is **linear** (on the link scale), (3) residuals have **constant variance** ([homoscedasticity](#heteroscedasticity)) and (4) residuals are **normally distributed**. Independence matters most, normality least. Check assumptions with [residual](#residuals) plots, not with significance tests.
+
+## B
+
+### Bayes factor {#bayes-factor}
+[TAE]{.gl-tag}
+
+The ratio of how well two hypotheses predicted the observed data, e.g. BF~01~ = 5: the data are five times more likely under H~0~ than under H~1~. Unlike a *p*-value, it can quantify evidence **for** the null. Depends on the prior for the effect under H~1~, so report and justify it.
+
+## C
+
+### Centring {#centring}
+[LM 03, 05]{.gl-tag}
+
+Subtracting a value (usually the mean, or a meaningful reference such as trial 1) from a predictor. It changes the meaning of the [intercept](#intercept) and of main effects in models with [interactions](#interaction), but not the fit of the model. See also [z-transformation](#z-transformation).
+
+### Collinearity {#collinearity}
+[LM 03]{.gl-tag} [Problem]{.gl-tag .gl-problem-tag}
+
+Two or more predictors are strongly correlated, so the model cannot separate their effects. Symptoms: large [standard errors](#standard-error), estimates that change a lot when a predictor is added or removed. Diagnose with variance inflation factors (`car::vif()`, `performance::check_collinearity()`); VIF > 5–10 is often taken as a warning sign.
+
+::: {.gl-fix}
+**What to do about it?**
+
+- Ask whether both predictors are needed for the research question.
+- Combine them (e.g. into an index or a principal component) if they measure the same thing.
+- Accept wide intervals: collinearity is a property of the data, not an error. Do not drop predictors just to make *p*-values smaller.
+:::
+
+### Complete separation {#complete-separation}
+[LM 10]{.gl-tag} [Problem]{.gl-tag .gl-problem-tag}
+
+In a binomial model, a predictor (or combination) perfectly predicts the 0/1 outcome, e.g. all animals in one condition chose "yes". The maximum-likelihood estimate is then infinite: huge estimates and standard errors, warnings such as "fitted probabilities numerically 0 or 1 occurred".
+
+::: {.gl-fix}
+**What to do about it?**
+
+- Check the cross-tabulation of predictor and response to find the cause.
+- Use penalised (Firth) logistic regression (`logistf`, `brglm2`) or a Bayesian model with a weakly informative prior.
+- Report the pattern descriptively; it may be the most informative result.
+:::
+
+### Confidence interval {#confidence-interval}
+[LM 02]{.gl-tag}
+
+A range computed so that, across many repetitions of the study, 95% of such intervals contain the true value. It does **not** mean that this particular interval contains the true value with 95% probability; that is the interpretation of a Bayesian [credible interval](#credible-interval).
+
+### Contrasts and dummy coding {#contrasts}
+[LM 04]{.gl-tag}
+
+How a categorical predictor is turned into numbers. **Dummy (treatment) coding**, R's default, compares each level with a [reference level](#reference-level). **Sum coding** compares each level with the grand mean, which makes main effects interpretable in models with interactions. Set with `contrasts()`; check what R did with `model.matrix()`.
+
+### Convergence failure {#convergence}
+[LM 11]{.gl-tag} [Problem]{.gl-tag .gl-problem-tag}
+
+The fitting algorithm did not reliably find the maximum of the likelihood, e.g. lme4's "Model failed to converge with max|grad| = …". Common in mixed models with complex random effects, few levels of a grouping factor, or predictors on very different scales. The estimates may or may not be trustworthy.
+
+::: {.gl-fix}
+**What to do about it?**
+
+1. [z-transform](#z-transformation) or rescale continuous predictors.
+2. Try another optimizer: `control = glmerControl(optimizer = "bobyqa")`, or compare all with `allFit()`. If they give the same estimates, the warning is usually a false alarm.
+3. Increase the number of iterations, e.g. `optCtrl = list(maxfun = 1e5)`.
+4. Check for a [singular fit](#singular-fit); simplify the random-effects structure step by step (e.g. drop the correlations first: `(1 + x || id)`).
+5. Consider `glmmTMB` or a Bayesian model (`brms`), where priors stabilise the fit.
+:::
+
+### Cook's distance {#cooks-distance}
+[LM 02]{.gl-tag}
+
+A measure of how much the model's estimates change when a single observation is removed. Large values flag **influential cases**. See [influential cases](#influential-cases).
+
+### Credible interval {#credible-interval}
+[WS Bayes, TAE]{.gl-tag}
+
+In Bayesian statistics, an interval that contains the parameter with a given probability (e.g. 95%), given the model, the data and the [prior](#prior).
+
+## D
+
+### Degrees of freedom {#df}
+[LM 02]{.gl-tag}
+
+Roughly, the number of observations minus the number of estimated parameters. They determine the shape of the *t*- and *F*-distributions used for tests. In mixed models they are not well defined, which is why `lme4` reports no *p*-values for `lmer()`.
+
+### Divergent transitions {#divergent-transitions}
+[WS Bayes]{.gl-tag} [Problem]{.gl-tag .gl-problem-tag}
+
+A warning from Stan that the sampler had trouble exploring parts of the posterior. Even a few divergences can bias results.
+
+::: {.gl-fix}
+**What to do about it?**
+
+- Increase `adapt_delta` (e.g. `control = list(adapt_delta = 0.95)`).
+- Use more informative priors, especially on standard deviations.
+- Simplify or reparameterise the model; check for weakly identified parameters.
+:::
+
+### Dummy coding
+See [contrasts and dummy coding](#contrasts).
+
+## E
+
+### Effect size {#effect-size}
+[LM 02]{.gl-tag}
+
+How large an effect is, in units that matter: a raw difference (e.g. grams, seconds), a standardised difference (Cohen's *d*), an odds ratio, or a change in probability. Report it with a [confidence interval](#confidence-interval); a *p*-value alone says nothing about size.
+
+### Equivalence test (TOST) {#equivalence-test}
+[TAE]{.gl-tag}
+
+Tests whether an effect is smaller than the [smallest effect size of interest](#sesoi). Two one-sided tests check whether the effect is significantly above −SESOI **and** significantly below +SESOI. If both are significant, the effect is "statistically equivalent" to zero.
+
+### Estimated marginal means {#emmeans}
+[LM 04]{.gl-tag}
+
+Model-based means for each level of a factor (or combination of factors), averaged over the other predictors. Computed with `emmeans`; the basis for pairwise comparisons and for reporting results on the response scale.
+
+## F
+
+### Failure to converge
+See [convergence failure](#convergence).
+
+### Fixed effect {#fixed-effect}
+[LM 11]{.gl-tag}
+
+A model parameter that is the same for all units, e.g. the average effect of age. In mixed models, contrasted with [random effects](#random-effects), which vary between units.
+
+### Full–null model comparison {#full-null}
+[LM 09]{.gl-tag}
+
+Comparing the full model (with the predictors of interest) with a null model that lacks them but keeps all control predictors and random effects. A [likelihood-ratio test](#lrt) of the two protects against cryptic multiple testing when there are several test predictors.
+
+## H
+
+### Heteroscedasticity {#heteroscedasticity}
+[LM 02–03]{.gl-tag} [Problem]{.gl-tag .gl-problem-tag}
+
+The residual variance is not constant, e.g. it increases with the fitted values (a "funnel" in the residual plot). Standard errors and *p*-values can then be wrong.
+
+::: {.gl-fix}
+**What to do about it?**
+
+- Ask whether the response type calls for a [GLM](#link-function) (counts and proportions are heteroscedastic by nature).
+- Transform the response (e.g. log) if this is meaningful.
+- Model the variance explicitly (`glmmTMB` with `dispformula`, `nlme::gls`), or use robust standard errors (`sandwich`).
+:::
+
+## I
+
+### Influential cases {#influential-cases}
+[LM 02]{.gl-tag} [Problem]{.gl-tag .gl-problem-tag}
+
+Single observations that strongly change the results (see [Cook's distance](#cooks-distance)), often outliers with unusual predictor values.
+
+::: {.gl-fix}
+**What to do about it?**
+
+- Check for data errors first.
+- Fit the model with and without these cases and report both if conclusions differ.
+- Do not delete cases just because they are inconvenient; decide on exclusion rules in advance (see [preregistration](#preregistration)).
+:::
+
+### Interaction {#interaction}
+[LM 05]{.gl-tag}
+
+The effect of one predictor depends on the value of another, e.g. age affects foraging differently in two populations. In R: `y ~ a * b`. With an interaction in the model, the "main effects" are conditional effects at the zero point of the other predictor, so [centring](#centring) matters.
+
+### Intercept {#intercept}
+[LM 02]{.gl-tag}
+
+The predicted response when all predictors are zero (or at their [reference level](#reference-level)). Only meaningful if zero is a meaningful value, which is one reason for [centring](#centring).
+
+## L
+
+### Likelihood-ratio test {#lrt}
+[LM 09–11]{.gl-tag}
+
+Compares two nested models by how much the likelihood improves with the extra parameters. In R: `anova(m0, m1, test = "Chisq")`. The standard way to test effects in GLMs and GLMMs.
+
+### Link function {#link-function}
+[LM 10]{.gl-tag}
+
+In a GLM, the function that connects the linear predictor to the expected response, e.g. the **log** link for counts (Poisson) and the **logit** link for probabilities (binomial). Coefficients are on the link scale; transform them back (e.g. `exp()`, `plogis()`) or plot predictions to interpret them.
+
+### Log-odds (logit) {#log-odds}
+[LM 10]{.gl-tag}
+
+The scale of binomial models: log(*p* / (1 − *p*)). 0 corresponds to *p* = .5; ±2 to about .12 and .88. A coefficient is the change in log-odds per unit of the predictor; `exp()` turns it into an odds ratio.
+
+## M
+
+### Model selection {#model-selection}
+[LM 09]{.gl-tag}
+
+Choosing among candidate models. For confirmatory questions, specify the model in advance and test it (e.g. [full–null comparison](#full-null)). For exploratory or predictive questions, compare a small set of plausible models with [AIC](#aic). Avoid stepwise selection by *p*-values (see [overfitting](#overfitting)).
+
+## O
+
+### Offset {#offset}
+[LM 10]{.gl-tag}
+
+A term in a count model whose coefficient is fixed at 1, used when observation time or effort differs between observations. With a log link, `offset(log(hours))` turns a model of counts into a model of **rates** (counts per hour), without estimating an extra parameter.
+
+### Optional stopping {#optional-stopping}
+[ORES]{.gl-tag} [Problem]{.gl-tag .gl-problem-tag}
+
+Testing repeatedly as data come in and stopping as soon as *p* < .05. This inflates the type I error rate far above 5% (see the simulation on the [ORES page](ores/index.qmd)).
+
+::: {.gl-fix}
+**What to do about it?**
+
+- Fix the sample size in advance, based on a [power analysis](#power).
+- If you want to look early, plan a [sequential analysis](#sequential-analysis) with [alpha spending](#alpha-spending).
+- Bayesian analyses are less affected, but their error rates still depend on the stopping rule; plan it.
+:::
+
+### Overdispersion {#overdispersion}
+[LM 10]{.gl-tag} [Problem]{.gl-tag .gl-problem-tag}
+
+The data vary more than the model assumes. A Poisson model assumes variance = mean; real counts usually vary more. Ignoring it gives too small standard errors and too many false positives. Check with the ratio of residual deviance (or Pearson χ²) to residual df (≫ 1 is a warning sign), `performance::check_overdispersion()` or `DHARMa`.
+
+::: {.gl-fix}
+**What to do about it?**
+
+- Check for missing predictors or non-independence first; overdispersion is often a symptom.
+- Use a negative binomial model (`MASS::glm.nb`, `glmmTMB(family = nbinom2)`).
+- In GLMMs, an observation-level random effect, `(1 | obs)`, can absorb extra variation.
+- For many zeros, consider [zero-inflation](#zero-inflation).
+:::
+
+### Overfitting {#overfitting}
+[LM 09]{.gl-tag} [Problem]{.gl-tag .gl-problem-tag}
+
+The model fits noise in the sample rather than the underlying pattern, usually because it has too many parameters for the amount of data. It fits the sample well but predicts new data poorly, and its effects are overestimated.
+
+::: {.gl-fix}
+**What to do about it?**
+
+- Limit the number of predictors (a common rule of thumb: at least 10–20 observations per parameter).
+- Specify the model from the research question, not from the data.
+- Evaluate predictions on new data or with cross-validation.
+:::
+
+## P
+
+### Partial pooling {#partial-pooling}
+[LM 11]{.gl-tag}
+
+What [random effects](#random-effects) do: estimates for each individual are pulled towards the overall mean, more strongly for individuals with little data. A compromise between ignoring individuals (complete pooling) and estimating each one separately (no pooling).
+
+### Polynomial term {#polynomial}
+[LM 08]{.gl-tag}
+
+A squared (or higher-order) predictor, e.g. `y ~ age + I(age^2)`, to model curved relationships within the linear model. [Centre](#centring) the predictor first to reduce [collinearity](#collinearity) between the terms, or use `poly()`.
+
+### Power {#power}
+[LM 08, WS Power]{.gl-tag}
+
+The probability of detecting an effect of a given size, if it exists. Depends on effect size, sample size, variability and α. For complex models, estimate it by simulation (see [power analysis by simulation](workshops/power-simulation.qmd)).
+
+### Preregistration {#preregistration}
+[ORES]{.gl-tag}
+
+A time-stamped plan of hypotheses, design, sample size and analysis, written before the data are collected or seen. It separates confirmatory from exploratory analyses. Platforms: OSF, AsPredicted.
+
+### Prior, posterior {#prior}
+[WS Bayes, TAE]{.gl-tag}
+
+In Bayesian statistics, the **prior** expresses what is plausible about a parameter before seeing the data; the **posterior** combines prior and data (via the likelihood). Check what your priors imply with a prior predictive check.
+
+### Pseudoreplication {#pseudoreplication}
+[LM 11]{.gl-tag} [Problem]{.gl-tag .gl-problem-tag}
+
+Treating repeated observations of the same unit (animal, group, session) as independent. The effective sample size is overstated, so standard errors are too small and false positives too frequent.
+
+::: {.gl-fix}
+**What to do about it?**
+
+- Identify the unit of observation and all grouping factors before the analysis.
+- Include [random effects](#random-effects) for them, with random slopes for predictors that vary within units.
+- Alternatively, aggregate to one value per unit (loses information but is valid).
+:::
+
+### *p*-value {#p-value}
+[LM 02]{.gl-tag}
+
+The probability of a result at least as extreme as the observed one, **if the null hypothesis were true**. It is not the probability that the null hypothesis is true, and *p* > .05 is not evidence for "no effect" (see [equivalence test](#equivalence-test)).
+
+## R
+
+### Random effects (random intercepts and slopes) {#random-effects}
+[LM 11]{.gl-tag}
+
+Parameters that vary between units of a grouping factor (e.g. chimps), modelled as coming from a common distribution. A **random intercept**, `(1 | id)`, lets units differ in their baseline; a **random slope**, `(1 + x | id)`, lets the effect of `x` differ between units. Random slopes are needed for predictors that vary within units, otherwise tests of these predictors are too liberal.
+
+### Reference level {#reference-level}
+[LM 04]{.gl-tag}
+
+With dummy coding, the factor level that the [intercept](#intercept) refers to and that all other levels are compared with. R uses the first level alphabetically; change it with `relevel()` or `factor(..., levels = )`.
+
+### Registered report {#registered-report}
+[ORES]{.gl-tag}
+
+A publication format in which the introduction, methods and analysis plan are peer-reviewed **before** data collection. If accepted in principle, the paper is published regardless of the results.
+
+### Residuals {#residuals}
+[LM 02]{.gl-tag}
+
+Observed minus predicted values. Plots of residuals against fitted values and predictors are the main tool for checking [assumptions](#assumptions). For GLMs and GLMMs, use simulated (quantile) residuals from `DHARMa`.
+
+### Rhat and effective sample size (ESS) {#rhat}
+[WS Bayes]{.gl-tag}
+
+Convergence diagnostics in Bayesian models. **Rhat** compares chains; values above 1.01 suggest they have not converged. **ESS** is the number of effectively independent draws; it should be at least a few hundred per parameter.
+
+### ROPE (region of practical equivalence) {#rope}
+[TAE]{.gl-tag}
+
+A range of parameter values considered practically equivalent to zero (defined via the [SESOI](#sesoi)). If (almost) the whole posterior lies inside the ROPE, the effect is accepted as practically zero.
+
+### 3Rs {#three-rs}
+[ORES]{.gl-tag}
+
+Principles for the ethical use of animals in research: **Replacement**, **Reduction** and **Refinement**. Good statistical planning (power analysis, sequential designs) contributes directly to Reduction.
+
+## S
+
+### Sequential analysis {#sequential-analysis}
+[ORES]{.gl-tag}
+
+A design with planned interim analyses, at which data collection can stop for efficacy or [futility](#stopping-for-futility), while [alpha spending](#alpha-spending) keeps the overall error rate at α. With animals, it reduces the expected number of animals needed. In R: `rpact`.
+
+### SESOI (smallest effect size of interest) {#sesoi}
+[TAE]{.gl-tag}
+
+The smallest effect that would be theoretically or practically meaningful. Needed for [equivalence tests](#equivalence-test), [ROPEs](#rope) and power analyses. Justify it from theory, previous studies or practical considerations, and preregister it.
+
+### Singular fit {#singular-fit}
+[LM 11]{.gl-tag} [Problem]{.gl-tag .gl-problem-tag}
+
+lme4's message "boundary (singular) fit": a random-effect variance is estimated as (nearly) zero or a correlation as ±1. The random-effects structure is too complex for the data, often because a grouping factor has few levels.
+
+::: {.gl-fix}
+**What to do about it?**
+
+- Inspect `VarCorr(model)` to see which component is at the boundary.
+- Simplify: first remove the random-effect correlations (`||`), then random slopes with (near-)zero variance, guided by the design rather than by *p*-values.
+- Keep in mind that removing random slopes for within-unit predictors makes tests of these predictors too liberal; report what you did.
+- A Bayesian model (`brms`) with weakly informative priors avoids estimates at the boundary.
+:::
+
+### Standard error {#standard-error}
+[LM 02]{.gl-tag}
+
+The standard deviation of an estimate across repeated samples: how much the estimate would vary if the study were repeated. The basis of [confidence intervals](#confidence-interval) and tests.
+
+### Stopping for futility {#stopping-for-futility}
+[ORES]{.gl-tag}
+
+Ending a study early at a planned interim analysis because the effect is unlikely to reach significance even with the full sample. Saves resources and, in animal research, animals.
+
+## Z
+
+### z-transformation (standardisation) {#z-transformation}
+[LM 03]{.gl-tag}
+
+Subtracting the mean of a predictor and dividing by its standard deviation: `scale(x)`. The predictor then has mean 0 and SD 1, so coefficients are the effect of a one-SD change. Makes effects of predictors on different scales comparable and often helps models to [converge](#convergence).
+
+### Zero-inflation {#zero-inflation}
+[LM 10, WS GLMMs]{.gl-tag} [Problem]{.gl-tag .gl-problem-tag}
+
+More zeros than a Poisson or negative binomial model predicts, e.g. because some animals never show a behaviour. Ignoring it can bias estimates. Check with `DHARMa::testZeroInflation()` or `performance::check_zeroinflation()`.
+
+::: {.gl-fix}
+**What to do about it?**
+
+- Ask where the extra zeros come from (e.g. animals that were never in a position to show the behaviour).
+- Fit a zero-inflated or hurdle model with `glmmTMB` (`ziformula = ~ 1`); see [advanced GLMMs](workshops/advanced-glmms.qmd).
+- Sometimes a negative binomial model alone already accounts for the zeros; compare the models.
+:::
+
+```{=html}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var box = document.getElementById("gl-filter");
+  if (!box) return;
+  var entries = Array.from(document.querySelectorAll("main section.level3"));
+  var letters = Array.from(document.querySelectorAll("main section.level2"));
+  box.addEventListener("input", function () {
+    var q = box.value.trim().toLowerCase();
+    entries.forEach(function (s) {
+      s.style.display = (!q || s.textContent.toLowerCase().includes(q)) ? "" : "none";
+    });
+    letters.forEach(function (l) {
+      var any = Array.from(l.querySelectorAll("section.level3")).some(function (s) { return s.style.display !== "none"; });
+      l.style.display = any ? "" : "none";
+    });
+  });
+});
+</script>
+```

@@ -1,0 +1,59 @@
+---
+title: "09 · Model selection"
+subtitle: "Week 3"
+---
+
+::: {.guiding-q}
+How do I select the best model?
+:::
+
+## In this session
+
+- What "best" means: testing hypotheses vs. predicting well
+- Full–null model comparisons and likelihood-ratio tests
+- Information criteria (AIC) and multi-model inference
+- Overfitting, and why stepwise selection is a problem
+- Pre-specifying the model as the default for confirmatory analyses
+
+::: {.key-terms}
+**Key terms:** [AIC (Akaike information criterion)](../../glossary.qmd#aic), [Likelihood-ratio test](../../glossary.qmd#lrt), [Full–null model comparison](../../glossary.qmd#full-null), [Overfitting](../../glossary.qmd#overfitting), [Model selection](../../glossary.qmd#model-selection)
+:::
+
+## Learning goals
+
+After this session you can
+
+- compare nested models with a likelihood-ratio test,
+- use and interpret AIC for a set of candidate models,
+- explain why selecting predictors by *p*-values inflates false positives.
+
+## Simulate first
+
+Adding predictors that are pure noise always increases R². A good model selection strategy must guard against this.
+
+```{r}
+#| fig-height: 3.2
+set.seed(9)
+n <- 40
+noise <- as.data.frame(matrix(rnorm(n * 20), n))
+y <- rnorm(n)                                    # y is unrelated to all predictors
+
+r2 <- sapply(1:20, function(k)
+  summary(lm(y ~ ., data = noise[, 1:k, drop = FALSE]))$r.squared)
+
+plot(1:20, r2, type = "b", pch = 19, col = "#c0392b",
+     xlab = "Number of noise predictors", ylab = expression(R^2))
+```
+
+## Materials
+
+::: {.materials}
+- Slides <span class="tag">coming soon</span>
+- R script <span class="tag">coming soon</span>
+- Exercises <span class="tag">coming soon</span>
+:::
+
+## Reading
+
+- Burnham, K. P., & Anderson, D. R. (2002). *Model selection and multimodel inference* (2nd ed.). Springer.
+- Forstmeier, W., & Schielzeth, H. (2011). Cryptic multiple hypotheses testing in linear models: Overestimated effect sizes and the winner's curse. *Behavioral Ecology and Sociobiology, 65*, 47–55.

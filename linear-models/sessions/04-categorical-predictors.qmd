@@ -1,0 +1,52 @@
+---
+title: "04 · Categorical predictors"
+subtitle: "Week 1"
+---
+
+::: {.guiding-q}
+What if a predictor is a category?
+:::
+
+## In this session
+
+- Dummy (treatment) coding and the reference level
+- What the coefficients of a factor mean
+- Other contrasts (sum coding) and when to use them
+- Estimated marginal means and pairwise comparisons with `emmeans`
+
+::: {.key-terms}
+**Key terms:** [Contrasts and dummy coding](../../glossary.qmd#contrasts), [Reference level](../../glossary.qmd#reference-level), [Estimated marginal means](../../glossary.qmd#emmeans)
+:::
+
+## Learning goals
+
+After this session you can
+
+- explain how R turns a factor into numeric predictors,
+- interpret coefficients relative to a reference level,
+- obtain group means and contrasts with `emmeans`.
+
+## Simulate first
+
+```{r}
+set.seed(4)
+group <- factor(rep(c("control", "food", "toy"), each = 20))
+mu    <- c(control = 10, food = 14, toy = 12)
+y     <- rnorm(60, mu[group], 3)
+
+m <- lm(y ~ group)
+round(coef(m), 2)                       # intercept = control, others = differences
+head(model.matrix(m)[c(1, 21, 41), ])   # the dummy variables behind the scenes
+```
+
+## Materials
+
+::: {.materials}
+- Slides <span class="tag">coming soon</span>
+- R script <span class="tag">coming soon</span>
+- Exercises <span class="tag">coming soon</span>
+:::
+
+## Reading
+
+- Schad, D. J., Vasishth, S., Hohenstein, S., & Kliegl, R. (2020). How to capitalize on a priori contrasts in linear (mixed) models: A tutorial. *Journal of Memory and Language, 110*, 104038.

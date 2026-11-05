@@ -1,0 +1,17 @@
+{
+  "hash": "dbf9c23dd1190f2fbc668dbd7b699cfb",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"08 · Model building\"\nsubtitle: \"Week 2\"\n---\n\n\n\n\n::: {.guiding-q}\nHow do I build a good model?\n:::\n\n## In this session\n\n- Models follow from the research question, not from the data\n- Choosing predictors and control variables: causal reasoning and DAGs\n- Non-linear effects with polynomials and transformations\n- Simulating data from your planned model to check design and power\n- Writing down the model *before* data collection (link to the course [Open, Replicable, and Ethical Science](../../ores/index.qmd))\n\n::: {.key-terms}\n**Key terms:** [Polynomial term](../../glossary.qmd#polynomial), [Power](../../glossary.qmd#power), [Preregistration](../../glossary.qmd#preregistration)\n:::\n\n## Learning goals\n\nAfter this session you can\n\n- derive a model from a research question and justify each term,\n- recognise when to include a quadratic term or transform a variable,\n- run a simple power analysis by simulation.\n\n## Simulate first\n\nPower analysis by simulation: how often do we detect a slope of 0.3 with *n* animals?\n\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nset.seed(8)\npower_for_n <- function(n, b1 = 0.3, nsim = 500) {\n  mean(replicate(nsim, {\n    x <- rnorm(n); y <- b1 * x + rnorm(n)\n    summary(lm(y ~ x))$coefficients[2, 4] < .05\n  }))\n}\nns  <- seq(10, 120, by = 10)\npow <- sapply(ns, power_for_n)\n\nplot(ns, pow, type = \"b\", pch = 19, col = \"#1b6f8a\", ylim = c(0, 1),\n     xlab = \"Sample size\", ylab = \"Power\")\nabline(h = .8, lty = 2, col = \"#c0392b\")\n```\n\n::: {.cell-output-display}\n![](08-model-building_files/figure-html/unnamed-chunk-1-1.png){width=975}\n:::\n:::\n\n\n\n\n## Materials\n\n::: {.materials}\n- Slides <span class=\"tag\">coming soon</span>\n- R script <span class=\"tag\">coming soon</span>\n- Exercises <span class=\"tag\">coming soon</span>\n:::\n\n## Reading\n\n- McElreath, R. (2020). *Statistical rethinking* (2nd ed.), ch. 5–6 (on confounds and DAGs). CRC Press.\n- Gelman, Hill & Vehtari (2020), ch. 12 and 16.\n",
+    "supporting": [
+      "08-model-building_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

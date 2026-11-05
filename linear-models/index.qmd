@@ -1,0 +1,67 @@
+---
+title: "Linear Models in R"
+subtitle: "Course 1 · the basic course"
+---
+
+## Audience and aims
+
+Early-career PhD students in CBB (behaviour, cognition, neuroscience) with mixed statistical backgrounds. After the course, they can formulate, fit, check, interpret and report linear models in R on their own data, and they know when to seek advice.
+
+## One framework, not a toolbox of tests
+
+Everything is a linear model; t-tests and ANOVA are shown as special cases. The final sessions each relax one assumption: normality (GLM), then independence (GLMM).
+
+## Format
+
+A **three-week block course with 11 sessions**. Each day combines
+
+- a short **theory input**,
+- **guided live coding**, and
+- **supervised exercises** (with basic and advanced parts).
+
+::: {.box}
+**Before the course:** a mandatory [R primer](../resources.qmd#r-primer) sets a common baseline (R, RStudio, data import, the tidyverse basics, plotting, Quarto).
+:::
+
+## Schedule
+
+| #  | Session | Guiding question | Week |
+|----|---------|------------------|------|
+| 01 | [Introduction](sessions/01-introduction.qmd) | What is a statistical model? | 1 |
+| 02 | [Simple regression](sessions/02-simple-regression.qmd) | How does one variable predict another? | 1 |
+| 03 | [Multiple regression](sessions/03-multiple-regression.qmd) | What if there are several predictors? | 1 |
+| 04 | [Categorical predictors](sessions/04-categorical-predictors.qmd) | What if a predictor is a category? | 1 |
+| 05 | [Interactions](sessions/05-interactions.qmd) | What if the effect of one predictor depends on another? | 2 |
+| 06 | [The t-test as a linear model](sessions/06-t-test.qmd) | Isn't a t-test something else? | 2 |
+| 07 | [ANOVA as a linear model](sessions/07-anova.qmd) | And what about ANOVA? | 2 |
+| 08 | [Model building](sessions/08-model-building.qmd) | How do I build a good model? | 2 |
+| 09 | [Model selection](sessions/09-model-selection.qmd) | How do I select the best model? | 3 |
+| 10 | [GLM](sessions/10-glm.qmd) | What to do if the DV is not normal? | 3 |
+| 11 | [GLMM](sessions/11-glmm.qmd) | What to do if observations are not independent? | 3 |
+| –  | [Final project presentations](final-project.qmd) | | 3 |
+
+: {.striped .hover}
+
+[Dates and rooms will be announced here.]{.muted}
+
+## Materials
+
+Quarto slides, R scripts and exercises for every session are linked on the session pages. All code runs on the datasets in the [`data/`](https://github.com/SimonStephan31/cbbstats/tree/main/data) folder of this site's repository.
+
+## Assessment
+
+- **Exercises** during the course.
+- A **final project**: in the last days, students analyse a dataset (their own or one provided) and present it briefly. This links the course directly to individual [consultation](../consultation.qmd). See [Final project](final-project.qmd).
+
+## Software
+
+Please install before the course:
+
+- a current version of [R](https://cran.r-project.org/) and [RStudio](https://posit.co/download/rstudio-desktop/)
+- [Quarto](https://quarto.org/docs/get-started/) (bundled with recent RStudio versions)
+- the course packages:
+
+```r
+install.packages(c("tidyverse", "lme4", "glmmTMB", "emmeans",
+                   "performance", "DHARMa", "car"))
+```

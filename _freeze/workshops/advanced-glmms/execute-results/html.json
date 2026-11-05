@@ -1,0 +1,17 @@
+{
+  "hash": "18ac228d654a33efc8b54940ab45efdf",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Advanced GLMMs with glmmTMB\"\nsubtitle: \"Short workshop on demand · after Linear Models in R\"\n---\n\n\n\n\n## What is glmmTMB?\n\n[glmmTMB](https://glmmtmb.github.io/glmmTMB/) is an R package for fitting generalized linear mixed models by maximum likelihood, like `lme4::glmer()` from session 11. Its strength is flexibility: it handles many distributions and model parts that `glmer()` cannot, and it is usually fast and stable.\n\nIt is the natural next step when the data do not fit a Poisson or binomial GLMM, which is common with behavioural data, for example counts of rare behaviours with many zeros.\n\n## Topics\n\n- Overdispersed counts: negative binomial models\n- Many zeros: zero-inflated and hurdle models\n- Proportions that are not counts (e.g. time spent): beta regression\n- Modelling the variance itself (dispersion models)\n- Checking such models with simulated residuals ([DHARMa](https://cran.r-project.org/package=DHARMa))\n- Choosing between candidate distributions\n\n::: {.key-terms}\n**Key terms:** [Overdispersion](../glossary.qmd#overdispersion), [Zero-inflation](../glossary.qmd#zero-inflation), [Heteroscedasticity](../glossary.qmd#heteroscedasticity), [Convergence failure](../glossary.qmd#convergence)\n:::\n\n## A first look\n\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nlibrary(glmmTMB)\n\n# Counts with many zeros: negative binomial with zero-inflation\nfit <- glmmTMB(grooming ~ z.age + sex + offset(log(hours)) + (1 | id),\n               ziformula = ~ 1,                 # extra zeros\n               family    = nbinom2,             # overdispersion\n               data      = xdata)\n\nsummary(fit)\nDHARMa::simulateResiduals(fit, plot = TRUE)     # residual diagnostics\n```\n:::\n\n\n\n\n## Prerequisites\n\n*Linear Models in R*, in particular sessions 10 (GLM) and 11 (GLMM).\n\n## Reading\n\n- Brooks, M. E., Kristensen, K., van Benthem, K. J., Magnusson, A., Berg, C. W., Nielsen, A., Skaug, H. J., Mächler, M., & Bolker, B. M. (2017). glmmTMB balances speed and flexibility among packages for zero-inflated generalized linear mixed modeling. *The R Journal, 9*(2), 378–400.\n- Harrison, X. A. (2014). Using observation-level random effects to model overdispersion in count data in ecology and evolution. *PeerJ, 2*, e616.\n",
+    "supporting": [
+      "advanced-glmms_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

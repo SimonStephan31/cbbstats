@@ -1,0 +1,35 @@
+---
+title: "Statistical consultation"
+---
+
+## Open consultation hours
+
+Regular open consultation hours, no appointment needed.
+
+[Time and place will be announced here.]{.muted}
+
+## Individual appointments
+
+For questions that need more time, book an individual appointment. **Come early, ideally before data collection.** Most problems in an analysis start in the design, and they are much easier to fix there.
+
+## How to prepare
+
+Please bring, or send in advance:
+
+- your **research question** and hypotheses,
+- a description of the **design**: unit of observation, what was measured how often, and on whom,
+- the **grouping structure** (e.g., individuals within groups, repeated sessions),
+- the **type of response** (continuous, count, proportion, binary, ...),
+- if available, your data and R script.
+
+We start from the question, not from the test. Together we reason towards a model, rather than me handing one over.
+
+## Workshops on demand
+
+Recurring questions from consultations feed back into the curriculum and into short workshops, for example:
+
+- **[Bayesian modelling](workshops/bayesian-modelling.qmd)** with `brms`, for participants who completed *Linear Models in R*
+- **[Power analysis by simulation](workshops/power-simulation.qmd)**
+- **[Advanced GLMMs](workshops/advanced-glmms.qmd)** with `glmmTMB`
+
+Suggestions for topics are welcome.

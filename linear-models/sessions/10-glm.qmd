@@ -1,0 +1,64 @@
+---
+title: "10 · Generalized linear models (GLM)"
+subtitle: "Week 3"
+---
+
+::: {.guiding-q}
+What to do if the DV is not normal?
+:::
+
+[The first assumption we relax: **normality**.]{.accent}
+
+## In this session
+
+- Responses that are counts, proportions or binary choices
+- The three parts of a GLM: distribution, linear predictor, link function
+- Poisson and binomial models; offsets for observation time
+- Overdispersion and the negative binomial model
+- Interpreting coefficients and plotting predictions on the response scale
+
+::: {.key-terms}
+**Key terms:** [Link function](../../glossary.qmd#link-function), [Log-odds (logit)](../../glossary.qmd#log-odds), [Offset](../../glossary.qmd#offset), [Overdispersion](../../glossary.qmd#overdispersion), [Zero-inflation](../../glossary.qmd#zero-inflation), [Complete separation](../../glossary.qmd#complete-separation)
+:::
+
+## Learning goals
+
+After this session you can
+
+- choose a distribution and link function that fit the response,
+- fit Poisson and binomial GLMs and interpret them on the response scale,
+- detect and handle overdispersion.
+
+## Simulate first
+
+Counts of approaches per focal observation, increasing with age on the log scale.
+
+```{r}
+#| fig-height: 3.2
+set.seed(10)
+age    <- runif(150, 0, 12)                    # months
+mu     <- exp(0.2 + 0.12 * age)                # log link
+counts <- rpois(150, mu)
+
+m <- glm(counts ~ age, family = poisson)
+round(coef(m), 2)                              # back on the log scale
+round(exp(coef(m)[2]), 2)                      # multiplicative change per month
+
+plot(age, counts, pch = 19, col = adjustcolor("#1b6f8a", .5),
+     xlab = "Age (months)", ylab = "Count")
+curve(predict(m, data.frame(age = x), type = "response"),
+      add = TRUE, col = "#c0392b", lwd = 2)
+```
+
+## Materials
+
+::: {.materials}
+- Slides <span class="tag">coming soon</span>
+- R script <span class="tag">coming soon</span>
+- Exercises <span class="tag">coming soon</span>
+:::
+
+## Reading
+
+- Gelman, Hill & Vehtari (2020), ch. 13–15.
+- Fox (2016), ch. 14–15.

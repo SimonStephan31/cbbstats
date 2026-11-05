@@ -1,0 +1,21 @@
+---
+title: "About"
+---
+
+This website accompanies three courses (*Linear Models in R*, *Open, Replicable, and Ethical Science*, and *Testing for Absence and Equivalence*) and the statistical consultation for PhD students of the Campus Research Alliance Cognition, Brain, and Behavior (CBB) at the University of Göttingen and the German Primate Center (DPZ).
+
+## Instructor
+
+**Simon Stephan**  
+Cognitive and Decision Sciences, University of Göttingen  
+Research on causal cognition, causal learning and Bayesian modelling.
+
+[Contact details will be added here.]{.muted}
+
+## Evaluation
+
+Participants give feedback every year. Together with recurring questions from consultations, this feedback shapes the next iteration of the course.
+
+## Reuse
+
+Text and slides are licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); code is MIT-licensed. The site is built with [Quarto](https://quarto.org) and R, and all source files are on [GitHub](https://github.com/SimonStephan31/cbbstats). Datasets come with their own sources and citation requests (see the [`data/` folder](https://github.com/SimonStephan31/cbbstats/tree/main/data)).

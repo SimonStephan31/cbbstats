@@ -1,0 +1,17 @@
+{
+  "hash": "20476b8a59aa7a2303e046e5c4aeff10",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"01 · Introduction\"\nsubtitle: \"Week 1\"\n---\n\n\n\n\n::: {.guiding-q}\nWhat is a statistical model?\n:::\n\n## In this session\n\n- Why statistics in CBB research: description, estimation, inference, prediction\n- A statistical model = a **systematic part** (what we expect) + a **random part** (how observations scatter around it)\n- The linear model as the common language of this course\n- From research question to model: response, predictors, unit of observation\n- Course overview and workflow (R projects, Quarto, reproducibility)\n\n::: {.key-terms}\n**Key terms:** [Assumptions (of the linear model)](../../glossary.qmd#assumptions), [Residuals](../../glossary.qmd#residuals)\n:::\n\n## Learning goals\n\nAfter this session you can\n\n- explain what a statistical model is and which parts it has,\n- write a simple linear model as an equation and translate it into words,\n- set up an R project with a Quarto document for your analyses.\n\n## Simulate first\n\nBefore we fit anything, we write down a model and let it generate data. Here: body mass (kg) increases with age (years), plus random variation.\n\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nset.seed(1)\nn    <- 50\nage  <- runif(n, 1, 10)\nb0   <- 3; b1 <- 0.8; sigma <- 1.5        # the \"true\" model\nmass <- b0 + b1 * age + rnorm(n, 0, sigma)\n\nplot(age, mass, pch = 19, col = \"#1b6f8a\",\n     xlab = \"Age (years)\", ylab = \"Body mass (kg)\")\nabline(b0, b1, col = \"#c0392b\", lwd = 2)   # the systematic part\n```\n\n::: {.cell-output-display}\n![](01-introduction_files/figure-html/unnamed-chunk-1-1.png){width=975}\n:::\n:::\n\n\n\n\n::: {.box}\n**Systematic part:** $\\mu_i = \\beta_0 + \\beta_1 \\cdot \\text{age}_i$  \n**Random part:** $y_i \\sim \\text{Normal}(\\mu_i, \\sigma)$\n:::\n\n## Materials\n\n::: {.materials}\n- Slides <span class=\"tag\">coming soon</span>\n- R script <span class=\"tag\">coming soon</span>\n- Exercises <span class=\"tag\">coming soon</span>\n:::\n\n## Reading\n\n- Gelman, A., Hill, J., & Vehtari, A. (2020). *Regression and other stories*, ch. 1. Cambridge University Press.\n",
+    "supporting": [
+      "01-introduction_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

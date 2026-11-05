@@ -1,0 +1,16 @@
+---
+title: "Short workshops on demand"
+subtitle: "Add-ons to the three courses"
+---
+
+Short workshops (one to two days) on topics that come up repeatedly in consultation. They run when there is demand. Suggestions are welcome.
+
+| Workshop | Builds on | In short |
+|---|---|---|
+| [Bayesian modelling with brms](bayesian-modelling.qmd) | Linear Models in R | Bayesian versions of the models from the core course, in familiar `lme4` syntax |
+| [Power analysis by simulation](power-simulation.qmd) | Linear Models in R | Plan sample sizes for designs where formulas fail, e.g. GLMMs |
+| [Advanced GLMMs with glmmTMB](advanced-glmms.qmd) | Linear Models in R, session 11 | Zero-inflated, negative binomial, beta and other models beyond `glmer()` |
+
+: {.striped .hover}
+
+[Interested? Get in touch via the [consultation](../consultation.qmd) page.]{.muted}

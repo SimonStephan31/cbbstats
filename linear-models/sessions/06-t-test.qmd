@@ -1,0 +1,54 @@
+---
+title: "06 · The t-test as a linear model"
+subtitle: "Week 2"
+---
+
+::: {.guiding-q}
+Isn't a t-test something else?
+:::
+
+## In this session
+
+- The independent-samples *t*-test is a regression with one binary predictor
+- The one-sample and the paired *t*-test are intercept-only models
+- Welch's *t*-test and what it changes (unequal variances)
+- Why this matters: one framework instead of a decision tree of tests
+
+::: {.key-terms}
+**Key terms:** [*p*-value](../../glossary.qmd#p-value), [Degrees of freedom](../../glossary.qmd#df)
+:::
+
+## Learning goals
+
+After this session you can
+
+- reproduce a *t*-test with `lm()` and show that the results are identical,
+- explain what the intercept and the slope correspond to in a *t*-test,
+- run a paired *t*-test as a model of differences.
+
+## Simulate first
+
+```{r}
+set.seed(6)
+group <- factor(rep(c("young", "old"), each = 25), levels = c("young", "old"))
+y     <- rnorm(50, ifelse(group == "old", 12, 10), 3)
+
+t.test(y ~ group, var.equal = TRUE)$statistic   # classic t-test
+summary(lm(y ~ group))$coefficients             # same t (sign flipped), same p
+```
+
+::: {.box}
+**Paired *t*-test** = intercept-only model of the differences: `lm(after - before ~ 1)`.
+:::
+
+## Materials
+
+::: {.materials}
+- Slides <span class="tag">coming soon</span>
+- R script <span class="tag">coming soon</span>
+- Exercises <span class="tag">coming soon</span>
+:::
+
+## Reading
+
+- Lindeløv, J. K. (2019). *Common statistical tests are linear models (or: how to teach stats).* <https://lindeloev.github.io/tests-as-linear/>

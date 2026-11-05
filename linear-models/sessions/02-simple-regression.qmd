@@ -1,0 +1,61 @@
+---
+title: "02 · Simple regression"
+subtitle: "Week 1"
+---
+
+::: {.guiding-q}
+How does one variable predict another?
+:::
+
+## In this session
+
+- Least squares: fitting a line with `lm()`
+- Interpreting intercept, slope and residual standard deviation
+- Inference: standard errors, confidence intervals, *t*- and *p*-values
+- Assumptions and diagnostics: residual plots, influential cases
+- Reporting a regression result
+
+::: {.key-terms}
+**Key terms:** [Intercept](../../glossary.qmd#intercept), [Residuals](../../glossary.qmd#residuals), [Standard error](../../glossary.qmd#standard-error), [Confidence interval](../../glossary.qmd#confidence-interval), [*p*-value](../../glossary.qmd#p-value), [Assumptions (of the linear model)](../../glossary.qmd#assumptions), [Heteroscedasticity](../../glossary.qmd#heteroscedasticity), [Influential cases](../../glossary.qmd#influential-cases), [Cook's distance](../../glossary.qmd#cooks-distance)
+:::
+
+## Learning goals
+
+After this session you can
+
+- fit a simple regression in R and interpret its coefficients,
+- explain what a standard error and a confidence interval mean,
+- check model assumptions with diagnostic plots.
+
+## Simulate first
+
+If we simulate data from a known model again and again, the estimated slopes scatter around the true value. Their spread *is* the standard error.
+
+```{r}
+#| fig-height: 3.2
+set.seed(2)
+true_b1 <- 0.8
+slopes <- replicate(2000, {
+  age  <- runif(30, 1, 10)
+  mass <- 3 + true_b1 * age + rnorm(30, 0, 1.5)
+  coef(lm(mass ~ age))[2]
+})
+
+hist(slopes, breaks = 40, col = "#1b6f8a", border = "white",
+     main = "Sampling distribution of the slope", xlab = "Estimated slope")
+abline(v = true_b1, col = "#c0392b", lwd = 2)
+sd(slopes)   # compare with the SE that summary(lm(...)) reports for one sample
+```
+
+## Materials
+
+::: {.materials}
+- Slides <span class="tag">coming soon</span>
+- R script <span class="tag">coming soon</span>
+- Exercises <span class="tag">coming soon</span>
+:::
+
+## Reading
+
+- Gelman, Hill & Vehtari (2020), ch. 6–7.
+- Fox, J. (2016). *Applied regression analysis and generalized linear models* (3rd ed.), ch. 5–6. Sage.

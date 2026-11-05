@@ -1,0 +1,85 @@
+/*-- scss:defaults --*/
+// Same palette as the session slides (custom.scss)
+$navy:  #12384a;
+$teal:  #1b6f8a;
+$red:   #c0392b;
+$ink:   #1f2a33;
+$muted: #7a8791;
+
+$primary: $teal;
+$body-color: $ink;
+$link-color: $teal;
+$headings-color: $navy;
+$navbar-bg: $navy;
+$font-family-sans-serif: "Source Sans 3", "Source Sans Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+$headings-font-weight: 600;
+
+/*-- scss:rules --*/
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap');
+
+.guiding-q {
+  font-size: 1.35rem; color: $navy; font-weight: 600;
+  border-left: 6px solid $red; padding: .35rem 0 .35rem .9rem; margin: 1rem 0 1.5rem;
+}
+.box {
+  background: #eef5f8; border-left: 6px solid $teal;
+  padding: .7rem 1rem; border-radius: 4px; margin: 1rem 0;
+}
+.box-warn {
+  background: #fbefec; border-left: 6px solid $red;
+  padding: .7rem 1rem; border-radius: 4px; margin: 1rem 0;
+}
+.muted { color: $muted; }
+.accent { color: $red; font-weight: 600; }
+
+// Hero on the home page
+.hero {
+  background: $navy; color: #fff; border-radius: 6px;
+  padding: 2rem 2rem 1.6rem; margin: 0 0 2rem;
+  h1, h2, p { color: #fff; }
+  .hero-sub { color: #cfe0e7; font-size: 1.15rem; }
+}
+
+// Course map (schedule)
+.coursemap { width: 100%; }
+.coursemap td:first-child { color: $muted; width: 2.5rem; }
+.coursemap td:nth-child(2) { font-weight: 600; white-space: nowrap; }
+.coursemap td:nth-child(3) { color: #4a5964; }
+
+// Cards on the home page
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 1rem 0 2rem; }
+.card-lite {
+  border: 1px solid #dde3e8; border-top: 4px solid $teal; border-radius: 6px; padding: 1rem;
+  h4 { margin-top: 0; font-size: 1.05rem; }
+  p { margin-bottom: 0; font-size: .95rem; }
+}
+.card-lite.red { border-top-color: $red; }
+
+// Material list on session pages
+.materials li .tag {
+  display: inline-block; font-size: .75rem; padding: 0 .45rem; border-radius: 3px;
+  background: #f1f3f5; color: $muted; margin-left: .4rem;
+}
+
+// Three course cards on the home page
+.cards-3 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.card-kicker {
+  display: block; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em;
+  color: #7a8791; margin-bottom: .35rem;
+}
+.cards-3 .card-lite h4 { margin-top: .2rem; }
+
+// Glossary
+.gl-tag {
+  display: inline-block; font-size: .75rem; font-weight: 600; letter-spacing: .02em;
+  padding: .05rem .45rem; border-radius: 3px; background: #eef5f8; color: $teal; margin-right: .3rem;
+}
+.gl-problem-tag { background: #fbefec; color: $red; }
+.gl-fix {
+  background: #fbefec; border-left: 6px solid $red; border-radius: 4px;
+  padding: .6rem 1rem .2rem; margin: .6rem 0 1.2rem;
+  p:first-child { margin-bottom: .3rem; }
+}
+#gl-filter { max-width: 420px; margin: 1rem 0 1.5rem; }
+main section.level3 h3 { margin-top: 1.6rem; font-size: 1.15rem; }
+.key-terms { font-size: .92rem; color: #4a5964; margin: -.3rem 0 1.2rem; }

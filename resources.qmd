@@ -1,0 +1,39 @@
+---
+title: "Resources"
+---
+
+## R primer {#r-primer}
+
+A mandatory R primer precedes the course and sets a common baseline. Please work through it before the first session.
+
+- R and RStudio: installation, projects, scripts
+- Data import and data frames
+- Data wrangling with `dplyr` and `tidyr`
+- Plotting with `ggplot2`
+- Reproducible reports with Quarto
+
+Recommended free material: Wickham, H., Çetinkaya-Rundel, M., & Grolemund, G. (2023). *R for data science* (2nd ed.). <https://r4ds.hadley.nz/>
+
+## Books
+
+- Gelman, A., Hill, J., & Vehtari, A. (2020). *Regression and other stories.* Cambridge University Press. Free PDF: <https://avehtari.github.io/ROS-Examples/>
+- Fox, J. (2016). *Applied regression analysis and generalized linear models* (3rd ed.). Sage.
+- Fox, G. A., Negrete-Yankelevich, S., & Sosa, V. J. (Eds.). (2015). *Ecological statistics: Contemporary theory and application.* Oxford University Press.
+- McElreath, R. (2020). *Statistical rethinking* (2nd ed.). CRC Press.
+- Lakens, D. *Improving your statistical inferences.* <https://lakens.github.io/statistical_inferences/>
+
+## R packages used in the course
+
+| Package | Used for |
+|---|---|
+| `tidyverse` | data handling and plotting |
+| `emmeans` | estimated marginal means and contrasts |
+| `car` | ANOVA tables, variance inflation factors |
+| `performance`, `DHARMa` | model diagnostics |
+| `lme4`, `glmmTMB` | mixed models |
+| `rpact` | sequential designs (course *Open, Replicable, and Ethical Science*) |
+| `TOSTER`, `BayesFactor`, `brms`, `bayestestR` | equivalence tests and Bayesian alternatives (course *Testing for Absence and Equivalence*) |
+
+## Data
+
+All datasets used on this site are in the [`data/`](https://github.com/SimonStephan31/cbbstats/tree/main/data) folder of the repository, each with a short description.

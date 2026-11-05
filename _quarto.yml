@@ -1,0 +1,115 @@
+project:
+  type: website
+  output-dir: docs          # GitHub Pages serves from /docs on the main branch
+  render:
+    - "*.qmd"
+    - "linear-models/*.qmd"
+    - "linear-models/sessions/*.qmd"
+    - "linear-models/exercises/*.qmd"
+    - "ores/*.qmd"
+    - "tae/*.qmd"
+    - "workshops/*.qmd"
+  resources:
+    - slides/
+    - scripts/
+    - data/
+
+website:
+  title: "Statistics Teaching at CBB"
+  description: "Courses and consultation in statistics · Campus Research Alliance Cognition, Brain, and Behavior (CBB), Göttingen"
+  site-url: "https://simonstephan31.github.io/cbbstats/"
+  repo-url: "https://github.com/SimonStephan31/cbbstats"
+  repo-actions: [source, issue]
+  page-navigation: true
+  back-to-top-navigation: true
+  search: true
+  navbar:
+    background: "#12384a"
+    left:
+      - href: index.qmd
+        text: Home
+      - href: linear-models/index.qmd
+        text: Linear Models
+      - href: ores/index.qmd
+        text: ORES
+      - href: tae/index.qmd
+        text: TAE
+      - href: workshops/index.qmd
+        text: Workshops
+      - href: consultation.qmd
+        text: Consultation
+    right:
+      - href: glossary.qmd
+        text: Glossary
+      - href: resources.qmd
+        text: Resources
+      - href: about.qmd
+        text: About
+      - icon: github
+        href: "https://github.com/SimonStephan31/cbbstats"
+  sidebar:
+    - id: linear-models
+      title: "Linear Models in R"
+      style: docked
+      contents:
+        - text: "Course overview"
+          href: linear-models/index.qmd
+        - section: "Foundations"
+          contents:
+            - linear-models/sessions/01-introduction.qmd
+            - linear-models/sessions/02-simple-regression.qmd
+            - linear-models/sessions/03-multiple-regression.qmd
+            - linear-models/sessions/04-categorical-predictors.qmd
+            - linear-models/sessions/05-interactions.qmd
+        - section: "Classic tests as linear models"
+          contents:
+            - linear-models/sessions/06-t-test.qmd
+            - linear-models/sessions/07-anova.qmd
+        - section: "Building and choosing models"
+          contents:
+            - linear-models/sessions/08-model-building.qmd
+            - linear-models/sessions/09-model-selection.qmd
+        - section: "Relaxing assumptions"
+          contents:
+            - linear-models/sessions/10-glm.qmd
+            - linear-models/sessions/11-glmm.qmd
+            - text: "11 · Exercises"
+              href: linear-models/exercises/11-glmm.qmd
+        - linear-models/final-project.qmd
+    - id: workshops
+      title: "Short workshops"
+      style: docked
+      contents:
+        - text: "Overview"
+          href: workshops/index.qmd
+        - workshops/bayesian-modelling.qmd
+        - workshops/power-simulation.qmd
+        - workshops/advanced-glmms.qmd
+  page-footer:
+    left: "Simon Stephan · CBB Göttingen"
+    right: "Built with [Quarto](https://quarto.org) and R · Content licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)"
+
+format:
+  html:
+    theme: [cosmo, styles.scss]
+    toc: true
+    toc-depth: 2
+    code-copy: true
+    code-link: true
+    code-tools: false
+    fig-width: 6.5
+    fig-height: 3.6
+    fig-align: center
+    smooth-scroll: true
+    link-external-newwindow: true
+
+execute:
+  freeze: auto       # re-run code only when a page changes
+  warning: false
+  message: false
+
+knitr:
+  opts_chunk:
+    comment: "#>"
+    dev: "png"
+    dpi: 150

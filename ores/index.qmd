@@ -1,0 +1,63 @@
+---
+title: "Open, Replicable, and Ethical Science"
+subtitle: "Course 2 (ORES) · planning studies that justify their inferences"
+---
+
+A hands-on course that teaches tools still rarely used in behavioural research. It draws on Daniël Lakens' open teaching materials (e.g., *Improving Your Statistical Inferences*) and the R package rpact.
+
+## Topics
+
+- **Preregistration and registered reports**, including for observational field data and secondary analyses.
+- **Sequential analyses:** group-sequential designs with planned interim analyses and alpha spending, so data collection can stop early for efficacy without inflating the type I error.
+- **Optional stopping and stopping for futility:** why peeking at *p*-values inflates error rates (shown by simulation), and how to stop correctly, including when an effect is unlikely to emerge.
+
+::: {.box}
+**Why this matters at DPZ:** sequential designs and stopping for futility reduce the expected number of animals per study. This directly supports the *Reduction* principle of the 3Rs and strengthens the justification in animal-ethics applications.
+:::
+
+**Outcome:** each participant drafts a preregistration with a sample-size or sequential plan for their own project.
+
+::: {.key-terms}
+**Key terms:** [Preregistration](../glossary.qmd#preregistration), [Registered report](../glossary.qmd#registered-report), [Sequential analysis](../glossary.qmd#sequential-analysis), [Alpha spending](../glossary.qmd#alpha-spending), [Optional stopping](../glossary.qmd#optional-stopping), [Stopping for futility](../glossary.qmd#stopping-for-futility), [3Rs](../glossary.qmd#three-rs)
+:::
+
+## Simulate first: why peeking is a problem
+
+There is **no effect** in these simulations. A researcher tests after every 10 observations per group and stops as soon as *p* < .05. How often do they find a "significant" result?
+
+```{r}
+#| fig-height: 3.2
+set.seed(12)
+looks <- seq(10, 100, by = 10)
+nsim  <- 2000
+
+first_sig <- replicate(nsim, {
+  a <- rnorm(max(looks)); b <- rnorm(max(looks))       # H0 is true
+  p <- sapply(looks, function(n) t.test(a[1:n], b[1:n])$p.value)
+  which(p < .05)[1]                                    # first look with p < .05 (NA if none)
+})
+
+alpha_by_look <- sapply(seq_along(looks), function(k) mean(!is.na(first_sig) & first_sig <= k))
+
+plot(looks, alpha_by_look, type = "b", pch = 19, col = "#c0392b", ylim = c(0, .25),
+     xlab = "Maximum n per group (one look every 10)", ylab = "Type I error rate")
+abline(h = .05, lty = 2, col = "#1b6f8a")
+```
+
+With ten looks, the false-positive rate is far above the nominal 5 %. Group-sequential designs (e.g., with `rpact`) fix this by spending the alpha across the planned looks.
+
+## Materials
+
+::: {.materials}
+- Slides <span class="tag">coming soon</span>
+- R scripts <span class="tag">coming soon</span>
+- Preregistration template <span class="tag">coming soon</span>
+:::
+
+## Reading and tools
+
+- Lakens, D. *Improving your statistical inferences.* <https://lakens.github.io/statistical_inferences/>
+- Lakens, D. (2022). Sample size justification. *Collabra: Psychology, 8*(1), 33267.
+- R package: [rpact](https://www.rpact.org/)
+
+[Testing predictions of "no effect" is the topic of a separate course: [Testing for Absence and Equivalence](../tae/index.qmd).]{.muted}

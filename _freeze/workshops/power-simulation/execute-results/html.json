@@ -1,0 +1,17 @@
+{
+  "hash": "1e5481d01ffc8cd3a50a4239d474fa1c",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Power analysis by simulation\"\nsubtitle: \"Short workshop on demand · after Linear Models in R\"\n---\n\n\n\n\n## Why simulate?\n\nPower formulas exist for simple designs such as *t*-tests. For the models most CBB projects need (repeated observations of the same animals, counts, binary choices), they do not. Simulation works for every model: **simulate data from the planned model many times, fit the model to each dataset, and count how often the effect is detected.**\n\nThis follows directly from the guiding principle *model before data*, and the simulation code doubles as a first draft of the analysis script and of the preregistration.\n\n## Topics\n\n- From research question to a data-generating model\n- Choosing plausible effect sizes and variance components (pilot data, literature, smallest effect of interest)\n- Power for linear models, GLMs and GLMMs\n- Trading off number of individuals vs. number of trials per individual\n- Packages that help: [simr](https://cran.r-project.org/package=simr), [faux](https://cran.r-project.org/package=faux)\n- Sample-size justification for animal-ethics applications\n\n::: {.key-terms}\n**Key terms:** [Power](../glossary.qmd#power), [SESOI (smallest effect size of interest)](../glossary.qmd#sesoi), [Random effects (random intercepts and slopes)](../glossary.qmd#random-effects)\n:::\n\n## Simulate first\n\nHow does power change with the number of animals, when each animal is tested in 10 trials?\n\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nlibrary(lme4)\nset.seed(14)\n\npower_lmm <- function(n_id, n_trials = 10, b1 = 0.6, sd_id = 0.6, nsim = 200) {\n  mean(replicate(nsim, {\n    id <- factor(rep(1:n_id, each = n_trials))\n    x  <- rep(rep(0:1, length.out = n_id), each = n_trials) # between-animal condition\n    u  <- rep(rnorm(n_id, 0, sd_id), each = n_trials)\n    y  <- b1 * x + u + rnorm(n_id * n_trials)\n    m1 <- lmer(y ~ x + (1 | id), REML = FALSE)\n    m0 <- lmer(y ~ 1 + (1 | id), REML = FALSE)\n    anova(m0, m1)$`Pr(>Chisq)`[2] < .05\n  }))\n}\n\nn_ids <- c(10, 20, 30, 40, 60, 80)\npow   <- sapply(n_ids, power_lmm)\n\nplot(n_ids, pow, type = \"b\", pch = 19, col = \"#1b6f8a\", ylim = c(0, 1),\n     xlab = \"Number of animals\", ylab = \"Power\")\nabline(h = .8, lty = 2, col = \"#c0392b\")\n```\n\n::: {.cell-output-display}\n![](power-simulation_files/figure-html/unnamed-chunk-1-1.png){width=975}\n:::\n:::\n\n\n\n\n## Prerequisites\n\n*Linear Models in R* (at least up to session 08).\n\n## Reading\n\n- Green, P., & MacLeod, C. J. (2016). SIMR: An R package for power analysis of generalized linear mixed models by simulation. *Methods in Ecology and Evolution, 7*(4), 493–498.\n- Lakens, D. (2022). Sample size justification. *Collabra: Psychology, 8*(1), 33267.\n",
+    "supporting": [
+      "power-simulation_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

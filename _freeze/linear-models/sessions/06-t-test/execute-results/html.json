@@ -1,0 +1,17 @@
+{
+  "hash": "5a6b0ce912f3cdc590e09371f9e0a639",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"06 · The t-test as a linear model\"\nsubtitle: \"Week 2\"\n---\n\n\n\n\n::: {.guiding-q}\nIsn't a t-test something else?\n:::\n\n## In this session\n\n- The independent-samples *t*-test is a regression with one binary predictor\n- The one-sample and the paired *t*-test are intercept-only models\n- Welch's *t*-test and what it changes (unequal variances)\n- Why this matters: one framework instead of a decision tree of tests\n\n::: {.key-terms}\n**Key terms:** [*p*-value](../../glossary.qmd#p-value), [Degrees of freedom](../../glossary.qmd#df)\n:::\n\n## Learning goals\n\nAfter this session you can\n\n- reproduce a *t*-test with `lm()` and show that the results are identical,\n- explain what the intercept and the slope correspond to in a *t*-test,\n- run a paired *t*-test as a model of differences.\n\n## Simulate first\n\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nset.seed(6)\ngroup <- factor(rep(c(\"young\", \"old\"), each = 25), levels = c(\"young\", \"old\"))\ny     <- rnorm(50, ifelse(group == \"old\", 12, 10), 3)\n\nt.test(y ~ group, var.equal = TRUE)$statistic   # classic t-test\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n#>         t \n#> -1.736361\n```\n\n\n:::\n\n```{.r .cell-code}\nsummary(lm(y ~ group))$coefficients             # same t (sign flipped), same p\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n#>              Estimate Std. Error   t value     Pr(>|t|)\n#> (Intercept) 10.480585  0.6348610 16.508472 2.003183e-21\n#> groupold     1.558956  0.8978291  1.736361 8.891506e-02\n```\n\n\n:::\n:::\n\n\n\n\n::: {.box}\n**Paired *t*-test** = intercept-only model of the differences: `lm(after - before ~ 1)`.\n:::\n\n## Materials\n\n::: {.materials}\n- Slides <span class=\"tag\">coming soon</span>\n- R script <span class=\"tag\">coming soon</span>\n- Exercises <span class=\"tag\">coming soon</span>\n:::\n\n## Reading\n\n- Lindeløv, J. K. (2019). *Common statistical tests are linear models (or: how to teach stats).* <https://lindeloev.github.io/tests-as-linear/>\n",
+    "supporting": [
+      "06-t-test_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

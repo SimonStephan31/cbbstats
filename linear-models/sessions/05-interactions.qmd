@@ -1,0 +1,62 @@
+---
+title: "05 · Interactions"
+subtitle: "Week 2"
+---
+
+::: {.guiding-q}
+What if the effect of one predictor depends on another?
+:::
+
+## In this session
+
+- Interactions between a continuous and a categorical predictor, and between two continuous predictors
+- Why centring matters for interpreting main effects in the presence of interactions
+- Effect plots: showing what an interaction means
+- Interactions and statistical power
+
+::: {.key-terms}
+**Key terms:** [Interaction](../../glossary.qmd#interaction), [Centring](../../glossary.qmd#centring)
+:::
+
+## Learning goals
+
+After this session you can
+
+- specify and interpret models with interaction terms,
+- centre predictors and explain how that changes the coefficients,
+- plot model predictions to communicate an interaction.
+
+## Simulate first
+
+The effect of age on foraging success is steeper in one population than in the other.
+
+```{r}
+#| fig-height: 3.4
+library(ggplot2)
+set.seed(5)
+d <- data.frame(age = runif(120, 1, 10),
+                pop = factor(rep(c("A", "B"), each = 60)))
+d$y <- 2 + 0.3 * d$age + ifelse(d$pop == "B", 0.4 * d$age, 0) + rnorm(120)
+
+m <- lm(y ~ age * pop, data = d)
+round(coef(m), 2)
+
+ggplot(d, aes(age, y, colour = pop)) +
+  geom_point(alpha = .6) +
+  geom_smooth(method = "lm", se = TRUE) +
+  scale_colour_manual(values = c("#1b6f8a", "#c0392b")) +
+  theme_minimal()
+```
+
+## Materials
+
+::: {.materials}
+- Slides <span class="tag">coming soon</span>
+- R script <span class="tag">coming soon</span>
+- Exercises <span class="tag">coming soon</span>
+:::
+
+## Reading
+
+- Gelman, Hill & Vehtari (2020), ch. 10.3 and 12.
+- Schielzeth, H. (2010). Simple means to improve the interpretability of regression coefficients. *Methods in Ecology and Evolution, 1*(2), 103–113.

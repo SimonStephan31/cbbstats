@@ -1,0 +1,54 @@
+---
+title: "Statistics Teaching at CBB"
+subtitle: "Courses and consultation for PhD students of the Campus Research Alliance Cognition, Brain, and Behavior (CBB)"
+toc: false
+page-layout: full
+title-block-banner: false
+---
+
+::: {.hero}
+## Formulate, fit, check, interpret and report
+
+[Three courses for early-career PhD students in behaviour, cognition and neuroscience with mixed statistical backgrounds, plus statistical consultation for their own projects.]{.hero-sub}
+:::
+
+## Guiding principles
+
+1. **Model before data.** Models follow from the research question, not from the data. Students simulate data from their model to understand it and to check design and power.
+2. **Interpretation over p-values.** Effect sizes, predictions on the response scale, effect plots, diagnostics, and reporting.
+3. **Real and simulated data.** Real data from DPZ/CBB research show what analyses look like in practice; simulated data isolate exactly the aspect a session is about. Later, students work with their own projects.
+4. **Reproducibility.** Script-based analyses in Quarto; open code and data as the default.
+
+## Courses
+
+::: {.cards .cards-3}
+::: {.card-lite}
+[Course 1 · basic course, start here]{.card-kicker}
+
+#### [Linear Models in R](linear-models/index.qmd)
+A three-week block course with 11 sessions, from simple regression to GLMMs, and a final project on your own data.
+:::
+
+::: {.card-lite .red}
+[Course 2 · ORES · after Linear Models]{.card-kicker}
+
+#### [Open, Replicable, and Ethical Science](ores/index.qmd)
+Planning studies that justify their inferences: preregistration, sequential designs, stopping for futility.
+:::
+
+::: {.card-lite .red}
+[Course 3 · TAE · after Linear Models]{.card-kicker}
+
+#### [Testing for Absence and Equivalence](tae/index.qmd)
+How to support a prediction of "no effect": equivalence tests and Bayesian alternatives.
+:::
+:::
+
+## Beyond the courses
+
+- **[Statistical consultation](consultation.qmd):** regular open consultation hours plus individual appointments, ideally before data collection.
+- **Follow-up workshop on [Bayesian modelling](workshops/bayesian-modelling.qmd)** (brms): for participants who have completed *Linear Models in R*.
+- **Further [short workshops on demand](workshops/index.qmd)**, e.g., [power analysis by simulation](workshops/power-simulation.qmd) or [advanced GLMMs](workshops/advanced-glmms.qmd) (glmmTMB).
+- **Evaluation:** participant feedback every year, and recurring questions from consultations feed back into the curriculum.
+
+See also: [Resources](resources.qmd) (readings, R packages, R primer).

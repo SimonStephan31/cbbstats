@@ -1,0 +1,17 @@
+{
+  "hash": "3d4814af5d0af7c8d3f01e63cee84df8",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"09 · Model selection\"\nsubtitle: \"Week 3\"\n---\n\n\n\n\n::: {.guiding-q}\nHow do I select the best model?\n:::\n\n## In this session\n\n- What \"best\" means: testing hypotheses vs. predicting well\n- Full–null model comparisons and likelihood-ratio tests\n- Information criteria (AIC) and multi-model inference\n- Overfitting, and why stepwise selection is a problem\n- Pre-specifying the model as the default for confirmatory analyses\n\n::: {.key-terms}\n**Key terms:** [AIC (Akaike information criterion)](../../glossary.qmd#aic), [Likelihood-ratio test](../../glossary.qmd#lrt), [Full–null model comparison](../../glossary.qmd#full-null), [Overfitting](../../glossary.qmd#overfitting), [Model selection](../../glossary.qmd#model-selection)\n:::\n\n## Learning goals\n\nAfter this session you can\n\n- compare nested models with a likelihood-ratio test,\n- use and interpret AIC for a set of candidate models,\n- explain why selecting predictors by *p*-values inflates false positives.\n\n## Simulate first\n\nAdding predictors that are pure noise always increases R². A good model selection strategy must guard against this.\n\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nset.seed(9)\nn <- 40\nnoise <- as.data.frame(matrix(rnorm(n * 20), n))\ny <- rnorm(n)                                    # y is unrelated to all predictors\n\nr2 <- sapply(1:20, function(k)\n  summary(lm(y ~ ., data = noise[, 1:k, drop = FALSE]))$r.squared)\n\nplot(1:20, r2, type = \"b\", pch = 19, col = \"#c0392b\",\n     xlab = \"Number of noise predictors\", ylab = expression(R^2))\n```\n\n::: {.cell-output-display}\n![](09-model-selection_files/figure-html/unnamed-chunk-1-1.png){width=975}\n:::\n:::\n\n\n\n\n## Materials\n\n::: {.materials}\n- Slides <span class=\"tag\">coming soon</span>\n- R script <span class=\"tag\">coming soon</span>\n- Exercises <span class=\"tag\">coming soon</span>\n:::\n\n## Reading\n\n- Burnham, K. P., & Anderson, D. R. (2002). *Model selection and multimodel inference* (2nd ed.). Springer.\n- Forstmeier, W., & Schielzeth, H. (2011). Cryptic multiple hypotheses testing in linear models: Overestimated effect sizes and the winner's curse. *Behavioral Ecology and Sociobiology, 65*, 47–55.\n",
+    "supporting": [
+      "09-model-selection_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

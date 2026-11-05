@@ -1,0 +1,17 @@
+{
+  "hash": "8c493863cfd36b7878c0d3d219ae300e",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"03 · Multiple regression\"\nsubtitle: \"Week 1\"\n---\n\n\n\n\n::: {.guiding-q}\nWhat if there are several predictors?\n:::\n\n## In this session\n\n- Partial effects: the effect of one predictor *holding the others constant*\n- Why simple and multiple regression can give different answers\n- Standardising predictors (z-transformation) and comparing effects\n- Collinearity and variance inflation\n- Diagnostics in multiple regression\n\n::: {.key-terms}\n**Key terms:** [Collinearity](../../glossary.qmd#collinearity), [z-transformation (standardisation)](../../glossary.qmd#z-transformation), [Centring](../../glossary.qmd#centring)\n:::\n\n## Learning goals\n\nAfter this session you can\n\n- fit and interpret a model with several predictors,\n- explain why an estimate changes when another predictor is added,\n- diagnose collinearity.\n\n## Simulate first\n\nAge and body size are correlated, but only age affects the response. The simple regression on size finds an \"effect\" that disappears once age is in the model.\n\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nset.seed(3)\nn    <- 200\nage  <- rnorm(n)\nsize <- 0.7 * age + rnorm(n, 0, 0.7)       # size depends on age\ny    <- 1 + 0.5 * age + rnorm(n)           # y depends on age only\n\nround(coef(lm(y ~ size)), 2)               # size seems to matter ...\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n#> (Intercept)        size \n#>        0.99        0.35\n```\n\n\n:::\n\n```{.r .cell-code}\nround(coef(lm(y ~ size + age)), 2)         # ... until age is controlled for\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n#> (Intercept)        size         age \n#>        1.00        0.01        0.50\n```\n\n\n:::\n:::\n\n\n\n\n## Materials\n\n::: {.materials}\n- Slides <span class=\"tag\">coming soon</span>\n- R script <span class=\"tag\">coming soon</span>\n- Exercises <span class=\"tag\">coming soon</span>\n:::\n\n## Reading\n\n- Gelman, Hill & Vehtari (2020), ch. 10–11.\n- Fox (2016), ch. 5 and 13.\n",
+    "supporting": [
+      "03-multiple-regression_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

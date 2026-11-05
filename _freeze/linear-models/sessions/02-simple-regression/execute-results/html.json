@@ -1,0 +1,17 @@
+{
+  "hash": "a332b0e94841ac1394d7e2c6f8b6df31",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"02 · Simple regression\"\nsubtitle: \"Week 1\"\n---\n\n\n\n\n::: {.guiding-q}\nHow does one variable predict another?\n:::\n\n## In this session\n\n- Least squares: fitting a line with `lm()`\n- Interpreting intercept, slope and residual standard deviation\n- Inference: standard errors, confidence intervals, *t*- and *p*-values\n- Assumptions and diagnostics: residual plots, influential cases\n- Reporting a regression result\n\n::: {.key-terms}\n**Key terms:** [Intercept](../../glossary.qmd#intercept), [Residuals](../../glossary.qmd#residuals), [Standard error](../../glossary.qmd#standard-error), [Confidence interval](../../glossary.qmd#confidence-interval), [*p*-value](../../glossary.qmd#p-value), [Assumptions (of the linear model)](../../glossary.qmd#assumptions), [Heteroscedasticity](../../glossary.qmd#heteroscedasticity), [Influential cases](../../glossary.qmd#influential-cases), [Cook's distance](../../glossary.qmd#cooks-distance)\n:::\n\n## Learning goals\n\nAfter this session you can\n\n- fit a simple regression in R and interpret its coefficients,\n- explain what a standard error and a confidence interval mean,\n- check model assumptions with diagnostic plots.\n\n## Simulate first\n\nIf we simulate data from a known model again and again, the estimated slopes scatter around the true value. Their spread *is* the standard error.\n\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nset.seed(2)\ntrue_b1 <- 0.8\nslopes <- replicate(2000, {\n  age  <- runif(30, 1, 10)\n  mass <- 3 + true_b1 * age + rnorm(30, 0, 1.5)\n  coef(lm(mass ~ age))[2]\n})\n\nhist(slopes, breaks = 40, col = \"#1b6f8a\", border = \"white\",\n     main = \"Sampling distribution of the slope\", xlab = \"Estimated slope\")\nabline(v = true_b1, col = \"#c0392b\", lwd = 2)\n```\n\n::: {.cell-output-display}\n![](02-simple-regression_files/figure-html/unnamed-chunk-1-1.png){width=975}\n:::\n\n```{.r .cell-code}\nsd(slopes)   # compare with the SE that summary(lm(...)) reports for one sample\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n#> [1] 0.1070556\n```\n\n\n:::\n:::\n\n\n\n\n## Materials\n\n::: {.materials}\n- Slides <span class=\"tag\">coming soon</span>\n- R script <span class=\"tag\">coming soon</span>\n- Exercises <span class=\"tag\">coming soon</span>\n:::\n\n## Reading\n\n- Gelman, Hill & Vehtari (2020), ch. 6–7.\n- Fox, J. (2016). *Applied regression analysis and generalized linear models* (3rd ed.), ch. 5–6. Sage.\n",
+    "supporting": [
+      "02-simple-regression_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

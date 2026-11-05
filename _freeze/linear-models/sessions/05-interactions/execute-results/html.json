@@ -1,0 +1,17 @@
+{
+  "hash": "5d8cea4bbf5a6b5d5c96a36008214f32",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"05 · Interactions\"\nsubtitle: \"Week 2\"\n---\n\n\n\n\n::: {.guiding-q}\nWhat if the effect of one predictor depends on another?\n:::\n\n## In this session\n\n- Interactions between a continuous and a categorical predictor, and between two continuous predictors\n- Why centring matters for interpreting main effects in the presence of interactions\n- Effect plots: showing what an interaction means\n- Interactions and statistical power\n\n::: {.key-terms}\n**Key terms:** [Interaction](../../glossary.qmd#interaction), [Centring](../../glossary.qmd#centring)\n:::\n\n## Learning goals\n\nAfter this session you can\n\n- specify and interpret models with interaction terms,\n- centre predictors and explain how that changes the coefficients,\n- plot model predictions to communicate an interaction.\n\n## Simulate first\n\nThe effect of age on foraging success is steeper in one population than in the other.\n\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nlibrary(ggplot2)\nset.seed(5)\nd <- data.frame(age = runif(120, 1, 10),\n                pop = factor(rep(c(\"A\", \"B\"), each = 60)))\nd$y <- 2 + 0.3 * d$age + ifelse(d$pop == \"B\", 0.4 * d$age, 0) + rnorm(120)\n\nm <- lm(y ~ age * pop, data = d)\nround(coef(m), 2)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n#> (Intercept)         age        popB    age:popB \n#>        2.15        0.27       -0.01        0.40\n```\n\n\n:::\n\n```{.r .cell-code}\nggplot(d, aes(age, y, colour = pop)) +\n  geom_point(alpha = .6) +\n  geom_smooth(method = \"lm\", se = TRUE) +\n  scale_colour_manual(values = c(\"#1b6f8a\", \"#c0392b\")) +\n  theme_minimal()\n```\n\n::: {.cell-output-display}\n![](05-interactions_files/figure-html/unnamed-chunk-1-1.png){width=975}\n:::\n:::\n\n\n\n\n## Materials\n\n::: {.materials}\n- Slides <span class=\"tag\">coming soon</span>\n- R script <span class=\"tag\">coming soon</span>\n- Exercises <span class=\"tag\">coming soon</span>\n:::\n\n## Reading\n\n- Gelman, Hill & Vehtari (2020), ch. 10.3 and 12.\n- Schielzeth, H. (2010). Simple means to improve the interpretability of regression coefficients. *Methods in Ecology and Evolution, 1*(2), 103–113.\n",
+    "supporting": [
+      "05-interactions_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

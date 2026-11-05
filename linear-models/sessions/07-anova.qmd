@@ -1,0 +1,55 @@
+---
+title: "07 · ANOVA as a linear model"
+subtitle: "Week 2"
+---
+
+::: {.guiding-q}
+And what about ANOVA?
+:::
+
+## In this session
+
+- One-way ANOVA = linear model with one categorical predictor (session 04 revisited)
+- Factorial ANOVA = categorical predictors with interactions (session 05 revisited)
+- *F*-tests as comparisons between nested models
+- Types of sums of squares (I, II, III) and why the order of terms can matter
+- Repeated measures: a first look at non-independence (prepares session 11)
+
+::: {.key-terms}
+**Key terms:** [Contrasts and dummy coding](../../glossary.qmd#contrasts), [Degrees of freedom](../../glossary.qmd#df)
+:::
+
+## Learning goals
+
+After this session you can
+
+- reproduce an ANOVA table from a linear model,
+- explain an *F*-test as a comparison of a full and a reduced model,
+- choose an appropriate type of sums of squares for unbalanced data.
+
+## Simulate first
+
+```{r}
+set.seed(7)
+group <- factor(rep(c("control", "food", "toy"), each = 20))
+y     <- rnorm(60, c(control = 10, food = 14, toy = 12)[group], 3)
+
+summary(aov(y ~ group))            # classic one-way ANOVA
+
+full <- lm(y ~ group)
+null <- lm(y ~ 1)
+anova(null, full)                  # same F: a comparison of two models
+```
+
+## Materials
+
+::: {.materials}
+- Slides <span class="tag">coming soon</span>
+- R script <span class="tag">coming soon</span>
+- Exercises <span class="tag">coming soon</span>
+:::
+
+## Reading
+
+- Fox (2016), ch. 8.
+- Lindeløv (2019), see [session 06](06-t-test.qmd).

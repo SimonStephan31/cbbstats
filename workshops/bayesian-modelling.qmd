@@ -1,0 +1,283 @@
+---
+title: "Bayesian modelling with brms"
+subtitle: "Short workshop on demand · after Linear Models in R"
+---
+
+```{r setup}
+#| include: false
+library(lme4)
+library(brms)
+library(ggplot2)
+col_teal <- "#1b6f8a"; col_red <- "#c0392b"; col_navy <- "#12384a"; col_muted <- "#9aa5ad"
+theme_set(theme_minimal(base_size = 13) + theme(panel.grid.minor = element_blank()))
+bayesplot::color_scheme_set("teal")
+f2 <- function(x) formatC(x, format = "f", digits = 2)
+pp  <- function(p) if (p > .995) "> .99" else paste("=", f2(p))
+```
+
+## What is brms?
+
+[brms](https://paulbuerkner.com/brms/) is an R package for fitting **Bayesian regression models**, from simple linear models to complex multilevel models. You write the same formula syntax as in `lme4`, e.g. `y ~ x + (1 | id)`. brms translates the model into [Stan](https://mc-stan.org/), which estimates the posterior distribution of all parameters.
+
+This makes brms an easy entry into Bayesian modelling for anyone who knows the models from *Linear Models in R*: the models stay the same, only the way of estimating them and of drawing conclusions changes.
+
+## Topics
+
+- Bayesian inference in a nutshell: prior, likelihood, posterior
+- Choosing and checking priors (prior predictive checks)
+- Fitting the course models in brms: linear models, GLMs, GLMMs
+- Convergence diagnostics and posterior predictive checks
+- Reporting: posterior summaries, credible intervals, predictions
+- Link to [TAE](../tae/index.qmd): Bayes factors and the region of practical equivalence
+
+::: {.key-terms}
+**Key terms:** [Prior, posterior](../glossary.qmd#prior), [Credible interval](../glossary.qmd#credible-interval), [Rhat and effective sample size (ESS)](../glossary.qmd#rhat), [Divergent transitions](../glossary.qmd#divergent-transitions), [Convergence failure](../glossary.qmd#convergence)
+:::
+
+## Worked example: the Safe-vs-Risky box study
+
+We return to the example from [session 11](../linear-models/sessions/11-glmm.qmd). Chimpanzees choose into which of two boxes a grape is dropped. The **Safe** box clearly guarantees delivery; in the **Risky** box, the grape seems to get stuck. In fact, both boxes always deliver.
+
+- **RQ1:** Do chimps prefer the Safe box on trial 1?
+- **RQ2:** Does this preference change over trials?
+
+::: {.box-warn}
+The study (with the MPI EVA, Leipzig) is preregistered, but the data do not exist yet. As in session 11, we use **simulated data of what we expect**: 15 chimps × 4 sessions × 10 trials, with an initial Safe preference (P = .70), no average change over trials, but chimps that differ in whether they drift towards Safe or Risky. So we know the true answer.
+:::
+
+### The data
+
+```{r sim}
+#| code-fold: true
+#| code-summary: "Simulation code (same as session 11)"
+side_sequence <- function() {           # 5 x right, 5 x left; max. 2 in a row
+  repeat {
+    s <- sample(rep(0:1, 5))
+    if (max(rle(s)$lengths) <= 2) return(s)
+  }
+}
+
+sim_chimps <- function(n = 15, b0 = qlogis(0.70), b.trial = 0, b.side = 0.3,
+                       sd.int = 0.8, sd.slope = 0.05) {
+  ids <- sprintf("C%02d", 1:n)
+  u0 <- setNames(rnorm(n, 0, sd.int), ids); u1 <- setNames(rnorm(n, 0, sd.slope), ids)
+  d <- do.call(rbind, lapply(ids, function(id)
+    data.frame(subject = id, session = rep(1:4, each = 10), trial = 1:40,
+               side_safe = unlist(replicate(4, side_sequence(), simplify = FALSE)))))
+  d$trial_c <- d$trial - 1                       # first-trial centred (as preregistered)
+  eta <- b0 + u0[d$subject] + (b.trial + u1[d$subject]) * d$trial_c + b.side * d$side_safe
+  d$safe <- rbinom(nrow(d), 1, plogis(eta))
+  d
+}
+
+set.seed(120)
+chimps <- sim_chimps()
+```
+
+```{r plot-data}
+#| code-fold: true
+#| fig-height: 3.4
+by_sess <- aggregate(safe ~ subject + session, data = chimps, FUN = mean)
+avg     <- aggregate(safe ~ session, data = chimps, FUN = mean)
+
+ggplot(by_sess, aes(session, safe)) +
+  geom_hline(yintercept = .5, linetype = 2, colour = col_muted) +
+  geom_line(aes(group = subject), colour = col_teal, alpha = .35) +
+  geom_line(data = avg, colour = col_red, linewidth = 1.3) +
+  geom_point(data = avg, colour = col_red, size = 2.5) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  labs(x = "Session", y = "Safe choices",
+       subtitle = "Thin lines: individual chimps · red: average")
+```
+
+### Step 1: the GLMM from session 11
+
+```{r glmer}
+glmm <- glmer(safe ~ trial_c + side_safe + (1 + trial_c | subject),
+              family = binomial, data = chimps,
+              control = glmerControl(optimizer = "bobyqa"))
+```
+
+```{r glmer-table}
+#| echo: false
+cf <- summary(glmm)$coefficients
+ci <- confint(glmm, parm = "beta_", method = "Wald")
+knitr::kable(data.frame(Estimate = f2(cf[, 1]), SE = f2(cf[, 2]),
+                        `95% CI` = paste0("[", f2(ci[, 1]), ", ", f2(ci[, 2]), "]"),
+                        p = formatC(cf[, 4], format = "f", digits = 3),
+                        check.names = FALSE),
+             align = "rrrr", caption = "Fixed effects (log-odds scale), Wald confidence intervals")
+```
+
+### Step 2: priors
+
+A Bayesian model needs a prior for every parameter. We use **weakly informative priors** on the log-odds scale: they rule out absurd values but leave the data in charge.
+
+```{r priors}
+priors <- c(prior(normal(0, 1.5), class = "Intercept"),   # P(Safe) on trial 1
+            prior(normal(0, 1),   class = "b"),           # trial and side effects
+            prior(exponential(1), class = "sd"),          # between-chimp SDs
+            prior(lkj(2),         class = "cor"))         # intercept-slope correlation
+```
+
+What do these priors imply *before* seeing any data? A **prior predictive check** translates them into chimp-level choice probabilities on trial 1:
+
+```{r prior-pred}
+#| code-fold: true
+#| fig-height: 3
+set.seed(1)
+p_trial1 <- plogis(rnorm(1e4, 0, 1.5) + rnorm(1e4, 0, rexp(1e4, 1)))
+ggplot(data.frame(p = p_trial1), aes(p)) +
+  geom_histogram(bins = 40, fill = col_teal, colour = "white") +
+  scale_x_continuous(labels = scales::percent) +
+  labs(x = "P(Safe) on trial 1 for a chimp, implied by the priors", y = NULL) +
+  theme(axis.text.y = element_blank())
+```
+
+The priors allow anything from a strong Risky to a strong Safe preference. They put somewhat more weight on extreme preferences than on 50%; a narrower intercept prior, e.g. `normal(0, 1)`, would flatten this.
+
+### Step 3: fit the model
+
+The formula is exactly the one from `glmer()`. `bernoulli` is the binomial family for single 0/1 choices.
+
+```{r brm}
+#| results: hide
+fit <- brm(safe ~ trial_c + side_safe + (1 + trial_c | subject),
+           family = bernoulli, data = chimps, prior = priors,
+           chains = 4, iter = 2000, cores = 4, seed = 2026)
+```
+
+```{r brm-summary}
+summary(fit)
+```
+
+All `Rhat` values are 1.00 and the effective sample sizes (`ESS`) are large, so the four chains agree. The trace plots should look like "hairy caterpillars", with no chain drifting off:
+
+```{r trace}
+#| code-fold: true
+#| fig-height: 3.2
+bayesplot::mcmc_trace(as.array(fit), pars = c("b_Intercept", "b_trial_c", "sd_subject__trial_c"),
+                      facet_args = list(ncol = 3)) +
+  theme(legend.position = "none")
+```
+
+### Step 4: answer the research questions with the posterior
+
+The posterior is a distribution, so we can answer the research questions **on the response scale and as probabilities**.
+
+```{r posterior}
+draws <- as_draws_df(fit)
+# P(Safe) for an average chimp, averaged over the two sides
+p1  <- plogis(draws$b_Intercept +                      0.5 * draws$b_side_safe)  # trial 1
+p40 <- plogis(draws$b_Intercept + 39 * draws$b_trial_c + 0.5 * draws$b_side_safe)  # trial 40
+```
+
+```{r posterior-plot}
+#| code-fold: true
+#| fig-height: 3.2
+post <- rbind(data.frame(trial = "Trial 1", p = p1), data.frame(trial = "Trial 40", p = p40))
+ggplot(post, aes(p, fill = trial)) +
+  geom_vline(xintercept = .5, linetype = 2, colour = col_muted) +
+  geom_density(alpha = .6, colour = NA) +
+  scale_fill_manual(values = c(col_teal, col_red), name = NULL) +
+  scale_x_continuous(labels = scales::percent, limits = c(.3, 1)) +
+  labs(x = "P(Safe) for an average chimp", y = "Posterior density")
+```
+
+```{r rq-numbers}
+#| echo: false
+ci1 <- quantile(p1, c(.025, .975)); dd <- p40 - p1; cid <- quantile(dd, c(.025, .975))
+```
+
+- **RQ1:** On trial 1, an average chimp chooses the Safe box with probability `r f2(median(p1))`, 95% credible interval [`r f2(ci1[1])`, `r f2(ci1[2])`]. The posterior probability that chimps prefer the Safe box, i.e. that P(Safe) > .5, is `r sub("= ", "", pp(mean(p1 > .5)))`.
+- **RQ2:** From trial 1 to trial 40, P(Safe) changes by `r f2(median(dd))`, 95% CrI [`r f2(cid[1])`, `r f2(cid[2])`]. The interval is wide: these data cannot rule out a moderate change in either direction. Whether the change is *practically zero* is a question for an equivalence test or a ROPE (see [TAE](../tae/index.qmd)).
+
+The model-implied learning curve, with 95% credible band:
+
+```{r cond-effects}
+#| code-fold: true
+#| fig-height: 3.2
+ce <- conditional_effects(fit, effects = "trial_c")$trial_c
+ggplot(ce, aes(trial_c + 1, estimate__)) +
+  geom_hline(yintercept = .5, linetype = 2, colour = col_muted) +
+  geom_ribbon(aes(ymin = lower__, ymax = upper__), fill = col_teal, alpha = .25) +
+  geom_line(colour = col_teal, linewidth = 1.2) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  labs(x = "Trial", y = "P(Safe)")
+```
+
+### Step 5: does the model reproduce the data?
+
+A **posterior predictive check** simulates new datasets from the fitted model and compares them with the observed data. Here: the proportion of Safe choices for each chimp.
+
+```{r ppc}
+#| code-fold: true
+#| fig-height: 4.2
+pp_check(fit, type = "stat_grouped", stat = "mean", group = "subject", ndraws = 1000) +
+  facet_wrap(~ group, ncol = 5) +
+  scale_x_continuous(breaks = c(0, .5, 1), labels = c("0", ".5", "1")) +
+  labs(x = "Proportion of Safe choices") +
+  theme(legend.position = "bottom")
+```
+
+The observed proportions (dark lines) lie well within the simulated ones for every chimp.
+
+### Step 6: comparison with the GLMM from session 11
+
+```{r compare}
+#| code-fold: true
+fe_b <- fixef(fit)
+vc   <- as.data.frame(VarCorr(glmm))
+sd_b <- summary(fit)$random$subject
+
+tab <- data.frame(
+  Parameter = c("Intercept (trial 1)", "Trial", "Side", "SD intercept", "SD trial slope", "Correlation"),
+  True      = f2(c(qlogis(.7), 0, 0.3, 0.8, 0.05, 0)),
+  glmer     = c(paste0(f2(cf[, 1]), " [", f2(ci[, 1]), ", ", f2(ci[, 2]), "]"),
+                f2(vc$sdcor[1]), f2(vc$sdcor[2]), f2(vc$sdcor[3])),
+  brms      = paste0(f2(c(fe_b[, 1], sd_b[, 1])), " [",
+                     f2(c(fe_b[, 3], sd_b[, 3])), ", ", f2(c(fe_b[, 4], sd_b[, 4])), "]"))
+knitr::kable(tab, align = "lrrr",
+             col.names = c("Parameter", "True value", "glmer: estimate [95% CI]", "brms: mean [95% CrI]"),
+             caption = "Log-odds scale. glmer reports no intervals for the variance components by default.")
+```
+
+```{r compare-plot}
+#| code-fold: true
+#| fig-height: 2.6
+cmp <- data.frame(
+  par   = rep(c("Intercept", "Trial", "Side"), 2),
+  model = rep(c("glmer (session 11)", "brms"), each = 3),
+  est   = c(cf[, 1], fe_b[, 1]),
+  lo    = c(ci[, 1], fe_b[, 3]),
+  hi    = c(ci[, 2], fe_b[, 4]))
+cmp$par <- factor(cmp$par, levels = rev(c("Intercept", "Trial", "Side")))
+truth   <- data.frame(par = factor(c("Intercept", "Trial", "Side"), levels = levels(cmp$par)),
+                      est = c(qlogis(.7), 0, .3))
+
+ggplot(cmp, aes(est, par, colour = model)) +
+  geom_vline(xintercept = 0, colour = col_muted) +
+  geom_pointrange(aes(xmin = lo, xmax = hi), position = position_dodge(width = .5)) +
+  geom_point(data = truth, aes(est, par), inherit.aes = FALSE, shape = 4, size = 3, colour = col_navy) +
+  scale_colour_manual(values = c(col_teal, col_red), name = NULL) +
+  labs(x = "Estimate (log-odds) with 95% interval; cross = true value", y = NULL) +
+  theme(legend.position = "bottom")
+```
+
+**What stays the same, and what changes**
+
+- **The estimates agree.** With weakly informative priors and 600 observations, the posterior means and credible intervals are very close to the `glmer()` estimates and confidence intervals. Bayesian modelling is not a different model, but a different way of estimating it.
+- **The interpretation changes.** A 95% credible interval contains the parameter with 95% probability, given model and priors. That is how most people (mis)read a confidence interval anyway. And we can directly state things like "the probability that chimps prefer the Safe box on trial 1 is `r sub("= ", "", pp(mean(p1 > .5)))`".
+- **Uncertainty about the variance components is visible.** `glmer()` gives only point estimates for the between-chimp SDs; brms gives full intervals. The wide interval for the SD of the intercept shows how little 15 chimps tell us about individual differences.
+- **Complex random-effects structures become easier.** With only 15 individuals, `glmer()` often runs into convergence warnings or singular fits. The priors keep brms stable, which helps with the maximal random-effects structures recommended for confirmatory tests.
+- **The price:** more computing time (here a few minutes instead of a second) and the need to choose and justify priors.
+
+## Prerequisites
+
+*Linear Models in R*. Please install brms and a Stan backend ([rstan](https://mc-stan.org/rstan/) or [cmdstanr](https://mc-stan.org/cmdstanr/)) before the workshop.
+
+## Reading
+
+- Bürkner, P.-C. (2017). brms: An R package for Bayesian multilevel models using Stan. *Journal of Statistical Software, 80*(1), 1–28.
+- Gabry, J., Simpson, D., Vehtari, A., Betancourt, M., & Gelman, A. (2019). Visualization in Bayesian workflow. *Journal of the Royal Statistical Society: Series A, 182*(2), 389–402.
+- McElreath, R. (2020). *Statistical rethinking* (2nd ed.). CRC Press.

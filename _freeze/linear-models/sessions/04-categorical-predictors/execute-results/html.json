@@ -1,0 +1,17 @@
+{
+  "hash": "1d0ed6cf6b5a074c20c6128bf50175ac",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"04 · Categorical predictors\"\nsubtitle: \"Week 1\"\n---\n\n\n\n\n::: {.guiding-q}\nWhat if a predictor is a category?\n:::\n\n## In this session\n\n- Dummy (treatment) coding and the reference level\n- What the coefficients of a factor mean\n- Other contrasts (sum coding) and when to use them\n- Estimated marginal means and pairwise comparisons with `emmeans`\n\n::: {.key-terms}\n**Key terms:** [Contrasts and dummy coding](../../glossary.qmd#contrasts), [Reference level](../../glossary.qmd#reference-level), [Estimated marginal means](../../glossary.qmd#emmeans)\n:::\n\n## Learning goals\n\nAfter this session you can\n\n- explain how R turns a factor into numeric predictors,\n- interpret coefficients relative to a reference level,\n- obtain group means and contrasts with `emmeans`.\n\n## Simulate first\n\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nset.seed(4)\ngroup <- factor(rep(c(\"control\", \"food\", \"toy\"), each = 20))\nmu    <- c(control = 10, food = 14, toy = 12)\ny     <- rnorm(60, mu[group], 3)\n\nm <- lm(y ~ group)\nround(coef(m), 2)                       # intercept = control, others = differences\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n#> (Intercept)   groupfood    grouptoy \n#>       11.13        3.79        0.85\n```\n\n\n:::\n\n```{.r .cell-code}\nhead(model.matrix(m)[c(1, 21, 41), ])   # the dummy variables behind the scenes\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n#>    (Intercept) groupfood grouptoy\n#> 1            1         0        0\n#> 21           1         1        0\n#> 41           1         0        1\n```\n\n\n:::\n:::\n\n\n\n\n## Materials\n\n::: {.materials}\n- Slides <span class=\"tag\">coming soon</span>\n- R script <span class=\"tag\">coming soon</span>\n- Exercises <span class=\"tag\">coming soon</span>\n:::\n\n## Reading\n\n- Schad, D. J., Vasishth, S., Hohenstein, S., & Kliegl, R. (2020). How to capitalize on a priori contrasts in linear (mixed) models: A tutorial. *Journal of Memory and Language, 110*, 104038.\n",
+    "supporting": [
+      "04-categorical-predictors_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

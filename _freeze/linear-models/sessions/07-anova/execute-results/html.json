@@ -1,0 +1,17 @@
+{
+  "hash": "75052507d7b3673ed743f3d40d5d66de",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"07 · ANOVA as a linear model\"\nsubtitle: \"Week 2\"\n---\n\n\n\n\n::: {.guiding-q}\nAnd what about ANOVA?\n:::\n\n## In this session\n\n- One-way ANOVA = linear model with one categorical predictor (session 04 revisited)\n- Factorial ANOVA = categorical predictors with interactions (session 05 revisited)\n- *F*-tests as comparisons between nested models\n- Types of sums of squares (I, II, III) and why the order of terms can matter\n- Repeated measures: a first look at non-independence (prepares session 11)\n\n::: {.key-terms}\n**Key terms:** [Contrasts and dummy coding](../../glossary.qmd#contrasts), [Degrees of freedom](../../glossary.qmd#df)\n:::\n\n## Learning goals\n\nAfter this session you can\n\n- reproduce an ANOVA table from a linear model,\n- explain an *F*-test as a comparison of a full and a reduced model,\n- choose an appropriate type of sums of squares for unbalanced data.\n\n## Simulate first\n\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nset.seed(7)\ngroup <- factor(rep(c(\"control\", \"food\", \"toy\"), each = 20))\ny     <- rnorm(60, c(control = 10, food = 14, toy = 12)[group], 3)\n\nsummary(aov(y ~ group))            # classic one-way ANOVA\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n#>             Df Sum Sq Mean Sq F value  Pr(>F)   \n#> group        2   91.2   45.59   5.186 0.00853 **\n#> Residuals   57  501.1    8.79                   \n#> ---\n#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n```\n\n\n:::\n\n```{.r .cell-code}\nfull <- lm(y ~ group)\nnull <- lm(y ~ 1)\nanova(null, full)                  # same F: a comparison of two models\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n#> Analysis of Variance Table\n#> \n#> Model 1: y ~ 1\n#> Model 2: y ~ group\n#>   Res.Df    RSS Df Sum of Sq      F  Pr(>F)   \n#> 1     59 592.30                               \n#> 2     57 501.12  2    91.179 5.1856 0.00853 **\n#> ---\n#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n```\n\n\n:::\n:::\n\n\n\n\n## Materials\n\n::: {.materials}\n- Slides <span class=\"tag\">coming soon</span>\n- R script <span class=\"tag\">coming soon</span>\n- Exercises <span class=\"tag\">coming soon</span>\n:::\n\n## Reading\n\n- Fox (2016), ch. 8.\n- Lindeløv (2019), see [session 06](06-t-test.qmd).\n",
+    "supporting": [
+      "07-anova_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

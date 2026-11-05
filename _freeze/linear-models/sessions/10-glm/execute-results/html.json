@@ -1,0 +1,17 @@
+{
+  "hash": "f30e06987b2b5d4895aef1a54c99cf03",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"10 · Generalized linear models (GLM)\"\nsubtitle: \"Week 3\"\n---\n\n\n\n\n::: {.guiding-q}\nWhat to do if the DV is not normal?\n:::\n\n[The first assumption we relax: **normality**.]{.accent}\n\n## In this session\n\n- Responses that are counts, proportions or binary choices\n- The three parts of a GLM: distribution, linear predictor, link function\n- Poisson and binomial models; offsets for observation time\n- Overdispersion and the negative binomial model\n- Interpreting coefficients and plotting predictions on the response scale\n\n::: {.key-terms}\n**Key terms:** [Link function](../../glossary.qmd#link-function), [Log-odds (logit)](../../glossary.qmd#log-odds), [Offset](../../glossary.qmd#offset), [Overdispersion](../../glossary.qmd#overdispersion), [Zero-inflation](../../glossary.qmd#zero-inflation), [Complete separation](../../glossary.qmd#complete-separation)\n:::\n\n## Learning goals\n\nAfter this session you can\n\n- choose a distribution and link function that fit the response,\n- fit Poisson and binomial GLMs and interpret them on the response scale,\n- detect and handle overdispersion.\n\n## Simulate first\n\nCounts of approaches per focal observation, increasing with age on the log scale.\n\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nset.seed(10)\nage    <- runif(150, 0, 12)                    # months\nmu     <- exp(0.2 + 0.12 * age)                # log link\ncounts <- rpois(150, mu)\n\nm <- glm(counts ~ age, family = poisson)\nround(coef(m), 2)                              # back on the log scale\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n#> (Intercept)         age \n#>        0.33        0.11\n```\n\n\n:::\n\n```{.r .cell-code}\nround(exp(coef(m)[2]), 2)                      # multiplicative change per month\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n#>  age \n#> 1.11\n```\n\n\n:::\n\n```{.r .cell-code}\nplot(age, counts, pch = 19, col = adjustcolor(\"#1b6f8a\", .5),\n     xlab = \"Age (months)\", ylab = \"Count\")\ncurve(predict(m, data.frame(age = x), type = \"response\"),\n      add = TRUE, col = \"#c0392b\", lwd = 2)\n```\n\n::: {.cell-output-display}\n![](10-glm_files/figure-html/unnamed-chunk-1-1.png){width=975}\n:::\n:::\n\n\n\n\n## Materials\n\n::: {.materials}\n- Slides <span class=\"tag\">coming soon</span>\n- R script <span class=\"tag\">coming soon</span>\n- Exercises <span class=\"tag\">coming soon</span>\n:::\n\n## Reading\n\n- Gelman, Hill & Vehtari (2020), ch. 13–15.\n- Fox (2016), ch. 14–15.\n",
+    "supporting": [
+      "10-glm_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

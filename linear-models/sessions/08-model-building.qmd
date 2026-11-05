@@ -1,0 +1,62 @@
+---
+title: "08 · Model building"
+subtitle: "Week 2"
+---
+
+::: {.guiding-q}
+How do I build a good model?
+:::
+
+## In this session
+
+- Models follow from the research question, not from the data
+- Choosing predictors and control variables: causal reasoning and DAGs
+- Non-linear effects with polynomials and transformations
+- Simulating data from your planned model to check design and power
+- Writing down the model *before* data collection (link to the course [Open, Replicable, and Ethical Science](../../ores/index.qmd))
+
+::: {.key-terms}
+**Key terms:** [Polynomial term](../../glossary.qmd#polynomial), [Power](../../glossary.qmd#power), [Preregistration](../../glossary.qmd#preregistration)
+:::
+
+## Learning goals
+
+After this session you can
+
+- derive a model from a research question and justify each term,
+- recognise when to include a quadratic term or transform a variable,
+- run a simple power analysis by simulation.
+
+## Simulate first
+
+Power analysis by simulation: how often do we detect a slope of 0.3 with *n* animals?
+
+```{r}
+#| fig-height: 3.2
+set.seed(8)
+power_for_n <- function(n, b1 = 0.3, nsim = 500) {
+  mean(replicate(nsim, {
+    x <- rnorm(n); y <- b1 * x + rnorm(n)
+    summary(lm(y ~ x))$coefficients[2, 4] < .05
+  }))
+}
+ns  <- seq(10, 120, by = 10)
+pow <- sapply(ns, power_for_n)
+
+plot(ns, pow, type = "b", pch = 19, col = "#1b6f8a", ylim = c(0, 1),
+     xlab = "Sample size", ylab = "Power")
+abline(h = .8, lty = 2, col = "#c0392b")
+```
+
+## Materials
+
+::: {.materials}
+- Slides <span class="tag">coming soon</span>
+- R script <span class="tag">coming soon</span>
+- Exercises <span class="tag">coming soon</span>
+:::
+
+## Reading
+
+- McElreath, R. (2020). *Statistical rethinking* (2nd ed.), ch. 5–6 (on confounds and DAGs). CRC Press.
+- Gelman, Hill & Vehtari (2020), ch. 12 and 16.

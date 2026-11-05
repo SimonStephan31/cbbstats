@@ -1,0 +1,48 @@
+---
+title: "Advanced GLMMs with glmmTMB"
+subtitle: "Short workshop on demand · after Linear Models in R"
+---
+
+## What is glmmTMB?
+
+[glmmTMB](https://glmmtmb.github.io/glmmTMB/) is an R package for fitting generalized linear mixed models by maximum likelihood, like `lme4::glmer()` from session 11. Its strength is flexibility: it handles many distributions and model parts that `glmer()` cannot, and it is usually fast and stable.
+
+It is the natural next step when the data do not fit a Poisson or binomial GLMM, which is common with behavioural data, for example counts of rare behaviours with many zeros.
+
+## Topics
+
+- Overdispersed counts: negative binomial models
+- Many zeros: zero-inflated and hurdle models
+- Proportions that are not counts (e.g. time spent): beta regression
+- Modelling the variance itself (dispersion models)
+- Checking such models with simulated residuals ([DHARMa](https://cran.r-project.org/package=DHARMa))
+- Choosing between candidate distributions
+
+::: {.key-terms}
+**Key terms:** [Overdispersion](../glossary.qmd#overdispersion), [Zero-inflation](../glossary.qmd#zero-inflation), [Heteroscedasticity](../glossary.qmd#heteroscedasticity), [Convergence failure](../glossary.qmd#convergence)
+:::
+
+## A first look
+
+```{r}
+#| eval: false
+library(glmmTMB)
+
+# Counts with many zeros: negative binomial with zero-inflation
+fit <- glmmTMB(grooming ~ z.age + sex + offset(log(hours)) + (1 | id),
+               ziformula = ~ 1,                 # extra zeros
+               family    = nbinom2,             # overdispersion
+               data      = xdata)
+
+summary(fit)
+DHARMa::simulateResiduals(fit, plot = TRUE)     # residual diagnostics
+```
+
+## Prerequisites
+
+*Linear Models in R*, in particular sessions 10 (GLM) and 11 (GLMM).
+
+## Reading
+
+- Brooks, M. E., Kristensen, K., van Benthem, K. J., Magnusson, A., Berg, C. W., Nielsen, A., Skaug, H. J., Mächler, M., & Bolker, B. M. (2017). glmmTMB balances speed and flexibility among packages for zero-inflated generalized linear mixed modeling. *The R Journal, 9*(2), 378–400.
+- Harrison, X. A. (2014). Using observation-level random effects to model overdispersion in count data in ecology and evolution. *PeerJ, 2*, e616.
