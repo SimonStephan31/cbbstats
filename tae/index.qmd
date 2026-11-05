@@ -1,6 +1,7 @@
 ---
 title: "Testing for Absence and Equivalence"
 subtitle: "Course 3 (TAE) · how to support a prediction of \"no effect\""
+code-link: false
 ---
 
 A hands-on course that builds on *Linear Models in R*. Many hypotheses in behavioural research predict the *absence* of an effect, yet a non-significant result is often misread as evidence for it. The course teaches two ways to test such predictions properly: frequentist **equivalence tests** and **Bayesian** alternatives.
@@ -19,6 +20,168 @@ A hands-on course that builds on *Linear Models in R*. Many hypotheses in behavi
 ::: {.key-terms}
 **Key terms:** [*p*-value](../glossary.qmd#p-value), [SESOI (smallest effect size of interest)](../glossary.qmd#sesoi), [Equivalence test (TOST)](../glossary.qmd#equivalence-test), [Bayes factor](../glossary.qmd#bayes-factor), [ROPE (region of practical equivalence)](../glossary.qmd#rope), [Prior, posterior](../glossary.qmd#prior)
 :::
+
+## Four tests, one dataset
+
+Classical significance tests can do much more than reject an effect of exactly zero. Lakens (2022, ch. 9) distinguishes four kinds of tests. They differ only in **which hypothesis is tested**, so all four can be applied to the **same data**: each answers a different question.
+
+```{r setup-four}
+#| include: false
+library(ggplot2)
+col_h0 <- "#c0392b"; col_h1 <- "#1b6f8a"; col_navy <- "#12384a"
+f2 <- function(x) formatC(x, format = "f", digits = 2)
+fp <- function(p) if (p < .001) "< .001" else paste("=", sub("^0", "", formatC(p, format = "f", digits = 3)))
+```
+
+### The data
+
+Participants solve a puzzle; we measure the solution time in seconds. A **control** group is compared with a **training** group (500 participants each). The effect of interest is the time saved by training, *Δ* = control − training.
+
+- The **smallest effect size of interest** (SESOI) is 2 seconds: savings below 2 s are too small to matter in practice.
+- A theory predicts savings **between 0.5 and 2.5 s**.
+
+```{r data-four}
+set.seed(4)
+control  <- rnorm(500, mean = 20,   sd = 5)
+training <- rnorm(500, mean = 18.8, sd = 5)
+
+sesoi <- 2                     # smallest effect size of interest (s)
+lower <- 0.5; upper <- 2.5     # range predicted by the theory (s)
+```
+
+```{r est-four}
+#| include: false
+t95 <- t.test(control, training, var.equal = TRUE)
+t90 <- t.test(control, training, var.equal = TRUE, conf.level = .90)
+est <- unname(diff(rev(t95$estimate)))
+```
+
+The observed saving is *Δ* = `r f2(est)` s, 95% CI [`r f2(t95$conf.int[1])`, `r f2(t95$conf.int[2])`], 90% CI [`r f2(t90$conf.int[1])`, `r f2(t90$conf.int[2])`].
+
+### The four tests at a glance
+
+```{r fig-four}
+#| code-fold: true
+#| fig-height: 4.6
+#| fig-cap: "Two-sided null hypothesis test (A), interval hypothesis test (B), equivalence test (C) and minimum effect test (D). Red: values in the null hypothesis; blue: values in the alternative hypothesis. Point and bar: our estimate with 95% CI (A) or 90% CI (B–D). Adapted from Lakens (2022), Fig. 9.1; this figure is licensed CC BY-NC-SA 4.0."
+lim <- c(-4, 4)
+panels <- c("A: two-sided null hypothesis test", "B: interval hypothesis test",
+            "C: equivalence test", "D: minimum effect test")
+reg <- function(panel, xmin, xmax, hyp) data.frame(panel, xmin, xmax, hyp)
+regions <- rbind(
+  reg(panels[1], lim[1], lim[2], "H1"),
+  reg(panels[2], c(lim[1], upper), c(lower, lim[2]), "H0"), reg(panels[2], lower, upper, "H1"),
+  reg(panels[3], c(lim[1], sesoi), c(-sesoi, lim[2]), "H1"), reg(panels[3], -sesoi, sesoi, "H0"),
+  reg(panels[4], c(lim[1], sesoi), c(-sesoi, lim[2]), "H1"), reg(panels[4], -sesoi, sesoi, "H0"))
+regions$hyp[regions$panel == panels[3]] <- ifelse(regions$hyp[regions$panel == panels[3]] == "H0", "H1", "H0")
+regions$panel <- factor(regions$panel, levels = panels)
+nil <- data.frame(panel = factor(panels[1], levels = panels), x = 0)
+ci  <- data.frame(panel = factor(panels, levels = panels), est = est,
+                  lo = c(t95$conf.int[1], rep(t90$conf.int[1], 3)),
+                  hi = c(t95$conf.int[2], rep(t90$conf.int[2], 3)))
+
+ggplot() +
+  geom_rect(data = regions, aes(xmin = xmin, xmax = xmax, ymin = -.4, ymax = .4, fill = hyp), alpha = .35) +
+  geom_segment(data = nil, aes(x = x, xend = x, y = -.4, yend = .4), colour = col_h0, linewidth = 1.6) +
+  geom_errorbarh(data = ci, aes(y = 0, xmin = lo, xmax = hi), height = .25, linewidth = 1, colour = col_navy) +
+  geom_point(data = ci, aes(est, 0), size = 2.6, colour = col_navy) +
+  facet_wrap(~ panel, ncol = 1, strip.position = "left", dir = "v") +
+  scale_fill_manual(values = c(H0 = col_h0, H1 = col_h1), name = NULL,
+                    labels = c(H0 = "null hypothesis (H0)", H1 = "alternative hypothesis (H1)")) +
+  scale_x_continuous(breaks = c(-sesoi, 0, lower, sesoi, upper), labels = c("-2", "0", "0.5", "2", "2.5"),
+                     limits = lim, expand = c(0, 0)) +
+  labs(x = expression(paste("Time saved by training, ", Delta, " (s)")), y = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.y = element_blank(), panel.grid.major.y = element_blank(), panel.grid.minor = element_blank(),
+        strip.text.y.left = element_text(angle = 0, hjust = 1, face = "bold"),
+        legend.position = "top")
+```
+
+### A: two-sided null hypothesis test
+
+**Question:** Is there any effect at all? **H0:** *Δ* = 0. **H1:** *Δ* ≠ 0. The classic *t*-test; significant if the 95% CI excludes 0.
+
+```{r test-a}
+t.test(control, training, var.equal = TRUE)
+```
+
+**Result:** *p* `r fp(t95$p.value)`. Training saves time, but this test says nothing about whether the saving is large enough to matter.
+
+### B: interval hypothesis test
+
+**Question:** Does the effect fall within the range the theory predicts? **H0:** *Δ* ≤ 0.5 or *Δ* ≥ 2.5. **H1:** 0.5 < *Δ* < 2.5. Two one-sided tests, one against each bound; the prediction is supported if **both** are significant, i.e. the 90% CI lies inside the predicted range.
+
+```{r test-b}
+# H0a: Delta <= 0.5 (test: greater than the lower bound)
+p_lo <- t.test(control, training, mu = lower,
+               alternative = "greater", var.equal = TRUE)$p.value
+# H0b: Delta >= 2.5 (test: less than the upper bound)
+p_hi <- t.test(control, training, mu = upper,
+               alternative = "less", var.equal = TRUE)$p.value
+c(p_lower = p_lo, p_upper = p_hi, p = max(p_lo, p_hi))
+```
+
+**Result:** *p* `r fp(max(p_lo, p_hi))`. The saving lies within the predicted range of 0.5 to 2.5 s.
+
+### C: equivalence test (TOST)
+
+**Question:** Is the effect too small to matter? **H0:** *Δ* ≤ −2 or *Δ* ≥ 2. **H1:** −2 < *Δ* < 2. The same two one-sided tests as in B, now against −SESOI and +SESOI; equivalence is shown if the 90% CI lies inside the equivalence bounds.
+
+```{r test-c}
+# H0a: Delta <= -2 (test: greater than the lower equivalence bound)
+p_lo <- t.test(control, training, mu = -sesoi,
+               alternative = "greater", var.equal = TRUE)$p.value
+# H0b: Delta >= 2 (test: less than the upper equivalence bound)
+p_hi <- t.test(control, training, mu = sesoi,
+               alternative = "less", var.equal = TRUE)$p.value
+c(p_lower = p_lo, p_upper = p_hi, p = max(p_lo, p_hi))
+```
+
+**Result:** *p* `r fp(max(p_lo, p_hi))`. The saving is statistically **equivalent** to zero within ±2 s: it is real (test A), but smaller than anything we consider meaningful.
+
+### D: minimum effect test
+
+**Question:** Is the effect larger than the smallest effect of interest? **H0:** −2 ≤ *Δ* ≤ 2. **H1:** *Δ* < −2 or *Δ* > 2. The reverse of the equivalence test; here we test only the direction the theory predicts (*Δ* > 2).
+
+```{r test-d}
+# H0: Delta <= 2 (test: greater than the SESOI)
+t.test(control, training, mu = sesoi,
+       alternative = "greater", var.equal = TRUE)$p.value
+```
+
+**Result:** *p* `r fp(t.test(control, training, mu = sesoi, alternative = "greater", var.equal = TRUE)$p.value)`. We cannot claim a saving larger than 2 s.
+
+### With the TOSTER package
+
+The R package [TOSTER](https://aaroncaldwell.us/TOSTERpkg/) runs tests C and D in one call and adds effect sizes and plots:
+
+```{r toster}
+#| eval: false
+library(TOSTER)
+# C: equivalence test
+t_TOST(x = control, y = training, eqb = sesoi, var.equal = TRUE)
+# D: minimum effect test
+t_TOST(x = control, y = training, eqb = sesoi, var.equal = TRUE, hypothesis = "MET")
+```
+
+### Summary
+
+| Test | Question | H0 | Result here |
+|---|---|---|---|
+| A: two-sided null hypothesis test | Any effect? | *Δ* = 0 | rejected: training saves time |
+| B: interval hypothesis test | Within the predicted range? | *Δ* ≤ 0.5 or *Δ* ≥ 2.5 | rejected: prediction supported |
+| C: equivalence test | Too small to matter? | \|*Δ*\| ≥ 2 | rejected: equivalent to zero |
+| D: minimum effect test | Larger than the SESOI? | \|*Δ*\| ≤ 2 | not rejected |
+
+: {.striped}
+
+The same data give four different answers because the tests ask four different questions. Which test is appropriate follows from the hypothesis, and should be decided, and preregistered, **before** the data are seen.
+
+::: {.box}
+**Note:** With 500 participants per group, even a saving of about 1 s is detected (A) *and* shown to be negligible (C). With small samples, typical for animal studies, all four tests are often inconclusive. Planning the sample size for the test you intend to run is part of the course.
+:::
+
+**Reference:** Lakens, D. (2022). *Improving your statistical inferences* (ch. 9: Equivalence testing and interval hypotheses). <https://doi.org/10.5281/zenodo.6409077>. Licensed CC BY-NC-SA 4.0.
 
 ## Simulate first: three answers to the same data
 

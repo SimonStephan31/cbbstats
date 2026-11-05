@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.6.42">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
 <title>Testing for Absence and Equivalence – Statistics Teaching at CBB</title>
 <style>
 code{white-space: pre-wrap;}
@@ -53,6 +56,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }
 </style>
 
+
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../site_libs/quarto-nav/headroom.min.js"></script>
 <script src="../site_libs/clipboard/clipboard.min.js"></script>
@@ -68,7 +72,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-349c9e61a62bda94a3ee0035142f7399.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+<link href="../site_libs/bootstrap/bootstrap-349c9e61a62bda94a3ee0035142f7399.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
   "collapse-after": 3,
@@ -94,12 +99,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
-}</script><style>html{ scroll-behavior: smooth; }</style>
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+
 </head>
+
 <body class="nav-fixed">
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">Statistics Teaching at CBB</span>
@@ -111,7 +122,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
-<li class="nav-item">
+  <li class="nav-item">
     <a class="nav-link" href="../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
@@ -136,8 +147,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">Consultation</span></a>
   </li>  
 </ul>
-<ul class="navbar-nav navbar-nav-scroll ms-auto">
-<li class="nav-item">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
     <a class="nav-link" href="../glossary.html"> 
 <span class="menu-text">Glossary</span></a>
   </li>  
@@ -155,25 +166,34 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text"></span></a>
   </li>  
 </ul>
-</div> <!-- /navcollapse -->
+          </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
 </div>
       </div> <!-- /container-fluid -->
-    </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
    
   <ul class="collapse">
-<li><a href="#topics" id="toc-topics" class="nav-link active" data-scroll-target="#topics">Topics</a></li>
+  <li><a href="#topics" id="toc-topics" class="nav-link active" data-scroll-target="#topics">Topics</a></li>
+  <li><a href="#four-tests-one-dataset" id="toc-four-tests-one-dataset" class="nav-link" data-scroll-target="#four-tests-one-dataset">Four tests, one dataset</a></li>
   <li><a href="#simulate-first-three-answers-to-the-same-data" id="toc-simulate-first-three-answers-to-the-same-data" class="nav-link" data-scroll-target="#simulate-first-three-answers-to-the-same-data">Simulate first: three answers to the same data</a></li>
   <li><a href="#materials" id="toc-materials" class="nav-link" data-scroll-target="#materials">Materials</a></li>
   <li><a href="#reading-and-tools" id="toc-reading-and-tools" class="nav-link" data-scroll-target="#reading-and-tools">Reading and tools</a></li>
-  </ul><div class="toc-actions"><ul class="collapse"><li><a href="https://github.com/SimonStephan31/cbbstats/blob/main/tae/index.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/SimonStephan31/cbbstats/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+  </ul>
+<div class="toc-actions"><ul class="collapse"><li><a href="https://github.com/SimonStephan31/cbbstats/blob/main/tae/index.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/SimonStephan31/cbbstats/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
 <h1 class="title">Testing for Absence and Equivalence</h1>
 <p class="subtitle lead">Course 3 (TAE) · how to support a prediction of “no effect”</p>
 </div>
@@ -189,80 +209,286 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   
 
 
-</header><p>A hands-on course that builds on <em>Linear Models in R</em>. Many hypotheses in behavioural research predict the <em>absence</em> of an effect, yet a non-significant result is often misread as evidence for it. The course teaches two ways to test such predictions properly: frequentist <strong>equivalence tests</strong> and <strong>Bayesian</strong> alternatives.</p>
-<section id="topics" class="level2"><h2 class="anchored" data-anchor-id="topics">Topics</h2>
+</header>
+
+
+<p>A hands-on course that builds on <em>Linear Models in R</em>. Many hypotheses in behavioural research predict the <em>absence</em> of an effect, yet a non-significant result is often misread as evidence for it. The course teaches two ways to test such predictions properly: frequentist <strong>equivalence tests</strong> and <strong>Bayesian</strong> alternatives.</p>
+<section id="topics" class="level2">
+<h2 class="anchored" data-anchor-id="topics">Topics</h2>
 <ul>
-<li>
-<strong>Why <em>p</em> &gt; .05 is not evidence for “no effect”:</strong> absence of evidence vs.&nbsp;evidence of absence.</li>
-<li>
-<strong>The smallest effect size of interest (SESOI):</strong> how to justify which effects are too small to matter.</li>
-<li>
-<strong>Equivalence tests (TOST):</strong> how to test predictions of “no effect” with classical significance tests, based on a justified SESOI (R package TOSTER).</li>
-<li>
-<strong>Bayes factors:</strong> quantifying the evidence for the null relative to the alternative (R package BayesFactor).</li>
-<li>
-<strong>Bayesian estimation with a region of practical equivalence (ROPE):</strong> deciding on the basis of the posterior distribution (R packages brms and bayestestR).</li>
-<li>
-<strong>Comparing the approaches:</strong> when they agree, when they differ, and the role of priors.</li>
+<li><strong>Why <em>p</em> &gt; .05 is not evidence for “no effect”:</strong> absence of evidence vs.&nbsp;evidence of absence.</li>
+<li><strong>The smallest effect size of interest (SESOI):</strong> how to justify which effects are too small to matter.</li>
+<li><strong>Equivalence tests (TOST):</strong> how to test predictions of “no effect” with classical significance tests, based on a justified SESOI (R package TOSTER).</li>
+<li><strong>Bayes factors:</strong> quantifying the evidence for the null relative to the alternative (R package BayesFactor).</li>
+<li><strong>Bayesian estimation with a region of practical equivalence (ROPE):</strong> deciding on the basis of the posterior distribution (R packages brms and bayestestR).</li>
+<li><strong>Comparing the approaches:</strong> when they agree, when they differ, and the role of priors.</li>
 </ul>
 <p><strong>Outcome:</strong> each participant plans how to test a “no effect” prediction in their own project, including a sample-size justification.</p>
 <div class="key-terms">
 <p><strong>Key terms:</strong> <a href="../glossary.html#p-value"><em>p</em>-value</a>, <a href="../glossary.html#sesoi">SESOI (smallest effect size of interest)</a>, <a href="../glossary.html#equivalence-test">Equivalence test (TOST)</a>, <a href="../glossary.html#bayes-factor">Bayes factor</a>, <a href="../glossary.html#rope">ROPE (region of practical equivalence)</a>, <a href="../glossary.html#prior">Prior, posterior</a></p>
 </div>
-</section><section id="simulate-first-three-answers-to-the-same-data" class="level2"><h2 class="anchored" data-anchor-id="simulate-first-three-answers-to-the-same-data">Simulate first: three answers to the same data</h2>
+</section>
+<section id="four-tests-one-dataset" class="level2">
+<h2 class="anchored" data-anchor-id="four-tests-one-dataset">Four tests, one dataset</h2>
+<p>Classical significance tests can do much more than reject an effect of exactly zero. Lakens (2022, ch.&nbsp;9) distinguishes four kinds of tests. They differ only in <strong>which hypothesis is tested</strong>, so all four can be applied to the <strong>same data</strong>: each answers a different question.</p>
+<section id="the-data" class="level3">
+<h3 class="anchored" data-anchor-id="the-data">The data</h3>
+<p>Participants solve a puzzle; we measure the solution time in seconds. A <strong>control</strong> group is compared with a <strong>training</strong> group (500 participants each). The effect of interest is the time saved by training, <em>Δ</em> = control − training.</p>
+<ul>
+<li>The <strong>smallest effect size of interest</strong> (SESOI) is 2 seconds: savings below 2 s are too small to matter in practice.</li>
+<li>A theory predicts savings <strong>between 0.5 and 2.5 s</strong>.</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">4</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>control  <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">500</span>, <span class="at">mean =</span> <span class="dv">20</span>,   <span class="at">sd =</span> <span class="dv">5</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>training <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">500</span>, <span class="at">mean =</span> <span class="fl">18.8</span>, <span class="at">sd =</span> <span class="dv">5</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>sesoi <span class="ot">&lt;-</span> <span class="dv">2</span>                     <span class="co"># smallest effect size of interest (s)</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>lower <span class="ot">&lt;-</span> <span class="fl">0.5</span>; upper <span class="ot">&lt;-</span> <span class="fl">2.5</span>     <span class="co"># range predicted by the theory (s)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The observed saving is <em>Δ</em> = 1.25 s, 95% CI [0.65, 1.85], 90% CI [0.75, 1.76].</p>
+</section>
+<section id="the-four-tests-at-a-glance" class="level3">
+<h3 class="anchored" data-anchor-id="the-four-tests-at-a-glance">The four tests at a glance</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>lim <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">4</span>, <span class="dv">4</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>panels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"A: two-sided null hypothesis test"</span>, <span class="st">"B: interval hypothesis test"</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>            <span class="st">"C: equivalence test"</span>, <span class="st">"D: minimum effect test"</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>reg <span class="ot">&lt;-</span> <span class="cf">function</span>(panel, xmin, xmax, hyp) <span class="fu">data.frame</span>(panel, xmin, xmax, hyp)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>regions <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">reg</span>(panels[<span class="dv">1</span>], lim[<span class="dv">1</span>], lim[<span class="dv">2</span>], <span class="st">"H1"</span>),</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">reg</span>(panels[<span class="dv">2</span>], <span class="fu">c</span>(lim[<span class="dv">1</span>], upper), <span class="fu">c</span>(lower, lim[<span class="dv">2</span>]), <span class="st">"H0"</span>), <span class="fu">reg</span>(panels[<span class="dv">2</span>], lower, upper, <span class="st">"H1"</span>),</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">reg</span>(panels[<span class="dv">3</span>], <span class="fu">c</span>(lim[<span class="dv">1</span>], sesoi), <span class="fu">c</span>(<span class="sc">-</span>sesoi, lim[<span class="dv">2</span>]), <span class="st">"H1"</span>), <span class="fu">reg</span>(panels[<span class="dv">3</span>], <span class="sc">-</span>sesoi, sesoi, <span class="st">"H0"</span>),</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">reg</span>(panels[<span class="dv">4</span>], <span class="fu">c</span>(lim[<span class="dv">1</span>], sesoi), <span class="fu">c</span>(<span class="sc">-</span>sesoi, lim[<span class="dv">2</span>]), <span class="st">"H1"</span>), <span class="fu">reg</span>(panels[<span class="dv">4</span>], <span class="sc">-</span>sesoi, sesoi, <span class="st">"H0"</span>))</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>regions<span class="sc">$</span>hyp[regions<span class="sc">$</span>panel <span class="sc">==</span> panels[<span class="dv">3</span>]] <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(regions<span class="sc">$</span>hyp[regions<span class="sc">$</span>panel <span class="sc">==</span> panels[<span class="dv">3</span>]] <span class="sc">==</span> <span class="st">"H0"</span>, <span class="st">"H1"</span>, <span class="st">"H0"</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>regions<span class="sc">$</span>panel <span class="ot">&lt;-</span> <span class="fu">factor</span>(regions<span class="sc">$</span>panel, <span class="at">levels =</span> panels)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>nil <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">panel =</span> <span class="fu">factor</span>(panels[<span class="dv">1</span>], <span class="at">levels =</span> panels), <span class="at">x =</span> <span class="dv">0</span>)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>ci  <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">panel =</span> <span class="fu">factor</span>(panels, <span class="at">levels =</span> panels), <span class="at">est =</span> est,</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>                  <span class="at">lo =</span> <span class="fu">c</span>(t95<span class="sc">$</span>conf.int[<span class="dv">1</span>], <span class="fu">rep</span>(t90<span class="sc">$</span>conf.int[<span class="dv">1</span>], <span class="dv">3</span>)),</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>                  <span class="at">hi =</span> <span class="fu">c</span>(t95<span class="sc">$</span>conf.int[<span class="dv">2</span>], <span class="fu">rep</span>(t90<span class="sc">$</span>conf.int[<span class="dv">2</span>], <span class="dv">3</span>)))</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_rect</span>(<span class="at">data =</span> regions, <span class="fu">aes</span>(<span class="at">xmin =</span> xmin, <span class="at">xmax =</span> xmax, <span class="at">ymin =</span> <span class="sc">-</span>.<span class="dv">4</span>, <span class="at">ymax =</span> .<span class="dv">4</span>, <span class="at">fill =</span> hyp), <span class="at">alpha =</span> .<span class="dv">35</span>) <span class="sc">+</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="at">data =</span> nil, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">xend =</span> x, <span class="at">y =</span> <span class="sc">-</span>.<span class="dv">4</span>, <span class="at">yend =</span> .<span class="dv">4</span>), <span class="at">colour =</span> col_h0, <span class="at">linewidth =</span> <span class="fl">1.6</span>) <span class="sc">+</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_errorbarh</span>(<span class="at">data =</span> ci, <span class="fu">aes</span>(<span class="at">y =</span> <span class="dv">0</span>, <span class="at">xmin =</span> lo, <span class="at">xmax =</span> hi), <span class="at">height =</span> .<span class="dv">25</span>, <span class="at">linewidth =</span> <span class="dv">1</span>, <span class="at">colour =</span> col_navy) <span class="sc">+</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> ci, <span class="fu">aes</span>(est, <span class="dv">0</span>), <span class="at">size =</span> <span class="fl">2.6</span>, <span class="at">colour =</span> col_navy) <span class="sc">+</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> panel, <span class="at">ncol =</span> <span class="dv">1</span>, <span class="at">strip.position =</span> <span class="st">"left"</span>, <span class="at">dir =</span> <span class="st">"v"</span>) <span class="sc">+</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">H0 =</span> col_h0, <span class="at">H1 =</span> col_h1), <span class="at">name =</span> <span class="cn">NULL</span>,</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>                    <span class="at">labels =</span> <span class="fu">c</span>(<span class="at">H0 =</span> <span class="st">"null hypothesis (H0)"</span>, <span class="at">H1 =</span> <span class="st">"alternative hypothesis (H1)"</span>)) <span class="sc">+</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="sc">-</span>sesoi, <span class="dv">0</span>, lower, sesoi, upper), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"-2"</span>, <span class="st">"0"</span>, <span class="st">"0.5"</span>, <span class="st">"2"</span>, <span class="st">"2.5"</span>),</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>                     <span class="at">limits =</span> lim, <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(<span class="fu">paste</span>(<span class="st">"Time saved by training, "</span>, Delta, <span class="st">" (s)"</span>)), <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(), <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(), <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>        <span class="at">strip.text.y.left =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">0</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-four" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-four-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-four-1.png" class="img-fluid figure-img" width="975">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-four-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Two-sided null hypothesis test (A), interval hypothesis test (B), equivalence test (C) and minimum effect test (D). Red: values in the null hypothesis; blue: values in the alternative hypothesis. Point and bar: our estimate with 95% CI (A) or 90% CI (B–D). Adapted from Lakens (2022), Fig. 9.1; this figure is licensed CC BY-NC-SA 4.0.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="a-two-sided-null-hypothesis-test" class="level3">
+<h3 class="anchored" data-anchor-id="a-two-sided-null-hypothesis-test">A: two-sided null hypothesis test</h3>
+<p><strong>Question:</strong> Is there any effect at all? <strong>H0:</strong> <em>Δ</em> = 0. <strong>H1:</strong> <em>Δ</em> ≠ 0. The classic <em>t</em>-test; significant if the 95% CI excludes 0.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">t.test</span>(control, training, <span class="at">var.equal =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt; 
+#&gt;  Two Sample t-test
+#&gt; 
+#&gt; data:  control and training
+#&gt; t = 4.0852, df = 998, p-value = 4.757e-05
+#&gt; alternative hypothesis: true difference in means is not equal to 0
+#&gt; 95 percent confidence interval:
+#&gt;  0.6510149 1.8545975
+#&gt; sample estimates:
+#&gt; mean of x mean of y 
+#&gt;  19.85426  18.60146</code></pre>
+</div>
+</div>
+<p><strong>Result:</strong> <em>p</em> &lt; .001. Training saves time, but this test says nothing about whether the saving is large enough to matter.</p>
+</section>
+<section id="b-interval-hypothesis-test" class="level3">
+<h3 class="anchored" data-anchor-id="b-interval-hypothesis-test">B: interval hypothesis test</h3>
+<p><strong>Question:</strong> Does the effect fall within the range the theory predicts? <strong>H0:</strong> <em>Δ</em> ≤ 0.5 or <em>Δ</em> ≥ 2.5. <strong>H1:</strong> 0.5 &lt; <em>Δ</em> &lt; 2.5. Two one-sided tests, one against each bound; the prediction is supported if <strong>both</strong> are significant, i.e.&nbsp;the 90% CI lies inside the predicted range.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># H0a: Delta &lt;= 0.5 (test: greater than the lower bound)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>p_lo <span class="ot">&lt;-</span> <span class="fu">t.test</span>(control, training, <span class="at">mu =</span> lower,</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">alternative =</span> <span class="st">"greater"</span>, <span class="at">var.equal =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>p.value</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># H0b: Delta &gt;= 2.5 (test: less than the upper bound)</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>p_hi <span class="ot">&lt;-</span> <span class="fu">t.test</span>(control, training, <span class="at">mu =</span> upper,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">alternative =</span> <span class="st">"less"</span>, <span class="at">var.equal =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>p.value</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">p_lower =</span> p_lo, <span class="at">p_upper =</span> p_hi, <span class="at">p =</span> <span class="fu">max</span>(p_lo, p_hi))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt;      p_lower      p_upper            p 
+#&gt; 7.133457e-03 2.569832e-05 7.133457e-03</code></pre>
+</div>
+</div>
+<p><strong>Result:</strong> <em>p</em> = .007. The saving lies within the predicted range of 0.5 to 2.5 s.</p>
+</section>
+<section id="c-equivalence-test-tost" class="level3">
+<h3 class="anchored" data-anchor-id="c-equivalence-test-tost">C: equivalence test (TOST)</h3>
+<p><strong>Question:</strong> Is the effect too small to matter? <strong>H0:</strong> <em>Δ</em> ≤ −2 or <em>Δ</em> ≥ 2. <strong>H1:</strong> −2 &lt; <em>Δ</em> &lt; 2. The same two one-sided tests as in B, now against −SESOI and +SESOI; equivalence is shown if the 90% CI lies inside the equivalence bounds.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># H0a: Delta &lt;= -2 (test: greater than the lower equivalence bound)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>p_lo <span class="ot">&lt;-</span> <span class="fu">t.test</span>(control, training, <span class="at">mu =</span> <span class="sc">-</span>sesoi,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">alternative =</span> <span class="st">"greater"</span>, <span class="at">var.equal =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>p.value</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># H0b: Delta &gt;= 2 (test: less than the upper equivalence bound)</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>p_hi <span class="ot">&lt;-</span> <span class="fu">t.test</span>(control, training, <span class="at">mu =</span> sesoi,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">alternative =</span> <span class="st">"less"</span>, <span class="at">var.equal =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>p.value</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">p_lower =</span> p_lo, <span class="at">p_upper =</span> p_hi, <span class="at">p =</span> <span class="fu">max</span>(p_lo, p_hi))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt;      p_lower      p_upper            p 
+#&gt; 2.791839e-25 7.502522e-03 7.502522e-03</code></pre>
+</div>
+</div>
+<p><strong>Result:</strong> <em>p</em> = .008. The saving is statistically <strong>equivalent</strong> to zero within ±2 s: it is real (test A), but smaller than anything we consider meaningful.</p>
+</section>
+<section id="d-minimum-effect-test" class="level3">
+<h3 class="anchored" data-anchor-id="d-minimum-effect-test">D: minimum effect test</h3>
+<p><strong>Question:</strong> Is the effect larger than the smallest effect of interest? <strong>H0:</strong> −2 ≤ <em>Δ</em> ≤ 2. <strong>H1:</strong> <em>Δ</em> &lt; −2 or <em>Δ</em> &gt; 2. The reverse of the equivalence test; here we test only the direction the theory predicts (<em>Δ</em> &gt; 2).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># H0: Delta &lt;= 2 (test: greater than the SESOI)</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">t.test</span>(control, training, <span class="at">mu =</span> sesoi,</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">alternative =</span> <span class="st">"greater"</span>, <span class="at">var.equal =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>p.value</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt; [1] 0.9924975</code></pre>
+</div>
+</div>
+<p><strong>Result:</strong> <em>p</em> = .992. We cannot claim a saving larger than 2 s.</p>
+</section>
+<section id="with-the-toster-package" class="level3">
+<h3 class="anchored" data-anchor-id="with-the-toster-package">With the TOSTER package</h3>
+<p>The R package <a href="https://aaroncaldwell.us/TOSTERpkg/">TOSTER</a> runs tests C and D in one call and adds effect sizes and plots:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(TOSTER)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co"># C: equivalence test</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">t_TOST</span>(<span class="at">x =</span> control, <span class="at">y =</span> training, <span class="at">eqb =</span> sesoi, <span class="at">var.equal =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co"># D: minimum effect test</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">t_TOST</span>(<span class="at">x =</span> control, <span class="at">y =</span> training, <span class="at">eqb =</span> sesoi, <span class="at">var.equal =</span> <span class="cn">TRUE</span>, <span class="at">hypothesis =</span> <span class="st">"MET"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="summary" class="level3">
+<h3 class="anchored" data-anchor-id="summary">Summary</h3>
+<table class="table-striped caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Test</th>
+<th>Question</th>
+<th>H0</th>
+<th>Result here</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A: two-sided null hypothesis test</td>
+<td>Any effect?</td>
+<td><em>Δ</em> = 0</td>
+<td>rejected: training saves time</td>
+</tr>
+<tr class="even">
+<td>B: interval hypothesis test</td>
+<td>Within the predicted range?</td>
+<td><em>Δ</em> ≤ 0.5 or <em>Δ</em> ≥ 2.5</td>
+<td>rejected: prediction supported</td>
+</tr>
+<tr class="odd">
+<td>C: equivalence test</td>
+<td>Too small to matter?</td>
+<td>|<em>Δ</em>| ≥ 2</td>
+<td>rejected: equivalent to zero</td>
+</tr>
+<tr class="even">
+<td>D: minimum effect test</td>
+<td>Larger than the SESOI?</td>
+<td>|<em>Δ</em>| ≤ 2</td>
+<td>not rejected</td>
+</tr>
+</tbody>
+</table>
+<p>The same data give four different answers because the tests ask four different questions. Which test is appropriate follows from the hypothesis, and should be decided, and preregistered, <strong>before</strong> the data are seen.</p>
+<div class="box">
+<p><strong>Note:</strong> With 500 participants per group, even a saving of about 1 s is detected (A) <em>and</em> shown to be negligible (C). With small samples, typical for animal studies, all four tests are often inconclusive. Planning the sample size for the test you intend to run is part of the course.</p>
+</div>
+<p><strong>Reference:</strong> Lakens, D. (2022). <em>Improving your statistical inferences</em> (ch.&nbsp;9: Equivalence testing and interval hypotheses). <a href="https://doi.org/10.5281/zenodo.6409077" class="uri">https://doi.org/10.5281/zenodo.6409077</a>. Licensed CC BY-NC-SA 4.0.</p>
+</section>
+</section>
+<section id="simulate-first-three-answers-to-the-same-data" class="level2">
+<h2 class="anchored" data-anchor-id="simulate-first-three-answers-to-the-same-data">Simulate first: three answers to the same data</h2>
 <p>There is <strong>no difference</strong> between the two groups in these data. The classic <em>t</em>-test is non-significant, but that alone says nothing about whether the effect is absent.</p>
 <div class="cell">
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">13</span><span class="op">)</span></span>
-<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
-<span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span>; <span class="va">b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span>                 <span class="co"># true difference = 0</span></span>
-<span><span class="va">sesoi</span> <span class="op">&lt;-</span> <span class="fl">0.4</span>                                 <span class="co"># smallest effect of interest (in SD units)</span></span>
-<span></span>
-<span><span class="co"># 1. Classic t-test: non-significant, but not evidence for "no effect"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/t.test.html">t.test</a></span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span>, var.equal <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">p.value</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">13</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n); b <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)                 <span class="co"># true difference = 0</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>sesoi <span class="ot">&lt;-</span> <span class="fl">0.4</span>                                 <span class="co"># smallest effect of interest (in SD units)</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Classic t-test: non-significant, but not evidence for "no effect"</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="fu">t.test</span>(a, b, <span class="at">var.equal =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>p.value</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>#&gt; [1] 0.5200304</code></pre>
 </div>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># 2. Equivalence test (TOST): is the difference within [-SESOI, +SESOI]?</span></span>
-<span><span class="va">p_lower</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/t.test.html">t.test</a></span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span>, mu <span class="op">=</span> <span class="op">-</span><span class="va">sesoi</span>, alternative <span class="op">=</span> <span class="st">"greater"</span>, var.equal <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">p.value</span></span>
-<span><span class="va">p_upper</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/t.test.html">t.test</a></span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span>, mu <span class="op">=</span>  <span class="va">sesoi</span>, alternative <span class="op">=</span> <span class="st">"less"</span>,    var.equal <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">p.value</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">p_lower</span>, <span class="va">p_upper</span><span class="op">)</span>                        <span class="co"># &lt; .05 -&gt; effect is statistically equivalent to zero</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Equivalence test (TOST): is the difference within [-SESOI, +SESOI]?</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>p_lower <span class="ot">&lt;-</span> <span class="fu">t.test</span>(a, b, <span class="at">mu =</span> <span class="sc">-</span>sesoi, <span class="at">alternative =</span> <span class="st">"greater"</span>, <span class="at">var.equal =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>p.value</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>p_upper <span class="ot">&lt;-</span> <span class="fu">t.test</span>(a, b, <span class="at">mu =</span>  sesoi, <span class="at">alternative =</span> <span class="st">"less"</span>,    <span class="at">var.equal =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>p.value</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">max</span>(p_lower, p_upper)                        <span class="co"># &lt; .05 -&gt; effect is statistically equivalent to zero</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>#&gt; [1] 0.01766867</code></pre>
 </div>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># 3. Bayes factor for H0 over H1 (BIC approximation; Wagenmakers, 2007)</span></span>
-<span><span class="va">d</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span><span class="op">)</span>, group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span><span class="op">)</span>, each <span class="op">=</span> <span class="va">n</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">m0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, data <span class="op">=</span> <span class="va">d</span><span class="op">)</span></span>
-<span><span class="va">m1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">group</span>, data <span class="op">=</span> <span class="va">d</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html">BIC</a></span><span class="op">(</span><span class="va">m1</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/AIC.html">BIC</a></span><span class="op">(</span><span class="va">m0</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span>                 <span class="co"># BF01 &gt; 1 favours "no difference"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Bayes factor for H0 over H1 (BIC approximation; Wagenmakers, 2007)</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>d  <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">y =</span> <span class="fu">c</span>(a, b), <span class="at">group =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">"a"</span>, <span class="st">"b"</span>), <span class="at">each =</span> n))</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>m0 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> d)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> group, <span class="at">data =</span> d)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>((<span class="fu">BIC</span>(m1) <span class="sc">-</span> <span class="fu">BIC</span>(m0)) <span class="sc">/</span> <span class="dv">2</span>)                 <span class="co"># BF01 &gt; 1 favours "no difference"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>#&gt; [1] 11.46872</code></pre>
 </div>
 </div>
 <p>In the course, the BIC approximation is replaced by Bayes factors with explicit priors (BayesFactor) and by posterior estimation with a ROPE (brms, bayestestR).</p>
-</section><section id="materials" class="level2"><h2 class="anchored" data-anchor-id="materials">Materials</h2>
+</section>
+<section id="materials" class="level2">
+<h2 class="anchored" data-anchor-id="materials">Materials</h2>
 <div class="materials">
 <ul>
-<li>Slides <span class="tag">coming soon</span>
-</li>
-<li>R scripts <span class="tag">coming soon</span>
-</li>
+<li>Slides <span class="tag">coming soon</span></li>
+<li>R scripts <span class="tag">coming soon</span></li>
 </ul>
 </div>
-</section><section id="reading-and-tools" class="level2"><h2 class="anchored" data-anchor-id="reading-and-tools">Reading and tools</h2>
+</section>
+<section id="reading-and-tools" class="level2">
+<h2 class="anchored" data-anchor-id="reading-and-tools">Reading and tools</h2>
 <ul>
 <li>Lakens, D., Scheel, A. M., &amp; Isager, P. M. (2018). Equivalence testing for psychological research: A tutorial. <em>Advances in Methods and Practices in Psychological Science, 1</em>(2), 259–269.</li>
 <li>Lakens, D., McLatchie, N., Isager, P. M., Scheel, A. M., &amp; Dienes, Z. (2020). Improving inferences about null effects with Bayes factors and equivalence tests. <em>The Journals of Gerontology: Series B, 75</em>(1), 45–57.</li>
 <li>Dienes, Z. (2014). Using Bayes to get the most out of non-significant results. <em>Frontiers in Psychology, 5</em>, 781.</li>
 <li>Kruschke, J. K. (2018). Rejecting or accepting parameter values in Bayesian estimation. <em>Advances in Methods and Practices in Psychological Science, 1</em>(2), 270–280.</li>
 <li>Wagenmakers, E.-J. (2007). A practical solution to the pervasive problems of <em>p</em> values. <em>Psychonomic Bulletin &amp; Review, 14</em>(5), 779–804.</li>
-<li>Lakens, D. <em>Improving your statistical inferences.</em> <a href="https://lakens.github.io/statistical_inferences/" class="uri">https://lakens.github.io/statistical_inferences/</a>
-</li>
-<li>R packages: <a href="https://cran.r-project.org/package=TOSTER">TOSTER</a>, <a href="https://cran.r-project.org/package=BayesFactor">BayesFactor</a>, <a href="https://paulbuerkner.com/brms/">brms</a>, <a href="https://easystats.github.io/bayestestR/">bayestestR</a>
-</li>
+<li>Lakens, D. <em>Improving your statistical inferences.</em> <a href="https://lakens.github.io/statistical_inferences/" class="uri">https://lakens.github.io/statistical_inferences/</a></li>
+<li>R packages: <a href="https://cran.r-project.org/package=TOSTER">TOSTER</a>, <a href="https://cran.r-project.org/package=BayesFactor">BayesFactor</a>, <a href="https://paulbuerkner.com/brms/">brms</a>, <a href="https://easystats.github.io/bayestestR/">bayestestR</a></li>
 </ul>
 
 
-</section><a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
     const mode = bsSheetEl.getAttribute("data-mode");
@@ -685,7 +911,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 });
 </script>
 </div> <!-- /content -->
-<footer class="footer"><div class="nav-footer">
+<footer class="footer">
+  <div class="nav-footer">
     <div class="nav-footer-left">
 <p>Simon Stephan · CBB Göttingen</p>
 </div>   
@@ -697,6 +924,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </div>
   </div>
 </footer>
+
+
 
 
 <script src="../site_libs/quarto-html/zenscroll-min.js"></script>
