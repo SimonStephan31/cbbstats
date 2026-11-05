@@ -8,3 +8,5 @@
 **/*.quarto_ipynb
 data-raw/
 docs/**/*.qmd
+docs/_freeze/
+docs/exercises/
