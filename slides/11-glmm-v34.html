@@ -1658,7 +1658,7 @@ display:block!important;
 </div><div class="column" style="width:48%;">
 <div class="r-stack tstack">
 <div class="fragment fade-out" data-fragment-index="2">
-<p><span class="ptext">The GLMM “knows” which data point belongs to which chimp. It can thus fit a separate line to each chimp (dashed), with different intercepts, accounting for baseline differences. <span class="c-glmm">Blue</span> = average chimp.</span></p>
+<p><span class="ptext">The GLMM “knows” which data point belongs to which chimp. Each chimp gets its own line (dashed) with its own intercept, which accounts for baseline differences. <span class="c-glmm">Blue</span> = average chimp.</span></p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r boxri number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href></a><span class="fu">library</span>(lme4)</span>
 <span id="cb6-2"><a href></a>ri.mod <span class="ot">&lt;-</span> <span class="fu">glmer</span>(choice <span class="sc">~</span> session_c <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> chimp),</span>
