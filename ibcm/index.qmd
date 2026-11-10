@@ -1,0 +1,263 @@
+---
+title: "Inference with Bayesian Causal Models"
+subtitle: "Course 4 (IBCM) · statistical inference about causal structure and causal strength"
+code-link: false
+---
+
+```{r setup}
+#| include: false
+library(ggplot2)
+col_s1 <- "#1b6f8a"; col_s0 <- "#c0392b"; col_navy <- "#12384a"; col_muted <- "#9aa5ad"
+theme_set(theme_minimal(base_size = 13) + theme(panel.grid.minor = element_blank()))
+f2 <- function(x) formatC(x, format = "f", digits = 2)
+```
+
+A hands-on course that brings together **statistical inference** and **causal inference**. Most statistical models answer "how strongly are X and Y related?". Causal models ask "does X cause Y, and how strongly?". Bayesian causal models answer both questions in one framework: we specify **alternative causal structures** as hypotheses, and update our beliefs about them, and about the strength of causal links, in light of data.
+
+## Topics
+
+- **Causal Bayes nets:** representing causal hypotheses as graphs with parameters
+- **Causal structure induction:** Bayesian updating over alternative causal structures; the causal support model (Griffiths & Tenenbaum, 2005) and the Structure Induction (SI) model (Meder et al., 2014)
+- **Causal strength:** Bayesian estimation of the strength of a causal link, with credible intervals
+- **Priors:** structure priors and parameter priors, and how they shape conclusions from limited data (Stephan & Waldmann, 2026)
+- **Bayesian model averaging:** combining uncertainty about structure and strength
+- **From 2×2 tables to richer structures:** multiple causes, common causes and causal chains
+
+**Outcome:** each participant formulates competing causal hypotheses for their own research question and evaluates them with a Bayesian causal model.
+
+**Prerequisites:** *Linear Models in R*. The short workshop [Bayesian modelling with brms](../workshops/bayesian-modelling.qmd) is a helpful complement.
+
+::: {.key-terms}
+**Key terms:** [Causal Bayes net](../glossary.qmd#causal-bayes-net), [Noisy-OR](../glossary.qmd#noisy-or), [Causal support](../glossary.qmd#causal-support), [Structure Induction (SI) model](../glossary.qmd#si-model), [Causal strength](../glossary.qmd#causal-strength), [Bayesian model averaging](../glossary.qmd#bma), [Prior, posterior](../glossary.qmd#prior)
+:::
+
+## Worked example: does C cause E?
+
+The simplest causal inference problem: we observe whether a potential cause *C* is present or absent, and whether an effect *E* occurs. The data form a **2×2 contingency table**. Two causal structures could have generated them:
+
+```{r graphs}
+#| echo: false
+#| fig-height: 2.4
+#| fig-width: 6.5
+nodes <- data.frame(s = rep(c("S0: no link between C and E", "S1: C causes E"), each = 3),
+                    id = rep(c("C", "A", "E"), 2), x = rep(c(0, 2, 1), 2), y = rep(c(1, 1, 0), 2))
+edges <- data.frame(s = c("S0: no link between C and E", "S1: C causes E", "S1: C causes E"),
+                    x = c(2, 2, 0), y = 1, xend = c(1.12, 1.12, 0.88), yend = 0.14,
+                    lab = c("w[a]", "w[a]", "w[c]"), lx = c(1.75, 1.75, 0.25), ly = .45)
+ggplot() +
+  geom_segment(data = edges, aes(x, y - .14, xend = xend, yend = yend),
+               arrow = arrow(length = unit(.18, "cm"), type = "closed"), colour = col_navy, linewidth = .8) +
+  geom_point(data = nodes, aes(x, y), size = 14, shape = 21, fill = "white", colour = col_navy, stroke = 1.2) +
+  geom_text(data = nodes, aes(x, y, label = id), size = 5, fontface = "italic", colour = col_navy) +
+  geom_text(data = edges, aes(lx, ly, label = lab), parse = TRUE, size = 4.5, colour = col_s1) +
+  facet_wrap(~ s) +
+  coord_cartesian(xlim = c(-.4, 2.4), ylim = c(-.3, 1.3)) +
+  theme_void(base_size = 13) + theme(strip.text = element_text(face = "bold", margin = margin(b = 4)))
+```
+
+- Under **S1**, *E* is produced by *C* (with causal strength *w*~c~) and by unobserved background causes *A* (strength *w*~a~). The two causes combine as a **noisy-OR**: P(e^+^ | c^+^) = *w*~c~ + *w*~a~ − *w*~c~*w*~a~, and P(e^+^ | c^−^) = *w*~a~.
+- Under **S0**, there is no link: *E* is produced by *A* only, so P(e^+^ | c^+^) = P(e^+^ | c^−^) = *w*~a~.
+- A third parameter, the base rate *b*~c~ of *C*, is part of both structures. With the same prior in both, it cancels from the comparison, so we leave it out below.
+
+### The data
+
+```{r data}
+# Table 1: positive contingency
+d1 <- c(n_ce = 16, n_c = 20,    # E present in 16 of 20 cases with C
+        n_nce = 8, n_nc = 20)   # E present in  8 of 20 cases without C
+
+# Table 2: zero contingency, high outcome density (a classic "causal illusion" set)
+d2 <- c(n_ce = 10, n_c = 10,
+        n_nce = 10, n_nc = 10)
+```
+
+| | Table 1: E present | Table 1: E absent | Table 2: E present | Table 2: E absent |
+|---|---|---|---|---|
+| **C present** | 16 | 4 | 10 | 0 |
+| **C absent** | 8 | 12 | 10 | 0 |
+| P(e^+^ \| c^+^) − P(e^+^ \| c^−^) = Δ*P* | 0.80 − 0.40 = **0.40** | | 1.00 − 1.00 = **0** | |
+
+: {.striped}
+
+### Step 1: how likely are the data under each structure?
+
+Bayesian inference compares structures by their **marginal likelihood**: how probable the data are under a structure, **averaged over all values of its parameters**, weighted by the parameter priors. As in the standard SI model, we use flat Beta(1, 1) priors for *w*~c~ and *w*~a~. With two parameters, a fine grid is enough to compute the integral.
+
+```{r si-model}
+si_model <- function(n_ce, n_c, n_nce, n_nc, prior_s1 = .5,
+                     wc_prior = c(1, 1), wa_prior = c(1, 1), grid = 401) {
+  w <- (seq_len(grid) - .5) / grid            # grid over (0, 1)
+
+  # S1: noisy-OR of C (wc, rows) and A (wa, columns)
+  p_c   <- outer(w, w, function(wc, wa) wc + wa - wc * wa)  # P(e+|c+)
+  p_nc  <- matrix(w, grid, grid, byrow = TRUE)               # P(e+|c-)
+  lik1  <- exp(n_ce * log(p_c)  + (n_c  - n_ce)  * log1p(-p_c) +
+               n_nce * log(p_nc) + (n_nc - n_nce) * log1p(-p_nc))
+  prior <- outer(dbeta(w, wc_prior[1], wc_prior[2]),
+                 dbeta(w, wa_prior[1], wa_prior[2])) / grid^2
+  ml1   <- sum(lik1 * prior)                   # marginal likelihood P(D | S1)
+
+  # S0: only A, so P(e+ | c+) = P(e+ | c-) = wa
+  lik0 <- w^(n_ce + n_nce) * (1 - w)^(n_c - n_ce + n_nc - n_nce)
+  ml0  <- sum(lik0 * dbeta(w, wa_prior[1], wa_prior[2]) / grid)  # P(D | S0)
+
+  post_w <- lik1 * prior / sum(lik1 * prior)   # joint posterior of wc, wa (S1)
+  list(ml1 = ml1, ml0 = ml0,
+       # causal support (Griffiths & Tenenbaum, 2005)
+       support = log(ml1 / ml0),
+       # SI model: posterior probability of S1
+       p_s1 = prior_s1 * ml1 / (prior_s1 * ml1 + (1 - prior_s1) * ml0),
+       # marginal posterior of wc under S1
+       w = w, wc_post = rowSums(post_w))
+}
+
+r1 <- do.call(si_model, as.list(d1))
+r2 <- do.call(si_model, as.list(d2))
+```
+
+### Step 2: posterior probability of a causal link
+
+Bayes' rule combines the marginal likelihoods with the **structure prior** P(S1):
+
+$$
+P(S_1 \mid D) = \frac{P(D \mid S_1)\,P(S_1)}{P(D \mid S_1)\,P(S_1) + P(D \mid S_0)\,P(S_0)}
+$$
+
+```{r results-table}
+#| echo: false
+knitr::kable(data.frame(
+  Table = c("1: positive contingency (&Delta;P = 0.40)", "2: zero contingency (&Delta;P = 0)"),
+  `Causal support, log P(D|S1)/P(D|S0)` = f2(c(r1$support, r2$support)),
+  `P(S1 | D), prior 0.5` = f2(c(r1$p_s1, r2$p_s1)), check.names = FALSE),
+  align = "lrr")
+```
+
+- **Table 1:** the data clearly favour a causal link, P(S1 | D) = `r f2(r1$p_s1)`.
+- **Table 2:** although Δ*P* = 0, the posterior *rises* above the prior of 0.5. Ceiling data leave the strength of *C* undetermined: *E* may be fully produced by *A*, with *C*'s influence masked. S1 is consistent with the data over a wider range of parameters than S0, which needs *w*~a~ ≈ 1. A non-zero belief in a link after zero-contingency data is therefore not necessarily a bias, but can be the result of rational Bayesian updating (Stephan & Waldmann, 2026).
+
+How the posterior depends on the structure prior:
+
+```{r prior-posterior}
+#| code-fold: true
+#| fig-height: 3.4
+priors <- seq(0, 1, by = .01)
+pp <- rbind(
+  data.frame(table = "Table 1: positive contingency", prior = priors,
+             post = priors * r1$ml1 / (priors * r1$ml1 + (1 - priors) * r1$ml0)),
+  data.frame(table = "Table 2: zero contingency",    prior = priors,
+             post = priors * r2$ml1 / (priors * r2$ml1 + (1 - priors) * r2$ml0)))
+
+ggplot(pp, aes(prior, post, colour = table)) +
+  geom_abline(linetype = 2, colour = col_muted) +
+  geom_line(linewidth = 1.2) +
+  scale_colour_manual(values = c(col_s1, col_s0), name = NULL) +
+  coord_equal() +
+  labs(x = "Prior P(S1)", y = "Posterior P(S1 | D)", caption = "Dashed: no change from prior to posterior") +
+  theme(legend.position = "right")
+```
+
+### Step 3: what if we are unsure about the prior?
+
+So far the structure prior was a fixed number. Often we are not sure which prior is appropriate. We can express this uncertainty as a **distribution over the prior**, P(S1) ~ Beta(*a*, *b*), and propagate it: each possible prior gives a posterior P(S1 | D). The result is a distribution over the posterior probability of a link, which we can summarise with a 95% interval. We compare an uninformed learner, P(S1) ~ Beta(1, 1), with a sceptical one, P(S1) ~ Beta(2, 8), who expects links to be rare.
+
+```{r prior-uncertainty}
+post_s1 <- function(prior, r) prior * r$ml1 / (prior * r$ml1 + (1 - prior) * r$ml0)
+
+set.seed(1)
+draws <- list(uninformed = rbeta(1e5, 1, 1),   # P(S1) ~ Beta(1, 1)
+              sceptical  = rbeta(1e5, 2, 8))   # P(S1) ~ Beta(2, 8), mean 0.2
+
+summ <- function(x) c(mean = mean(x), quantile(x, c(.025, .975)))
+round(rbind(`Table 1, uninformed` = summ(post_s1(draws$uninformed, r1)),
+            `Table 1, sceptical`  = summ(post_s1(draws$sceptical,  r1)),
+            `Table 2, uninformed` = summ(post_s1(draws$uninformed, r2)),
+            `Table 2, sceptical`  = summ(post_s1(draws$sceptical,  r2))), 2)
+```
+
+```{r prior-uncertainty-plot}
+#| code-fold: true
+#| fig-height: 3.6
+pu <- do.call(rbind, lapply(names(draws), function(p) rbind(
+  data.frame(prior = p, table = "Table 1: positive contingency", x = post_s1(draws[[p]], r1)),
+  data.frame(prior = p, table = "Table 2: zero contingency",    x = post_s1(draws[[p]], r2)))))
+pu$prior <- factor(pu$prior, levels = c("uninformed", "sceptical"),
+                   labels = c("Uninformed: P(S1) ~ Beta(1, 1)", "Sceptical: P(S1) ~ Beta(2, 8)"))
+ci <- aggregate(x ~ prior + table, pu, function(v) quantile(v, c(.025, .975)))
+ci <- data.frame(ci[, 1:2], lo = ci$x[, 1], hi = ci$x[, 2])
+
+ggplot(pu, aes(x, fill = table)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 50, alpha = .6, position = "identity") +
+  geom_errorbarh(data = ci, aes(y = -0.4, xmin = lo, xmax = hi, colour = table),
+                 inherit.aes = FALSE, height = .3, linewidth = 1) +
+  facet_wrap(~ prior, ncol = 1) +
+  scale_fill_manual(values = c(col_s1, col_s0), name = NULL) +
+  scale_colour_manual(values = c(col_s1, col_s0), guide = "none") +
+  coord_cartesian(ylim = c(-0.6, 8)) +
+  labs(x = "Posterior P(S1 | D)", y = "Density", caption = "Bars: 95% intervals") +
+  theme(legend.position = "top")
+```
+
+The interval shows how much the conclusion depends on prior assumptions. With Table 1, both learners end up favouring a link, but the sceptic is less sure. With Table 2, the conclusion is driven almost entirely by the prior: the data cannot settle whether *C* causes *E*.
+
+### Step 4: how strong is the causal link?
+
+Structure induction asks *whether* *C* causes *E*. **Causal strength** asks *how strongly*. Within S1, the posterior distribution of *w*~c~ follows directly from the grid computed in Step 1 (cf. Lu et al., 2008, for Bayesian strength learning). For comparison, the classic point estimate is Cheng's (1997) causal power, Δ*P* / (1 − P(e^+^ | c^−^)).
+
+```{r strength}
+wc_summary <- function(r) {
+  cdf <- cumsum(r$wc_post)
+  c(mean = sum(r$w * r$wc_post),
+    lower = r$w[which(cdf >= .025)[1]], upper = r$w[which(cdf >= .975)[1]])
+}
+round(rbind(`Table 1` = wc_summary(r1), `Table 2` = wc_summary(r2)), 2)
+
+(16/20 - 8/20) / (1 - 8/20)    # causal power for Table 1
+```
+
+```{r strength-plot}
+#| code-fold: true
+#| fig-height: 3.2
+sp <- rbind(data.frame(table = "Table 1: positive contingency", w = r1$w, dens = r1$wc_post * length(r1$w)),
+            data.frame(table = "Table 2: zero contingency",    w = r2$w, dens = r2$wc_post * length(r2$w)))
+ggplot(sp, aes(w, dens, colour = table, fill = table)) +
+  geom_area(alpha = .25, position = "identity") +
+  geom_vline(xintercept = (16/20 - 8/20) / (1 - 8/20), linetype = 2, colour = col_s1) +
+  scale_colour_manual(values = c(col_s1, col_s0), name = NULL) +
+  scale_fill_manual(values = c(col_s1, col_s0), name = NULL) +
+  labs(x = expression(paste("Causal strength ", w[c])), y = "Posterior density (under S1)",
+       caption = "Dashed: causal power for Table 1") +
+  theme(legend.position = "top")
+```
+
+- **Table 1:** the posterior peaks near the causal power, but the 95% credible interval is wide: 40 observations say that *C* causes *E*, but not precisely how strongly.
+- **Table 2:** the posterior is very broad. Ceiling data are compatible with almost any strength of *C*, because *A* already produces *E* every time.
+
+### Step 5: combining structure and strength
+
+The strength estimate above assumes that the link exists. **Bayesian model averaging** keeps the uncertainty about structure: with probability P(S0 | D), *w*~c~ is exactly 0; with probability P(S1 | D), it follows the posterior under S1.
+
+```{r bma}
+bma <- function(r) {
+  p_zero <- 1 - r$p_s1                                   # probability that wc = 0
+  c(`P(wc = 0)` = p_zero, `mean wc` = r$p_s1 * wc_summary(r)[["mean"]])
+}
+round(rbind(`Table 1` = bma(r1), `Table 2` = bma(r2)), 2)
+```
+
+This is the step from **statistical** to **causal** inference: the question is not only how large an effect is, but which causal structure generated the data, and what follows for the strength of the link if we are uncertain about the structure.
+
+## Materials
+
+::: {.materials}
+- Slides <span class="tag">coming soon</span>
+- R scripts <span class="tag">coming soon</span>
+:::
+
+## Reading
+
+- Cheng, P. W. (1997). From covariation to causation: A causal power theory. *Psychological Review, 104*(2), 367–405.
+- Griffiths, T. L., & Tenenbaum, J. B. (2005). Structure and strength in causal induction. *Cognitive Psychology, 51*(4), 334–384.
+- Lu, H., Yuille, A. L., Liljeholm, M., Cheng, P. W., & Holyoak, K. J. (2008). Bayesian generic priors for causal learning. *Psychological Review, 115*(4), 955–984.
+- Meder, B., Mayrhofer, R., & Waldmann, M. R. (2014). Structure induction in diagnostic causal reasoning. *Psychological Review, 121*(3), 277–301.
+- Stephan, S., & Waldmann, M. R. (2026). Manipulating prior causal beliefs affects the formation of apparent causal illusions. *Cognition, 277*, 106684. Materials and R code: <https://github.com/SimonStephan31/Priors_and_Causal-Illusions>
+- Pearl, J. (2009). *Causality: Models, reasoning, and inference* (2nd ed.). Cambridge University Press.

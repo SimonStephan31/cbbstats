@@ -2,7 +2,7 @@
 title: "About"
 ---
 
-This website accompanies three courses (*Linear Models in R*, *Open, Replicable, and Ethical Science*, and *Testing for Absence and Equivalence*) and the statistical consultation for PhD students of the Campus Research Alliance Cognition, Brain, and Behavior (CBB) at the University of Göttingen and the German Primate Center (DPZ).
+This website accompanies four courses (*Linear Models in R*, *Open, Replicable, and Ethical Science*, *Testing for Absence and Equivalence*, and *Inference with Bayesian Causal Models*) and the statistical consultation for PhD students of the Campus Research Alliance Cognition, Brain, and Behavior (CBB) at the University of Göttingen and the German Primate Center (DPZ).
 
 ## Instructor
 

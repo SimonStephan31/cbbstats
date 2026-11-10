@@ -5,7 +5,7 @@ toc-depth: 2
 toc-title: "A–Z"
 ---
 
-Short explanations of terms that come up again and again. Labels show where a term is introduced: **LM** = [Linear Models in R](linear-models/index.qmd) (with session number), **ORES** = [Open, Replicable, and Ethical Science](ores/index.qmd), **TAE** = [Testing for Absence and Equivalence](tae/index.qmd), **WS** = [short workshops](workshops/index.qmd).
+Short explanations of terms that come up again and again. Labels show where a term is introduced: **LM** = [Linear Models in R](linear-models/index.qmd) (with session number), **ORES** = [Open, Replicable, and Ethical Science](ores/index.qmd), **TAE** = [Testing for Absence and Equivalence](tae/index.qmd), **IBCM** = [Inference with Bayesian Causal Models](ibcm/index.qmd), **WS** = [short workshops](workshops/index.qmd).
 
 Entries marked [Problem]{.gl-tag .gl-problem-tag} describe something that can go wrong, with steps towards a solution under **What to do about it?**
 
@@ -37,7 +37,27 @@ The linear model assumes that (1) observations are **independent**, (2) the rela
 
 The ratio of how well two hypotheses predicted the observed data, e.g. BF~01~ = 5: the data are five times more likely under H~0~ than under H~1~. Unlike a *p*-value, it can quantify evidence **for** the null. Depends on the prior for the effect under H~1~, so report and justify it.
 
+### Bayesian model averaging {#bma}
+[IBCM]{.gl-tag}
+
+Combining the predictions or estimates of several models, weighted by their posterior probabilities, instead of selecting a single model. Keeps uncertainty about which model is correct, e.g. about whether a causal link exists at all.
+
 ## C
+
+### Causal Bayes net {#causal-bayes-net}
+[IBCM]{.gl-tag}
+
+A directed graph whose arrows represent causal relations between variables, together with parameters that specify how causes produce their effects (e.g. causal strengths). Alternative graphs are alternative causal hypotheses that can be compared with data.
+
+### Causal strength {#causal-strength}
+[IBCM]{.gl-tag}
+
+How strongly a cause produces its effect, e.g. *w*~c~ in a [noisy-OR](#noisy-or) model: the probability that *C* produces *E* when no other cause does. Can be estimated with a posterior distribution and a [credible interval](#credible-interval). Cheng's (1997) causal power is a classic point estimate.
+
+### Causal support {#causal-support}
+[IBCM]{.gl-tag}
+
+Griffiths and Tenenbaum's (2005) measure of the evidence for a causal link: the log ratio of the marginal likelihoods of the data under a structure with the link (S1) and without it (S0), log P(D | S1) / P(D | S0). Positive values favour a link.
 
 ### Centring {#centring}
 [LM 03, 05]{.gl-tag}
@@ -231,6 +251,11 @@ Choosing among candidate models. For confirmatory questions, specify the model i
 
 A term in a count model whose coefficient is fixed at 1, used when observation time or effort differs between observations. With a log link, `offset(log(hours))` turns a model of counts into a model of **rates** (counts per hour), without estimating an extra parameter.
 
+### Noisy-OR {#noisy-or}
+[IBCM]{.gl-tag}
+
+A common assumption about how independent generative causes combine: each cause produces the effect independently with its own strength, so P(e | c, a) = *w*~c~ + *w*~a~ − *w*~c~*w*~a~ when both are present.
+
 ### Optional stopping {#optional-stopping}
 [ORES]{.gl-tag} [Problem]{.gl-tag .gl-problem-tag}
 
@@ -364,6 +389,11 @@ A design with planned interim analyses, at which data collection can stop for ef
 [TAE]{.gl-tag}
 
 The smallest effect that would be theoretically or practically meaningful. Needed for [equivalence tests](#equivalence-test), [ROPEs](#rope) and power analyses. Justify it from theory, previous studies or practical considerations, and preregister it.
+
+### Structure Induction (SI) model {#si-model}
+[IBCM]{.gl-tag}
+
+A Bayesian model of causal structure learning (Meder et al., 2014): it computes the posterior probability that a causal link exists, P(S1 | D), from a structure prior and the marginal likelihoods of the data under alternative causal structures. Makes the same assumptions as the [causal support](#causal-support) model.
 
 ### Singular fit {#singular-fit}
 [LM 11]{.gl-tag} [Problem]{.gl-tag .gl-problem-tag}

@@ -117,18 +117,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="nav-link" href="../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="../linear-models/index.html"> 
-<span class="menu-text">Linear Models</span></a>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-courses" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Courses</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-courses">
+<li>
+    <a class="dropdown-item" href="../linear-models/index.html">
+ <span class="dropdown-text">1 · Linear Models in R</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="../ores/index.html"> 
-<span class="menu-text">ORES</span></a>
+        <li>
+    <a class="dropdown-item" href="../ores/index.html">
+ <span class="dropdown-text">2 · Open, Replicable, and Ethical Science (ORES)</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="../tae/index.html"> 
-<span class="menu-text">TAE</span></a>
+        <li>
+    <a class="dropdown-item" href="../tae/index.html">
+ <span class="dropdown-text">3 · Testing for Absence and Equivalence (TAE)</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../ibcm/index.html">
+ <span class="dropdown-text">4 · Inference with Bayesian Causal Models (IBCM)</span></a>
+  </li>  
+    </ul>
+</li>
   <li class="nav-item">
     <a class="nav-link active" href="../workshops/index.html" aria-current="page"> 
 <span class="menu-text">Workshops</span></a>
@@ -245,49 +256,40 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><strong>Key terms:</strong> <a href="../glossary.html#prior">Prior, posterior</a>, <a href="../glossary.html#credible-interval">Credible interval</a>, <a href="../glossary.html#rhat">Rhat and effective sample size (ESS)</a>, <a href="../glossary.html#divergent-transitions">Divergent transitions</a>, <a href="../glossary.html#convergence">Convergence failure</a></p>
 </div>
 </section><section id="worked-example-the-safe-vs-risky-box-study" class="level2"><h2 class="anchored" data-anchor-id="worked-example-the-safe-vs-risky-box-study">Worked example: the Safe-vs-Risky box study</h2>
-<p>We return to the example from <a href="../linear-models/sessions/11-glmm.html">session 11</a>. Chimpanzees choose into which of two boxes a grape is dropped. The <strong>Safe</strong> box clearly guarantees delivery; in the <strong>Risky</strong> box, the grape seems to get stuck. In fact, both boxes always deliver.</p>
+<p>We return to the example from <a href="../linear-models/sessions/11-glmm.html">session 11</a>, with the same data. Chimpanzees choose into which of two boxes a grape is dropped. The <strong>Safe</strong> box clearly guarantees delivery; in the <strong>Risky</strong> box, the grape seems to get stuck. In fact, both boxes always deliver.</p>
 <ul>
 <li>
-<strong>RQ1:</strong> Do chimps prefer the Safe box on trial 1?</li>
+<strong>RQ1:</strong> Do chimps prefer the Safe box in session 1?</li>
 <li>
-<strong>RQ2:</strong> Does this preference change over trials?</li>
+<strong>RQ2:</strong> Does this preference change over sessions?</li>
 </ul>
 <div class="box-warn">
-<p>The study (with the MPI EVA, Leipzig) is preregistered, but the data do not exist yet. As in session 11, we use <strong>simulated data of what we expect</strong>: 15 chimps × 4 sessions × 10 trials, with an initial Safe preference (P = .70), no average change over trials, but chimps that differ in whether they drift towards Safe or Risky. So we know the true answer.</p>
+<p>The study (with the MPI EVA, Leipzig) is preregistered, but the data do not exist yet. As in session 11, the numbers are <strong>made up to reflect what we expect</strong>: 10 chimps × 4 sessions × 10 trials; response: choice (1 = Safe, 0 = Risky).</p>
 </div>
 <section id="the-data" class="level3"><h3 class="anchored" data-anchor-id="the-data">The data</h3>
 <div class="cell">
-<details class="code-fold"><summary>Simulation code (same as session 11)</summary><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">side_sequence</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="op">{</span>           <span class="co"># 5 x right, 5 x left; max. 2 in a row</span></span>
-<span>  <span class="kw">repeat</span> <span class="op">{</span></span>
-<span>    <span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">1</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span>
-<span>    <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rle.html">rle</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span><span class="op">$</span><span class="va">lengths</span><span class="op">)</span> <span class="op">&lt;=</span> <span class="fl">2</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
-<span><span class="op">}</span></span>
+<details class="code-fold"><summary>Data (same as session 11)</summary><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Safe choices (out of 10) of 10 chimps in sessions 1-4</span></span>
+<span><span class="va">K</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span> <span class="fl">9</span>, <span class="fl">10</span>, <span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">10</span>,  <span class="fl">9</span>,  <span class="fl">9</span>,  <span class="fl">8</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span>,  <span class="fl">9</span>,  <span class="fl">7</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span>,  <span class="fl">6</span>,  <span class="fl">8</span><span class="op">)</span>,</span>
+<span>           <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span> <span class="fl">5</span>,  <span class="fl">8</span>,  <span class="fl">8</span>,  <span class="fl">8</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span> <span class="fl">8</span>,  <span class="fl">6</span>,  <span class="fl">6</span>,  <span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span> <span class="fl">5</span>,  <span class="fl">3</span>,  <span class="fl">2</span>,  <span class="fl">4</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span> <span class="fl">5</span>,  <span class="fl">2</span>,  <span class="fl">3</span>,  <span class="fl">3</span><span class="op">)</span>,</span>
+<span>           <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span> <span class="fl">1</span>,  <span class="fl">0</span>,  <span class="fl">1</span>,  <span class="fl">0</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span> <span class="fl">1</span>,  <span class="fl">0</span>,  <span class="fl">0</span>,  <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">cd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>chimp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span>, session <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>, each <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, safe <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">K</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">sim_chimps</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span> <span class="op">=</span> <span class="fl">15</span>, <span class="va">b0</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">qlogis</a></span><span class="op">(</span><span class="fl">0.70</span><span class="op">)</span>, <span class="va">b.trial</span> <span class="op">=</span> <span class="fl">0</span>, <span class="va">b.side</span> <span class="op">=</span> <span class="fl">0.3</span>,</span>
-<span>                       <span class="va">sd.int</span> <span class="op">=</span> <span class="fl">0.8</span>, <span class="va">sd.slope</span> <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">ids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html">sprintf</a></span><span class="op">(</span><span class="st">"C%02d"</span>, <span class="fl">1</span><span class="op">:</span><span class="va">n</span><span class="op">)</span></span>
-<span>  <span class="va">u0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html">setNames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">0</span>, <span class="va">sd.int</span><span class="op">)</span>, <span class="va">ids</span><span class="op">)</span>; <span class="va">u1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html">setNames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">0</span>, <span class="va">sd.slope</span><span class="op">)</span>, <span class="va">ids</span><span class="op">)</span></span>
-<span>  <span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">ids</span>, <span class="kw">function</span><span class="op">(</span><span class="va">id</span><span class="op">)</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>subject <span class="op">=</span> <span class="va">id</span>, session <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>, each <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, trial <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">40</span>,</span>
-<span>               side_safe <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">replicate</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fu">side_sequence</span><span class="op">(</span><span class="op">)</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="va">d</span><span class="op">$</span><span class="va">trial_c</span> <span class="op">&lt;-</span> <span class="va">d</span><span class="op">$</span><span class="va">trial</span> <span class="op">-</span> <span class="fl">1</span>                       <span class="co"># first-trial centred (as preregistered)</span></span>
-<span>  <span class="va">eta</span> <span class="op">&lt;-</span> <span class="va">b0</span> <span class="op">+</span> <span class="va">u0</span><span class="op">[</span><span class="va">d</span><span class="op">$</span><span class="va">subject</span><span class="op">]</span> <span class="op">+</span> <span class="op">(</span><span class="va">b.trial</span> <span class="op">+</span> <span class="va">u1</span><span class="op">[</span><span class="va">d</span><span class="op">$</span><span class="va">subject</span><span class="op">]</span><span class="op">)</span> <span class="op">*</span> <span class="va">d</span><span class="op">$</span><span class="va">trial_c</span> <span class="op">+</span> <span class="va">b.side</span> <span class="op">*</span> <span class="va">d</span><span class="op">$</span><span class="va">side_safe</span></span>
-<span>  <span class="va">d</span><span class="op">$</span><span class="va">safe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">rbinom</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">plogis</a></span><span class="op">(</span><span class="va">eta</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="va">d</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">120</span><span class="op">)</span></span>
-<span><span class="va">chimps</span> <span class="op">&lt;-</span> <span class="fu">sim_chimps</span><span class="op">(</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span><span class="co"># trial-level data: one row per choice</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">11</span><span class="op">)</span></span>
+<span><span class="va">trials</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">cd</span><span class="op">)</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>chimp <span class="op">=</span> <span class="va">cd</span><span class="op">$</span><span class="va">chimp</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>, session <span class="op">=</span> <span class="va">cd</span><span class="op">$</span><span class="va">session</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>,</span>
+<span>             trial <span class="op">=</span> <span class="op">(</span><span class="va">cd</span><span class="op">$</span><span class="va">session</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span> <span class="op">*</span> <span class="fl">10</span> <span class="op">+</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>,</span>
+<span>             choice <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">cd</span><span class="op">$</span><span class="va">safe</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>, <span class="fl">10</span> <span class="op">-</span> <span class="va">cd</span><span class="op">$</span><span class="va">safe</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">trials</span><span class="op">$</span><span class="va">session_c</span> <span class="op">&lt;-</span> <span class="va">trials</span><span class="op">$</span><span class="va">session</span> <span class="op">-</span> <span class="fl">1</span>          <span class="co"># session 1 = 0</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <div class="cell">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">by_sess</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html">aggregate</a></span><span class="op">(</span><span class="va">safe</span> <span class="op">~</span> <span class="va">subject</span> <span class="op">+</span> <span class="va">session</span>, data <span class="op">=</span> <span class="va">chimps</span>, FUN <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span>
-<span><span class="va">avg</span>     <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html">aggregate</a></span><span class="op">(</span><span class="va">safe</span> <span class="op">~</span> <span class="va">session</span>, data <span class="op">=</span> <span class="va">chimps</span>, FUN <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cd</span><span class="op">$</span><span class="va">p</span> <span class="op">&lt;-</span> <span class="va">cd</span><span class="op">$</span><span class="va">safe</span> <span class="op">/</span> <span class="fl">10</span></span>
+<span><span class="va">avg</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html">aggregate</a></span><span class="op">(</span><span class="va">p</span> <span class="op">~</span> <span class="va">session</span>, data <span class="op">=</span> <span class="va">cd</span>, FUN <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">ggplot</span><span class="op">(</span><span class="va">by_sess</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">session</span>, <span class="va">safe</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="fu">ggplot</span><span class="op">(</span><span class="va">cd</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">session</span>, <span class="va">p</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_hline</span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">.5</span>, linetype <span class="op">=</span> <span class="fl">2</span>, colour <span class="op">=</span> <span class="va">col_muted</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">geom_line</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>group <span class="op">=</span> <span class="va">subject</span><span class="op">)</span>, colour <span class="op">=</span> <span class="va">col_teal</span>, alpha <span class="op">=</span> <span class="fl">.35</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_line</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>group <span class="op">=</span> <span class="va">chimp</span><span class="op">)</span>, colour <span class="op">=</span> <span class="va">col_teal</span>, alpha <span class="op">=</span> <span class="fl">.35</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_line</span><span class="op">(</span>data <span class="op">=</span> <span class="va">avg</span>, colour <span class="op">=</span> <span class="va">col_red</span>, linewidth <span class="op">=</span> <span class="fl">1.3</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_point</span><span class="op">(</span>data <span class="op">=</span> <span class="va">avg</span>, colour <span class="op">=</span> <span class="va">col_red</span>, size <span class="op">=</span> <span class="fl">2.5</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">scale_y_continuous</span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/scales/man/percent_format.html">percent</a></span>, limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -302,8 +304,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </section><section id="step-1-the-glmm-from-session-11" class="level3"><h3 class="anchored" data-anchor-id="step-1-the-glmm-from-session-11">Step 1: the GLMM from session 11</h3>
 <div class="cell">
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">glmm</span> <span class="op">&lt;-</span> <span class="fu">glmer</span><span class="op">(</span><span class="va">safe</span> <span class="op">~</span> <span class="va">trial_c</span> <span class="op">+</span> <span class="va">side_safe</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="va">trial_c</span> <span class="op">|</span> <span class="va">subject</span><span class="op">)</span>,</span>
-<span>              family <span class="op">=</span> <span class="va">binomial</span>, data <span class="op">=</span> <span class="va">chimps</span>,</span>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">glmm</span> <span class="op">&lt;-</span> <span class="fu">glmer</span><span class="op">(</span><span class="va">choice</span> <span class="op">~</span> <span class="va">session_c</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="va">session_c</span> <span class="op">|</span> <span class="va">chimp</span><span class="op">)</span>,</span>
+<span>              family <span class="op">=</span> <span class="va">binomial</span>, data <span class="op">=</span> <span class="va">trials</span>,</span>
 <span>              control <span class="op">=</span> <span class="fu">glmerControl</span><span class="op">(</span>optimizer <span class="op">=</span> <span class="st">"bobyqa"</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
@@ -320,24 +322,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">(Intercept)</td>
-<td style="text-align: right;">1.15</td>
-<td style="text-align: right;">0.28</td>
-<td style="text-align: right;">[0.61, 1.70]</td>
-<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.91</td>
+<td style="text-align: right;">0.79</td>
+<td style="text-align: right;">[-0.63, 2.45]</td>
+<td style="text-align: right;">0.246</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">trial_c</td>
-<td style="text-align: right;">-0.01</td>
-<td style="text-align: right;">0.02</td>
-<td style="text-align: right;">[-0.05, 0.02]</td>
-<td style="text-align: right;">0.507</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">side_safe</td>
-<td style="text-align: right;">0.28</td>
-<td style="text-align: right;">0.21</td>
-<td style="text-align: right;">[-0.13, 0.69]</td>
-<td style="text-align: right;">0.178</td>
+<td style="text-align: left;">session_c</td>
+<td style="text-align: right;">-0.36</td>
+<td style="text-align: right;">0.17</td>
+<td style="text-align: right;">[-0.69, -0.03]</td>
+<td style="text-align: right;">0.030</td>
 </tr>
 </tbody>
 </table>
@@ -346,19 +341,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section><section id="step-2-priors" class="level3"><h3 class="anchored" data-anchor-id="step-2-priors">Step 2: priors</h3>
 <p>A Bayesian model needs a prior for every parameter. We use <strong>weakly informative priors</strong> on the log-odds scale: they rule out absurd values but leave the data in charge.</p>
 <div class="cell">
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">priors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu">prior</span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"Intercept"</span><span class="op">)</span>,   <span class="co"># P(Safe) on trial 1</span></span>
-<span>            <span class="fu">prior</span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,   class <span class="op">=</span> <span class="st">"b"</span><span class="op">)</span>,           <span class="co"># trial and side effects</span></span>
-<span>            <span class="fu">prior</span><span class="op">(</span><span class="fu">exponential</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"sd"</span><span class="op">)</span>,          <span class="co"># between-chimp SDs</span></span>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">priors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu">prior</span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"Intercept"</span><span class="op">)</span>,   <span class="co"># P(Safe) in session 1</span></span>
+<span>            <span class="fu">prior</span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,   class <span class="op">=</span> <span class="st">"b"</span><span class="op">)</span>,           <span class="co"># change per session</span></span>
+<span>            <span class="fu">prior</span><span class="op">(</span><span class="fu">exponential</span><span class="op">(</span><span class="fl">0.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"sd"</span><span class="op">)</span>,        <span class="co"># between-chimp SDs (mean 2)</span></span>
 <span>            <span class="fu">prior</span><span class="op">(</span><span class="fu">lkj</span><span class="op">(</span><span class="fl">2</span><span class="op">)</span>,         class <span class="op">=</span> <span class="st">"cor"</span><span class="op">)</span><span class="op">)</span>         <span class="co"># intercept-slope correlation</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>What do these priors imply <em>before</em> seeing any data? A <strong>prior predictive check</strong> translates them into chimp-level choice probabilities on trial 1:</p>
+<p>What do these priors imply <em>before</em> seeing any data? A <strong>prior predictive check</strong> translates them into chimp-level choice probabilities in session 1:</p>
 <div class="cell">
 <details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">p_trial1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">plogis</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">1e4</span>, <span class="fl">0</span>, <span class="fl">1.5</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">1e4</span>, <span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html">rexp</a></span><span class="op">(</span><span class="fl">1e4</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu">ggplot</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>p <span class="op">=</span> <span class="va">p_trial1</span><span class="op">)</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">p</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="va">p_session1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">plogis</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">1e4</span>, <span class="fl">0</span>, <span class="fl">1.5</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">1e4</span>, <span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html">rexp</a></span><span class="op">(</span><span class="fl">1e4</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">ggplot</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>p <span class="op">=</span> <span class="va">p_session1</span><span class="op">)</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">p</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_histogram</span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">40</span>, fill <span class="op">=</span> <span class="va">col_teal</span>, colour <span class="op">=</span> <span class="st">"white"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">scale_x_continuous</span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/scales/man/percent_format.html">percent</a></span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">labs</span><span class="op">(</span>x <span class="op">=</span> <span class="st">"P(Safe) on trial 1 for a chimp, implied by the priors"</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">labs</span><span class="op">(</span>x <span class="op">=</span> <span class="st">"P(Safe) in session 1 for a chimp, implied by the priors"</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">theme</span><span class="op">(</span>axis.text.y <span class="op">=</span> <span class="fu">element_blank</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
@@ -367,12 +362,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>The priors allow anything from a strong Risky to a strong Safe preference. They put somewhat more weight on extreme preferences than on 50%; a narrower intercept prior, e.g.&nbsp;<code>normal(0, 1)</code>, would flatten this.</p>
+<p>The priors allow chimps with strong Safe or strong Risky preferences, as in our data, where some chimps almost always and others almost never choose Safe.</p>
 </section><section id="step-3-fit-the-model" class="level3"><h3 class="anchored" data-anchor-id="step-3-fit-the-model">Step 3: fit the model</h3>
 <p>The formula is exactly the one from <code>glmer()</code>. <code>bernoulli</code> is the binomial family for single 0/1 choices.</p>
 <div class="cell">
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">brm</span><span class="op">(</span><span class="va">safe</span> <span class="op">~</span> <span class="va">trial_c</span> <span class="op">+</span> <span class="va">side_safe</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="va">trial_c</span> <span class="op">|</span> <span class="va">subject</span><span class="op">)</span>,</span>
-<span>           family <span class="op">=</span> <span class="va">bernoulli</span>, data <span class="op">=</span> <span class="va">chimps</span>, prior <span class="op">=</span> <span class="va">priors</span>,</span>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">brm</span><span class="op">(</span><span class="va">choice</span> <span class="op">~</span> <span class="va">session_c</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="va">session_c</span> <span class="op">|</span> <span class="va">chimp</span><span class="op">)</span>,</span>
+<span>           family <span class="op">=</span> <span class="va">bernoulli</span>, data <span class="op">=</span> <span class="va">trials</span>, prior <span class="op">=</span> <span class="va">priors</span>,</span>
 <span>           chains <span class="op">=</span> <span class="fl">4</span>, iter <span class="op">=</span> <span class="fl">2000</span>, cores <span class="op">=</span> <span class="fl">4</span>, seed <span class="op">=</span> <span class="fl">2026</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
@@ -380,36 +375,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output cell-output-stdout">
 <pre><code>#&gt;  Family: bernoulli 
 #&gt;   Links: mu = logit 
-#&gt; Formula: safe ~ trial_c + side_safe + (1 + trial_c | subject) 
-#&gt;    Data: chimps (Number of observations: 600) 
+#&gt; Formula: choice ~ session_c + (1 + session_c | chimp) 
+#&gt;    Data: trials (Number of observations: 400) 
 #&gt;   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
 #&gt;          total post-warmup draws = 4000
 #&gt; 
 #&gt; Group-Level Effects: 
-#&gt; ~subject (Number of levels: 15) 
-#&gt;                        Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS
-#&gt; sd(Intercept)              0.63      0.33     0.06     1.34 1.00     1409
-#&gt; sd(trial_c)                0.08      0.03     0.04     0.14 1.00     1226
-#&gt; cor(Intercept,trial_c)     0.20      0.36    -0.53     0.82 1.01      791
-#&gt;                        Tail_ESS
-#&gt; sd(Intercept)              1440
-#&gt; sd(trial_c)                2046
-#&gt; cor(Intercept,trial_c)     1284
+#&gt; ~chimp (Number of levels: 10) 
+#&gt;                          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS
+#&gt; sd(Intercept)                2.58      0.71     1.54     4.41 1.00     1753
+#&gt; sd(session_c)                0.45      0.30     0.03     1.16 1.00     1008
+#&gt; cor(Intercept,session_c)    -0.01      0.40    -0.75     0.71 1.00     3411
+#&gt;                          Tail_ESS
+#&gt; sd(Intercept)                2042
+#&gt; sd(session_c)                1323
+#&gt; cor(Intercept,session_c)     2310
 #&gt; 
 #&gt; Population-Level Effects: 
 #&gt;           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-#&gt; Intercept     1.12      0.30     0.56     1.72 1.00     3636     3105
-#&gt; trial_c      -0.02      0.02    -0.06     0.03 1.00     1916     2096
-#&gt; side_safe     0.27      0.21    -0.13     0.67 1.00     5164     2971
+#&gt; Intercept     0.79      0.78    -0.77     2.42 1.01     1025     1427
+#&gt; session_c    -0.37      0.22    -0.83     0.02 1.00     1947     1639
 #&gt; 
 #&gt; Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
 #&gt; and Tail_ESS are effective sample size measures, and Rhat is the potential
 #&gt; scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </div>
-<p>All <code>Rhat</code> values are 1.00 and the effective sample sizes (<code>ESS</code>) are large, so the four chains agree. The trace plots should look like “hairy caterpillars”, with no chain drifting off:</p>
+<p>All <code>Rhat</code> values are close to 1.00 and the effective sample sizes (<code>ESS</code>) are large, so the four chains agree. The trace plots should look like “hairy caterpillars”, with no chain drifting off:</p>
 <div class="cell">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">bayesplot</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bayesplot/man/MCMC-traces.html">mcmc_trace</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/array.html">as.array</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"b_Intercept"</span>, <span class="st">"b_trial_c"</span>, <span class="st">"sd_subject__trial_c"</span><span class="op">)</span>,</span>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">bayesplot</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bayesplot/man/MCMC-traces.html">mcmc_trace</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/array.html">as.array</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"b_Intercept"</span>, <span class="st">"b_session_c"</span>, <span class="st">"sd_chimp__session_c"</span><span class="op">)</span>,</span>
 <span>                      facet_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">theme</span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
@@ -423,17 +417,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The posterior is a distribution, so we can answer the research questions <strong>on the response scale and as probabilities</strong>.</p>
 <div class="cell">
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">draws</span> <span class="op">&lt;-</span> <span class="fu">as_draws_df</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="co"># P(Safe) for an average chimp, averaged over the two sides</span></span>
-<span><span class="va">p1</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">plogis</a></span><span class="op">(</span><span class="va">draws</span><span class="op">$</span><span class="va">b_Intercept</span> <span class="op">+</span>                      <span class="fl">0.5</span> <span class="op">*</span> <span class="va">draws</span><span class="op">$</span><span class="va">b_side_safe</span><span class="op">)</span>  <span class="co"># trial 1</span></span>
-<span><span class="va">p40</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">plogis</a></span><span class="op">(</span><span class="va">draws</span><span class="op">$</span><span class="va">b_Intercept</span> <span class="op">+</span> <span class="fl">39</span> <span class="op">*</span> <span class="va">draws</span><span class="op">$</span><span class="va">b_trial_c</span> <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="va">draws</span><span class="op">$</span><span class="va">b_side_safe</span><span class="op">)</span>  <span class="co"># trial 40</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">plogis</a></span><span class="op">(</span><span class="va">draws</span><span class="op">$</span><span class="va">b_Intercept</span><span class="op">)</span>                            <span class="co"># session 1, average chimp</span></span>
+<span><span class="va">p4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">plogis</a></span><span class="op">(</span><span class="va">draws</span><span class="op">$</span><span class="va">b_Intercept</span> <span class="op">+</span> <span class="fl">3</span> <span class="op">*</span> <span class="va">draws</span><span class="op">$</span><span class="va">b_session_c</span><span class="op">)</span>    <span class="co"># session 4, average chimp</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">post</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>trial <span class="op">=</span> <span class="st">"Trial 1"</span>, p <span class="op">=</span> <span class="va">p1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>trial <span class="op">=</span> <span class="st">"Trial 40"</span>, p <span class="op">=</span> <span class="va">p40</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu">ggplot</span><span class="op">(</span><span class="va">post</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">p</span>, fill <span class="op">=</span> <span class="va">trial</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">post</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>session <span class="op">=</span> <span class="st">"Session 1"</span>, p <span class="op">=</span> <span class="va">p1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>session <span class="op">=</span> <span class="st">"Session 4"</span>, p <span class="op">=</span> <span class="va">p4</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">ggplot</span><span class="op">(</span><span class="va">post</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">p</span>, fill <span class="op">=</span> <span class="va">session</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_vline</span><span class="op">(</span>xintercept <span class="op">=</span> <span class="fl">.5</span>, linetype <span class="op">=</span> <span class="fl">2</span>, colour <span class="op">=</span> <span class="va">col_muted</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_density</span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">.6</span>, colour <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">scale_fill_manual</span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">col_teal</span>, <span class="va">col_red</span><span class="op">)</span>, name <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">scale_x_continuous</span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/scales/man/percent_format.html">percent</a></span>, limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.3</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">scale_x_continuous</span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/scales/man/percent_format.html">percent</a></span>, limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">labs</span><span class="op">(</span>x <span class="op">=</span> <span class="st">"P(Safe) for an average chimp"</span>, y <span class="op">=</span> <span class="st">"Posterior density"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
@@ -444,19 +437,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <ul>
 <li>
-<strong>RQ1:</strong> On trial 1, an average chimp chooses the Safe box with probability 0.78, 95% credible interval [0.68, 0.86]. The posterior probability that chimps prefer the Safe box, i.e.&nbsp;that P(Safe) &gt; .5, is &gt; .99.</li>
+<strong>RQ1:</strong> In session 1, an average chimp chooses the Safe box with probability 0.68, 95% credible interval [0.32, 0.92]. The posterior probability that the average chimp prefers Safe, i.e.&nbsp;that P(Safe) &gt; .5, is 0.86. The interval is wide: with chimps that differ this much, 10 chimps say little about the average chimp’s preference.</li>
 <li>
-<strong>RQ2:</strong> From trial 1 to trial 40, P(Safe) changes by -0.13, 95% CrI [-0.55, 0.17]. The interval is wide: these data cannot rule out a moderate change in either direction. Whether the change is <em>practically zero</em> is a question for an equivalence test or a ROPE (see <a href="../tae/index.html">TAE</a>).</li>
+<strong>RQ2:</strong> The change per session is -0.36 on the log-odds scale, 95% CrI [-0.83, 0.02]; the posterior probability of a decline is 0.97. From session 1 to session 4, P(Safe) changes by -0.23 for the average chimp, 95% CrI [-0.51, 0.01].</li>
 </ul>
-<p>The model-implied learning curve, with 95% credible band:</p>
+<p>The model-implied curve for the average chimp, with 95% credible band:</p>
 <div class="cell">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ce</span> <span class="op">&lt;-</span> <span class="fu">conditional_effects</span><span class="op">(</span><span class="va">fit</span>, effects <span class="op">=</span> <span class="st">"trial_c"</span><span class="op">)</span><span class="op">$</span><span class="va">trial_c</span></span>
-<span><span class="fu">ggplot</span><span class="op">(</span><span class="va">ce</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">trial_c</span> <span class="op">+</span> <span class="fl">1</span>, <span class="va">estimate__</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ce</span> <span class="op">&lt;-</span> <span class="fu">conditional_effects</span><span class="op">(</span><span class="va">fit</span>, effects <span class="op">=</span> <span class="st">"session_c"</span><span class="op">)</span><span class="op">$</span><span class="va">session_c</span></span>
+<span><span class="fu">ggplot</span><span class="op">(</span><span class="va">ce</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">session_c</span> <span class="op">+</span> <span class="fl">1</span>, <span class="va">estimate__</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_hline</span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">.5</span>, linetype <span class="op">=</span> <span class="fl">2</span>, colour <span class="op">=</span> <span class="va">col_muted</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_ribbon</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">lower__</span>, ymax <span class="op">=</span> <span class="va">upper__</span><span class="op">)</span>, fill <span class="op">=</span> <span class="va">col_teal</span>, alpha <span class="op">=</span> <span class="fl">.25</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_line</span><span class="op">(</span>colour <span class="op">=</span> <span class="va">col_teal</span>, linewidth <span class="op">=</span> <span class="fl">1.2</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">scale_y_continuous</span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/scales/man/percent_format.html">percent</a></span>, limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">labs</span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Trial"</span>, y <span class="op">=</span> <span class="st">"P(Safe)"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span>  <span class="fu">labs</span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Session"</span>, y <span class="op">=</span> <span class="st">"P(Safe)"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="bayesian-modelling_files/figure-html/cond-effects-1.png" class="img-fluid figure-img" width="975"></p>
@@ -467,7 +460,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section><section id="step-5-does-the-model-reproduce-the-data" class="level3"><h3 class="anchored" data-anchor-id="step-5-does-the-model-reproduce-the-data">Step 5: does the model reproduce the data?</h3>
 <p>A <strong>posterior predictive check</strong> simulates new datasets from the fitted model and compares them with the observed data. Here: the proportion of Safe choices for each chimp.</p>
 <div class="cell">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">pp_check</span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"stat_grouped"</span>, stat <span class="op">=</span> <span class="st">"mean"</span>, group <span class="op">=</span> <span class="st">"subject"</span>, ndraws <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span> <span class="op">+</span></span>
+<details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">pp_check</span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"stat_grouped"</span>, stat <span class="op">=</span> <span class="st">"mean"</span>, group <span class="op">=</span> <span class="st">"chimp"</span>, ndraws <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">facet_wrap</span><span class="op">(</span><span class="op">~</span> <span class="va">group</span>, ncol <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">scale_x_continuous</span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">.5</span>, <span class="fl">1</span><span class="op">)</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"0"</span>, <span class="st">".5"</span>, <span class="st">"1"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">labs</span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Proportion of Safe choices"</span><span class="op">)</span> <span class="op">+</span></span>
@@ -484,69 +477,50 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb14"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">fe_b</span> <span class="op">&lt;-</span> <span class="fu">fixef</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="va">vc</span>   <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu">VarCorr</span><span class="op">(</span><span class="va">glmm</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">sd_b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">$</span><span class="va">random</span><span class="op">$</span><span class="va">subject</span></span>
+<span><span class="va">sd_b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">$</span><span class="va">random</span><span class="op">$</span><span class="va">chimp</span></span>
 <span></span>
 <span><span class="va">tab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
-<span>  Parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Intercept (trial 1)"</span>, <span class="st">"Trial"</span>, <span class="st">"Side"</span>, <span class="st">"SD intercept"</span>, <span class="st">"SD trial slope"</span>, <span class="st">"Correlation"</span><span class="op">)</span>,</span>
-<span>  True      <span class="op">=</span> <span class="fu">f2</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">qlogis</a></span><span class="op">(</span><span class="fl">.7</span><span class="op">)</span>, <span class="fl">0</span>, <span class="fl">0.3</span>, <span class="fl">0.8</span>, <span class="fl">0.05</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  Parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Intercept (session 1)"</span>, <span class="st">"Session"</span>, <span class="st">"SD intercept"</span>, <span class="st">"SD session slope"</span>, <span class="st">"Correlation"</span><span class="op">)</span>,</span>
 <span>  glmer     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="fu">f2</span><span class="op">(</span><span class="va">cf</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span>, <span class="st">" ["</span>, <span class="fu">f2</span><span class="op">(</span><span class="va">ci</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span>, <span class="st">", "</span>, <span class="fu">f2</span><span class="op">(</span><span class="va">ci</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span>, <span class="st">"]"</span><span class="op">)</span>,</span>
 <span>                <span class="fu">f2</span><span class="op">(</span><span class="va">vc</span><span class="op">$</span><span class="va">sdcor</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, <span class="fu">f2</span><span class="op">(</span><span class="va">vc</span><span class="op">$</span><span class="va">sdcor</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>, <span class="fu">f2</span><span class="op">(</span><span class="va">vc</span><span class="op">$</span><span class="va">sdcor</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  brms      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="fu">f2</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">fe_b</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="va">sd_b</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, <span class="st">" ["</span>,</span>
 <span>                     <span class="fu">f2</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">fe_b</span><span class="op">[</span>, <span class="fl">3</span><span class="op">]</span>, <span class="va">sd_b</span><span class="op">[</span>, <span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, <span class="st">", "</span>, <span class="fu">f2</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">fe_b</span><span class="op">[</span>, <span class="fl">4</span><span class="op">]</span>, <span class="va">sd_b</span><span class="op">[</span>, <span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, <span class="st">"]"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="va">tab</span>, align <span class="op">=</span> <span class="st">"lrrr"</span>,</span>
-<span>             col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Parameter"</span>, <span class="st">"True value"</span>, <span class="st">"glmer: estimate [95% CI]"</span>, <span class="st">"brms: mean [95% CrI]"</span><span class="op">)</span>,</span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="va">tab</span>, align <span class="op">=</span> <span class="st">"lrr"</span>,</span>
+<span>             col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Parameter"</span>, <span class="st">"glmer: estimate [95% CI]"</span>, <span class="st">"brms: mean [95% CrI]"</span><span class="op">)</span>,</span>
 <span>             caption <span class="op">=</span> <span class="st">"Log-odds scale. glmer reports no intervals for the variance components by default."</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <caption>Log-odds scale. glmer reports no intervals for the variance components by default.</caption>
-<colgroup>
-<col style="width: 25%">
-<col style="width: 14%">
-<col style="width: 32%">
-<col style="width: 27%">
-</colgroup>
 <thead><tr class="header">
 <th style="text-align: left;">Parameter</th>
-<th style="text-align: right;">True value</th>
 <th style="text-align: right;">glmer: estimate [95% CI]</th>
 <th style="text-align: right;">brms: mean [95% CrI]</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">Intercept (trial 1)</td>
-<td style="text-align: right;">0.85</td>
-<td style="text-align: right;">1.15 [0.61, 1.70]</td>
-<td style="text-align: right;">1.12 [0.56, 1.72]</td>
+<td style="text-align: left;">Intercept (session 1)</td>
+<td style="text-align: right;">0.91 [-0.63, 2.45]</td>
+<td style="text-align: right;">0.79 [-0.77, 2.42]</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Trial</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">-0.01 [-0.05, 0.02]</td>
-<td style="text-align: right;">-0.02 [-0.06, 0.03]</td>
+<td style="text-align: left;">Session</td>
+<td style="text-align: right;">-0.36 [-0.69, -0.03]</td>
+<td style="text-align: right;">-0.37 [-0.83, 0.02]</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">Side</td>
-<td style="text-align: right;">0.30</td>
-<td style="text-align: right;">0.28 [-0.13, 0.69]</td>
-<td style="text-align: right;">0.27 [-0.13, 0.67]</td>
-</tr>
-<tr class="even">
 <td style="text-align: left;">SD intercept</td>
-<td style="text-align: right;">0.80</td>
-<td style="text-align: right;">0.60</td>
-<td style="text-align: right;">0.63 [0.06, 1.34]</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">SD trial slope</td>
-<td style="text-align: right;">0.05</td>
-<td style="text-align: right;">0.06</td>
-<td style="text-align: right;">0.08 [0.04, 0.14]</td>
+<td style="text-align: right;">2.32</td>
+<td style="text-align: right;">2.58 [1.54, 4.41]</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;">SD session slope</td>
+<td style="text-align: right;">0.30</td>
+<td style="text-align: right;">0.45 [0.03, 1.16]</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;">Correlation</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">0.49</td>
-<td style="text-align: right;">0.20 [-0.53, 0.82]</td>
+<td style="text-align: right;">-0.26</td>
+<td style="text-align: right;">-0.01 [-0.75, 0.71]</td>
 </tr>
 </tbody>
 </table>
@@ -554,21 +528,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div class="cell">
 <details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
-<span>  par   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Intercept"</span>, <span class="st">"Trial"</span>, <span class="st">"Side"</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>,</span>
-<span>  model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"glmer (session 11)"</span>, <span class="st">"brms"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  par   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Intercept"</span>, <span class="st">"Session"</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>,</span>
+<span>  model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"glmer (session 11)"</span>, <span class="st">"brms"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
 <span>  est   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">cf</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="va">fe_b</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  lo    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">ci</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="va">fe_b</span><span class="op">[</span>, <span class="fl">3</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  hi    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">ci</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span>, <span class="va">fe_b</span><span class="op">[</span>, <span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cmp</span><span class="op">$</span><span class="va">par</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">$</span><span class="va">par</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rev.html">rev</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Intercept"</span>, <span class="st">"Trial"</span>, <span class="st">"Side"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">truth</span>   <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>par <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Intercept"</span>, <span class="st">"Trial"</span>, <span class="st">"Side"</span><span class="op">)</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/levels.html">levels</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">$</span><span class="va">par</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>                      est <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">qlogis</a></span><span class="op">(</span><span class="fl">.7</span><span class="op">)</span>, <span class="fl">0</span>, <span class="fl">.3</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">cmp</span><span class="op">$</span><span class="va">par</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">$</span><span class="va">par</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Session"</span>, <span class="st">"Intercept"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">ggplot</span><span class="op">(</span><span class="va">cmp</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">est</span>, <span class="va">par</span>, colour <span class="op">=</span> <span class="va">model</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_vline</span><span class="op">(</span>xintercept <span class="op">=</span> <span class="fl">0</span>, colour <span class="op">=</span> <span class="va">col_muted</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_pointrange</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>xmin <span class="op">=</span> <span class="va">lo</span>, xmax <span class="op">=</span> <span class="va">hi</span><span class="op">)</span>, position <span class="op">=</span> <span class="fu">position_dodge</span><span class="op">(</span>width <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">geom_point</span><span class="op">(</span>data <span class="op">=</span> <span class="va">truth</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">est</span>, <span class="va">par</span><span class="op">)</span>, inherit.aes <span class="op">=</span> <span class="cn">FALSE</span>, shape <span class="op">=</span> <span class="fl">4</span>, size <span class="op">=</span> <span class="fl">3</span>, colour <span class="op">=</span> <span class="va">col_navy</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">scale_colour_manual</span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">col_teal</span>, <span class="va">col_red</span><span class="op">)</span>, name <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">labs</span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Estimate (log-odds) with 95% interval; cross = true value"</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">labs</span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Estimate (log-odds) with 95% interval"</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">theme</span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <div>
@@ -580,13 +551,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><strong>What stays the same, and what changes</strong></p>
 <ul>
 <li>
-<strong>The estimates agree.</strong> With weakly informative priors and 600 observations, the posterior means and credible intervals are very close to the <code>glmer()</code> estimates and confidence intervals. Bayesian modelling is not a different model, but a different way of estimating it.</li>
+<strong>The estimates agree, the intervals differ.</strong> The posterior means are close to the <code>glmer()</code> estimates: Bayesian modelling is not a different model, but a different way of estimating it. The credible interval for the session effect is wider and just includes zero. The Wald interval of <code>glmer()</code> treats the estimated between-chimp SDs as known; the posterior also carries their uncertainty, which is large with only 10 chimps.</li>
 <li>
-<strong>The interpretation changes.</strong> A 95% credible interval contains the parameter with 95% probability, given model and priors. That is how most people (mis)read a confidence interval anyway. And we can directly state things like “the probability that chimps prefer the Safe box on trial 1 is &gt; .99”.</li>
+<strong>The interpretation changes.</strong> A 95% credible interval contains the parameter with 95% probability, given model and priors. That is how most people (mis)read a confidence interval anyway. And we can directly state things like “the probability that the preference declines over sessions is 0.97”.</li>
 <li>
-<strong>Uncertainty about the variance components is visible.</strong> <code>glmer()</code> gives only point estimates for the between-chimp SDs; brms gives full intervals. The wide interval for the SD of the intercept shows how little 15 chimps tell us about individual differences.</li>
+<strong>Uncertainty about the variance components is visible.</strong> <code>glmer()</code> gives only point estimates for the between-chimp SDs and their correlation; brms gives full intervals. The wide intervals show how little 10 chimps tell us about individual differences.</li>
 <li>
-<strong>Complex random-effects structures become easier.</strong> With only 15 individuals, <code>glmer()</code> often runs into convergence warnings or singular fits. The priors keep brms stable, which helps with the maximal random-effects structures recommended for confirmatory tests.</li>
+<strong>Complex random-effects structures become easier.</strong> With only 10 individuals, <code>glmer()</code> often runs into convergence warnings or singular fits. The priors keep brms stable, which helps with the maximal random-effects structures recommended for confirmatory tests.</li>
 <li>
 <strong>The price:</strong> more computing time (here a few minutes instead of a second) and the need to choose and justify priors.</li>
 </ul></section></section><section id="prerequisites" class="level2"><h2 class="anchored" data-anchor-id="prerequisites">Prerequisites</h2>

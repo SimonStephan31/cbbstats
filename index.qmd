@@ -9,7 +9,7 @@ title-block-banner: false
 ::: {.hero}
 ## Formulate, fit, check, interpret and report
 
-[Three courses for early-career PhD students in behaviour, cognition and neuroscience with mixed statistical backgrounds, plus statistical consultation for their own projects.]{.hero-sub}
+[Four courses for early-career PhD students in behaviour, cognition and neuroscience with mixed statistical backgrounds, plus statistical consultation for their own projects.]{.hero-sub}
 :::
 
 ## Guiding principles
@@ -41,6 +41,13 @@ Planning studies that justify their inferences: preregistration, sequential desi
 
 #### [Testing for Absence and Equivalence](tae/index.qmd)
 How to support a prediction of "no effect": equivalence tests and Bayesian alternatives.
+:::
+
+::: {.card-lite .red}
+[Course 4 · IBCM · after Linear Models]{.card-kicker}
+
+#### [Inference with Bayesian Causal Models](ibcm/index.qmd)
+Does C cause E, and how strongly? Bayesian updating over alternative causal structures and causal strengths.
 :::
 :::
 

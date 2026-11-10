@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.42">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Inference with Bayesian Causal Models – Statistics Teaching at CBB</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-349c9e61a62bda94a3ee0035142f7399.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Statistics Teaching at CBB</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-courses" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Courses</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-courses">    
+        <li>
+    <a class="dropdown-item" href="../linear-models/index.html">
+ <span class="dropdown-text">1 · Linear Models in R</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../ores/index.html">
+ <span class="dropdown-text">2 · Open, Replicable, and Ethical Science (ORES)</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tae/index.html">
+ <span class="dropdown-text">3 · Testing for Absence and Equivalence (TAE)</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../ibcm/index.html">
+ <span class="dropdown-text">4 · Inference with Bayesian Causal Models (IBCM)</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="../workshops/index.html"> 
+<span class="menu-text">Workshops</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../consultation.html"> 
+<span class="menu-text">Consultation</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../glossary.html"> 
+<span class="menu-text">Glossary</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../resources.html"> 
+<span class="menu-text">Resources</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/SimonStephan31/cbbstats"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul class="collapse">
+  <li><a href="#topics" id="toc-topics" class="nav-link active" data-scroll-target="#topics">Topics</a></li>
+  <li><a href="#worked-example-does-c-cause-e" id="toc-worked-example-does-c-cause-e" class="nav-link" data-scroll-target="#worked-example-does-c-cause-e">Worked example: does C cause E?</a></li>
+  <li><a href="#materials" id="toc-materials" class="nav-link" data-scroll-target="#materials">Materials</a></li>
+  <li><a href="#reading" id="toc-reading" class="nav-link" data-scroll-target="#reading">Reading</a></li>
+  </ul>
+<div class="toc-actions"><ul class="collapse"><li><a href="https://github.com/SimonStephan31/cbbstats/blob/main/ibcm/index.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/SimonStephan31/cbbstats/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Inference with Bayesian Causal Models</h1>
+<p class="subtitle lead">Course 4 (IBCM) · statistical inference about causal structure and causal strength</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>A hands-on course that brings together <strong>statistical inference</strong> and <strong>causal inference</strong>. Most statistical models answer “how strongly are X and Y related?”. Causal models ask “does X cause Y, and how strongly?”. Bayesian causal models answer both questions in one framework: we specify <strong>alternative causal structures</strong> as hypotheses, and update our beliefs about them, and about the strength of causal links, in light of data.</p>
+<section id="topics" class="level2">
+<h2 class="anchored" data-anchor-id="topics">Topics</h2>
+<ul>
+<li><strong>Causal Bayes nets:</strong> representing causal hypotheses as graphs with parameters</li>
+<li><strong>Causal structure induction:</strong> Bayesian updating over alternative causal structures; the causal support model (Griffiths &amp; Tenenbaum, 2005) and the Structure Induction (SI) model (Meder et al., 2014)</li>
+<li><strong>Causal strength:</strong> Bayesian estimation of the strength of a causal link, with credible intervals</li>
+<li><strong>Priors:</strong> structure priors and parameter priors, and how they shape conclusions from limited data (Stephan &amp; Waldmann, 2026)</li>
+<li><strong>Bayesian model averaging:</strong> combining uncertainty about structure and strength</li>
+<li><strong>From 2×2 tables to richer structures:</strong> multiple causes, common causes and causal chains</li>
+</ul>
+<p><strong>Outcome:</strong> each participant formulates competing causal hypotheses for their own research question and evaluates them with a Bayesian causal model.</p>
+<p><strong>Prerequisites:</strong> <em>Linear Models in R</em>. The short workshop <a href="../workshops/bayesian-modelling.html">Bayesian modelling with brms</a> is a helpful complement.</p>
+<div class="key-terms">
+<p><strong>Key terms:</strong> <a href="../glossary.html#causal-bayes-net">Causal Bayes net</a>, <a href="../glossary.html#noisy-or">Noisy-OR</a>, <a href="../glossary.html#causal-support">Causal support</a>, <a href="../glossary.html#si-model">Structure Induction (SI) model</a>, <a href="../glossary.html#causal-strength">Causal strength</a>, <a href="../glossary.html#bma">Bayesian model averaging</a>, <a href="../glossary.html#prior">Prior, posterior</a></p>
+</div>
+</section>
+<section id="worked-example-does-c-cause-e" class="level2">
+<h2 class="anchored" data-anchor-id="worked-example-does-c-cause-e">Worked example: does C cause E?</h2>
+<p>The simplest causal inference problem: we observe whether a potential cause <em>C</em> is present or absent, and whether an effect <em>E</em> occurs. The data form a <strong>2×2 contingency table</strong>. Two causal structures could have generated them:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/graphs-1.png" class="img-fluid figure-img" width="975"></p>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li>Under <strong>S1</strong>, <em>E</em> is produced by <em>C</em> (with causal strength <em>w</em><sub>c</sub>) and by unobserved background causes <em>A</em> (strength <em>w</em><sub>a</sub>). The two causes combine as a <strong>noisy-OR</strong>: P(e<sup>+</sup> | c<sup>+</sup>) = <em>w</em><sub>c</sub> + <em>w</em><sub>a</sub> − <em>w</em><sub>c</sub><em>w</em><sub>a</sub>, and P(e<sup>+</sup> | c<sup>−</sup>) = <em>w</em><sub>a</sub>.</li>
+<li>Under <strong>S0</strong>, there is no link: <em>E</em> is produced by <em>A</em> only, so P(e<sup>+</sup> | c<sup>+</sup>) = P(e<sup>+</sup> | c<sup>−</sup>) = <em>w</em><sub>a</sub>.</li>
+<li>A third parameter, the base rate <em>b</em><sub>c</sub> of <em>C</em>, is part of both structures. With the same prior in both, it cancels from the comparison, so we leave it out below.</li>
+</ul>
+<section id="the-data" class="level3">
+<h3 class="anchored" data-anchor-id="the-data">The data</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Table 1: positive contingency</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>d1 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">n_ce =</span> <span class="dv">16</span>, <span class="at">n_c =</span> <span class="dv">20</span>,    <span class="co"># E present in 16 of 20 cases with C</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">n_nce =</span> <span class="dv">8</span>, <span class="at">n_nc =</span> <span class="dv">20</span>)   <span class="co"># E present in  8 of 20 cases without C</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Table 2: zero contingency, high outcome density (a classic "causal illusion" set)</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>d2 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">n_ce =</span> <span class="dv">10</span>, <span class="at">n_c =</span> <span class="dv">10</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">n_nce =</span> <span class="dv">10</span>, <span class="at">n_nc =</span> <span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<table class="table-striped caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Table 1: E present</th>
+<th>Table 1: E absent</th>
+<th>Table 2: E present</th>
+<th>Table 2: E absent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>C present</strong></td>
+<td>16</td>
+<td>4</td>
+<td>10</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td><strong>C absent</strong></td>
+<td>8</td>
+<td>12</td>
+<td>10</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>P(e<sup>+</sup> | c<sup>+</sup>) − P(e<sup>+</sup> | c<sup>−</sup>) = Δ<em>P</em></td>
+<td>0.80 − 0.40 = <strong>0.40</strong></td>
+<td></td>
+<td>1.00 − 1.00 = <strong>0</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="step-1-how-likely-are-the-data-under-each-structure" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-how-likely-are-the-data-under-each-structure">Step 1: how likely are the data under each structure?</h3>
+<p>Bayesian inference compares structures by their <strong>marginal likelihood</strong>: how probable the data are under a structure, <strong>averaged over all values of its parameters</strong>, weighted by the parameter priors. As in the standard SI model, we use flat Beta(1, 1) priors for <em>w</em><sub>c</sub> and <em>w</em><sub>a</sub>. With two parameters, a fine grid is enough to compute the integral.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>si_model <span class="ot">&lt;-</span> <span class="cf">function</span>(n_ce, n_c, n_nce, n_nc, <span class="at">prior_s1 =</span> .<span class="dv">5</span>,</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                     <span class="at">wc_prior =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>), <span class="at">wa_prior =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>), <span class="at">grid =</span> <span class="dv">401</span>) {</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  w <span class="ot">&lt;-</span> (<span class="fu">seq_len</span>(grid) <span class="sc">-</span> .<span class="dv">5</span>) <span class="sc">/</span> grid            <span class="co"># grid over (0, 1)</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># S1: noisy-OR of C (wc, rows) and A (wa, columns)</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  p_c   <span class="ot">&lt;-</span> <span class="fu">outer</span>(w, w, <span class="cf">function</span>(wc, wa) wc <span class="sc">+</span> wa <span class="sc">-</span> wc <span class="sc">*</span> wa)  <span class="co"># P(e+|c+)</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  p_nc  <span class="ot">&lt;-</span> <span class="fu">matrix</span>(w, grid, grid, <span class="at">byrow =</span> <span class="cn">TRUE</span>)               <span class="co"># P(e+|c-)</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  lik1  <span class="ot">&lt;-</span> <span class="fu">exp</span>(n_ce <span class="sc">*</span> <span class="fu">log</span>(p_c)  <span class="sc">+</span> (n_c  <span class="sc">-</span> n_ce)  <span class="sc">*</span> <span class="fu">log1p</span>(<span class="sc">-</span>p_c) <span class="sc">+</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>               n_nce <span class="sc">*</span> <span class="fu">log</span>(p_nc) <span class="sc">+</span> (n_nc <span class="sc">-</span> n_nce) <span class="sc">*</span> <span class="fu">log1p</span>(<span class="sc">-</span>p_nc))</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  prior <span class="ot">&lt;-</span> <span class="fu">outer</span>(<span class="fu">dbeta</span>(w, wc_prior[<span class="dv">1</span>], wc_prior[<span class="dv">2</span>]),</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">dbeta</span>(w, wa_prior[<span class="dv">1</span>], wa_prior[<span class="dv">2</span>])) <span class="sc">/</span> grid<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  ml1   <span class="ot">&lt;-</span> <span class="fu">sum</span>(lik1 <span class="sc">*</span> prior)                   <span class="co"># marginal likelihood P(D | S1)</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># S0: only A, so P(e+ | c+) = P(e+ | c-) = wa</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  lik0 <span class="ot">&lt;-</span> w<span class="sc">^</span>(n_ce <span class="sc">+</span> n_nce) <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> w)<span class="sc">^</span>(n_c <span class="sc">-</span> n_ce <span class="sc">+</span> n_nc <span class="sc">-</span> n_nce)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  ml0  <span class="ot">&lt;-</span> <span class="fu">sum</span>(lik0 <span class="sc">*</span> <span class="fu">dbeta</span>(w, wa_prior[<span class="dv">1</span>], wa_prior[<span class="dv">2</span>]) <span class="sc">/</span> grid)  <span class="co"># P(D | S0)</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  post_w <span class="ot">&lt;-</span> lik1 <span class="sc">*</span> prior <span class="sc">/</span> <span class="fu">sum</span>(lik1 <span class="sc">*</span> prior)   <span class="co"># joint posterior of wc, wa (S1)</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">ml1 =</span> ml1, <span class="at">ml0 =</span> ml0,</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>       <span class="co"># causal support (Griffiths &amp; Tenenbaum, 2005)</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>       <span class="at">support =</span> <span class="fu">log</span>(ml1 <span class="sc">/</span> ml0),</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>       <span class="co"># SI model: posterior probability of S1</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>       <span class="at">p_s1 =</span> prior_s1 <span class="sc">*</span> ml1 <span class="sc">/</span> (prior_s1 <span class="sc">*</span> ml1 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> prior_s1) <span class="sc">*</span> ml0),</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>       <span class="co"># marginal posterior of wc under S1</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>       <span class="at">w =</span> w, <span class="at">wc_post =</span> <span class="fu">rowSums</span>(post_w))</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>r1 <span class="ot">&lt;-</span> <span class="fu">do.call</span>(si_model, <span class="fu">as.list</span>(d1))</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>r2 <span class="ot">&lt;-</span> <span class="fu">do.call</span>(si_model, <span class="fu">as.list</span>(d2))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="step-2-posterior-probability-of-a-causal-link" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-posterior-probability-of-a-causal-link">Step 2: posterior probability of a causal link</h3>
+<p>Bayes’ rule combines the marginal likelihoods with the <strong>structure prior</strong> P(S1):</p>
+<p><span class="math display">\[
+P(S_1 \mid D) = \frac{P(D \mid S_1)\,P(S_1)}{P(D \mid S_1)\,P(S_1) + P(D \mid S_0)\,P(S_0)}
+\]</span></p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 36%">
+<col style="width: 40%">
+<col style="width: 22%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Table</th>
+<th style="text-align: right;">Causal support, log P(D|S1)/P(D|S0)</th>
+<th style="text-align: right;">P(S1 | D), prior 0.5</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">1: positive contingency (ΔP = 0.40)</td>
+<td style="text-align: right;">2.81</td>
+<td style="text-align: right;">0.94</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2: zero contingency (ΔP = 0)</td>
+<td style="text-align: right;">0.31</td>
+<td style="text-align: right;">0.58</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<ul>
+<li><strong>Table 1:</strong> the data clearly favour a causal link, P(S1 | D) = 0.94.</li>
+<li><strong>Table 2:</strong> although Δ<em>P</em> = 0, the posterior <em>rises</em> above the prior of 0.5. Ceiling data leave the strength of <em>C</em> undetermined: <em>E</em> may be fully produced by <em>A</em>, with <em>C</em>’s influence masked. S1 is consistent with the data over a wider range of parameters than S0, which needs <em>w</em><sub>a</sub> ≈ 1. A non-zero belief in a link after zero-contingency data is therefore not necessarily a bias, but can be the result of rational Bayesian updating (Stephan &amp; Waldmann, 2026).</li>
+</ul>
+<p>How the posterior depends on the structure prior:</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>priors <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">by =</span> .<span class="dv">01</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>pp <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">table =</span> <span class="st">"Table 1: positive contingency"</span>, <span class="at">prior =</span> priors,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">post =</span> priors <span class="sc">*</span> r1<span class="sc">$</span>ml1 <span class="sc">/</span> (priors <span class="sc">*</span> r1<span class="sc">$</span>ml1 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> priors) <span class="sc">*</span> r1<span class="sc">$</span>ml0)),</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">table =</span> <span class="st">"Table 2: zero contingency"</span>,    <span class="at">prior =</span> priors,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">post =</span> priors <span class="sc">*</span> r2<span class="sc">$</span>ml1 <span class="sc">/</span> (priors <span class="sc">*</span> r2<span class="sc">$</span>ml1 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> priors) <span class="sc">*</span> r2<span class="sc">$</span>ml0)))</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(pp, <span class="fu">aes</span>(prior, post, <span class="at">colour =</span> table)) <span class="sc">+</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">linetype =</span> <span class="dv">2</span>, <span class="at">colour =</span> col_muted) <span class="sc">+</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(col_s1, col_s0), <span class="at">name =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_equal</span>() <span class="sc">+</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Prior P(S1)"</span>, <span class="at">y =</span> <span class="st">"Posterior P(S1 | D)"</span>, <span class="at">caption =</span> <span class="st">"Dashed: no change from prior to posterior"</span>) <span class="sc">+</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"right"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/prior-posterior-1.png" class="img-fluid figure-img" width="975"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="step-3-what-if-we-are-unsure-about-the-prior" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-what-if-we-are-unsure-about-the-prior">Step 3: what if we are unsure about the prior?</h3>
+<p>So far the structure prior was a fixed number. Often we are not sure which prior is appropriate. We can express this uncertainty as a <strong>distribution over the prior</strong>, P(S1) ~ Beta(<em>a</em>, <em>b</em>), and propagate it: each possible prior gives a posterior P(S1 | D). The result is a distribution over the posterior probability of a link, which we can summarise with a 95% interval. We compare an uninformed learner, P(S1) ~ Beta(1, 1), with a sceptical one, P(S1) ~ Beta(2, 8), who expects links to be rare.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>post_s1 <span class="ot">&lt;-</span> <span class="cf">function</span>(prior, r) prior <span class="sc">*</span> r<span class="sc">$</span>ml1 <span class="sc">/</span> (prior <span class="sc">*</span> r<span class="sc">$</span>ml1 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> prior) <span class="sc">*</span> r<span class="sc">$</span>ml0)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>draws <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">uninformed =</span> <span class="fu">rbeta</span>(<span class="fl">1e5</span>, <span class="dv">1</span>, <span class="dv">1</span>),   <span class="co"># P(S1) ~ Beta(1, 1)</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">sceptical  =</span> <span class="fu">rbeta</span>(<span class="fl">1e5</span>, <span class="dv">2</span>, <span class="dv">8</span>))   <span class="co"># P(S1) ~ Beta(2, 8), mean 0.2</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>summ <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">c</span>(<span class="at">mean =</span> <span class="fu">mean</span>(x), <span class="fu">quantile</span>(x, <span class="fu">c</span>(.<span class="dv">025</span>, .<span class="dv">975</span>)))</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">rbind</span>(<span class="st">`</span><span class="at">Table 1, uninformed</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">summ</span>(<span class="fu">post_s1</span>(draws<span class="sc">$</span>uninformed, r1)),</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>            <span class="st">`</span><span class="at">Table 1, sceptical</span><span class="st">`</span>  <span class="ot">=</span> <span class="fu">summ</span>(<span class="fu">post_s1</span>(draws<span class="sc">$</span>sceptical,  r1)),</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>            <span class="st">`</span><span class="at">Table 2, uninformed</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">summ</span>(<span class="fu">post_s1</span>(draws<span class="sc">$</span>uninformed, r2)),</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>            <span class="st">`</span><span class="at">Table 2, sceptical</span><span class="st">`</span>  <span class="ot">=</span> <span class="fu">summ</span>(<span class="fu">post_s1</span>(draws<span class="sc">$</span>sceptical,  r2))), <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt;                     mean 2.5% 97.5%
+#&gt; Table 1, uninformed 0.87 0.29  1.00
+#&gt; Table 1, sceptical  0.74 0.32  0.94
+#&gt; Table 2, uninformed 0.55 0.03  0.98
+#&gt; Table 2, sceptical  0.25 0.04  0.56</code></pre>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>pu <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">names</span>(draws), <span class="cf">function</span>(p) <span class="fu">rbind</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">prior =</span> p, <span class="at">table =</span> <span class="st">"Table 1: positive contingency"</span>, <span class="at">x =</span> <span class="fu">post_s1</span>(draws[[p]], r1)),</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">prior =</span> p, <span class="at">table =</span> <span class="st">"Table 2: zero contingency"</span>,    <span class="at">x =</span> <span class="fu">post_s1</span>(draws[[p]], r2)))))</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>pu<span class="sc">$</span>prior <span class="ot">&lt;-</span> <span class="fu">factor</span>(pu<span class="sc">$</span>prior, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"uninformed"</span>, <span class="st">"sceptical"</span>),</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>                   <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Uninformed: P(S1) ~ Beta(1, 1)"</span>, <span class="st">"Sceptical: P(S1) ~ Beta(2, 8)"</span>))</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>ci <span class="ot">&lt;-</span> <span class="fu">aggregate</span>(x <span class="sc">~</span> prior <span class="sc">+</span> table, pu, <span class="cf">function</span>(v) <span class="fu">quantile</span>(v, <span class="fu">c</span>(.<span class="dv">025</span>, .<span class="dv">975</span>)))</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>ci <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(ci[, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], <span class="at">lo =</span> ci<span class="sc">$</span>x[, <span class="dv">1</span>], <span class="at">hi =</span> ci<span class="sc">$</span>x[, <span class="dv">2</span>])</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(pu, <span class="fu">aes</span>(x, <span class="at">fill =</span> table)) <span class="sc">+</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="fu">aes</span>(<span class="at">y =</span> <span class="fu">after_stat</span>(density)), <span class="at">bins =</span> <span class="dv">50</span>, <span class="at">alpha =</span> .<span class="dv">6</span>, <span class="at">position =</span> <span class="st">"identity"</span>) <span class="sc">+</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_errorbarh</span>(<span class="at">data =</span> ci, <span class="fu">aes</span>(<span class="at">y =</span> <span class="sc">-</span><span class="fl">0.4</span>, <span class="at">xmin =</span> lo, <span class="at">xmax =</span> hi, <span class="at">colour =</span> table),</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>                 <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>, <span class="at">height =</span> .<span class="dv">3</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> prior, <span class="at">ncol =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(col_s1, col_s0), <span class="at">name =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(col_s1, col_s0), <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.6</span>, <span class="dv">8</span>)) <span class="sc">+</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Posterior P(S1 | D)"</span>, <span class="at">y =</span> <span class="st">"Density"</span>, <span class="at">caption =</span> <span class="st">"Bars: 95% intervals"</span>) <span class="sc">+</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/prior-uncertainty-plot-1.png" class="img-fluid figure-img" width="975"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The interval shows how much the conclusion depends on prior assumptions. With Table 1, both learners end up favouring a link, but the sceptic is less sure. With Table 2, the conclusion is driven almost entirely by the prior: the data cannot settle whether <em>C</em> causes <em>E</em>.</p>
+</section>
+<section id="step-4-how-strong-is-the-causal-link" class="level3">
+<h3 class="anchored" data-anchor-id="step-4-how-strong-is-the-causal-link">Step 4: how strong is the causal link?</h3>
+<p>Structure induction asks <em>whether</em> <em>C</em> causes <em>E</em>. <strong>Causal strength</strong> asks <em>how strongly</em>. Within S1, the posterior distribution of <em>w</em><sub>c</sub> follows directly from the grid computed in Step 1 (cf.&nbsp;Lu et al., 2008, for Bayesian strength learning). For comparison, the classic point estimate is Cheng’s (1997) causal power, Δ<em>P</em> / (1 − P(e<sup>+</sup> | c<sup>−</sup>)).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>wc_summary <span class="ot">&lt;-</span> <span class="cf">function</span>(r) {</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  cdf <span class="ot">&lt;-</span> <span class="fu">cumsum</span>(r<span class="sc">$</span>wc_post)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="at">mean =</span> <span class="fu">sum</span>(r<span class="sc">$</span>w <span class="sc">*</span> r<span class="sc">$</span>wc_post),</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">lower =</span> r<span class="sc">$</span>w[<span class="fu">which</span>(cdf <span class="sc">&gt;=</span> .<span class="dv">025</span>)[<span class="dv">1</span>]], <span class="at">upper =</span> r<span class="sc">$</span>w[<span class="fu">which</span>(cdf <span class="sc">&gt;=</span> .<span class="dv">975</span>)[<span class="dv">1</span>]])</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">rbind</span>(<span class="st">`</span><span class="at">Table 1</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">wc_summary</span>(r1), <span class="st">`</span><span class="at">Table 2</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">wc_summary</span>(r2)), <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt;         mean lower upper
+#&gt; Table 1 0.59  0.19  0.86
+#&gt; Table 2 0.55  0.03  0.98</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>(<span class="dv">16</span><span class="sc">/</span><span class="dv">20</span> <span class="sc">-</span> <span class="dv">8</span><span class="sc">/</span><span class="dv">20</span>) <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="dv">8</span><span class="sc">/</span><span class="dv">20</span>)    <span class="co"># causal power for Table 1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt; [1] 0.6666667</code></pre>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>sp <span class="ot">&lt;-</span> <span class="fu">rbind</span>(<span class="fu">data.frame</span>(<span class="at">table =</span> <span class="st">"Table 1: positive contingency"</span>, <span class="at">w =</span> r1<span class="sc">$</span>w, <span class="at">dens =</span> r1<span class="sc">$</span>wc_post <span class="sc">*</span> <span class="fu">length</span>(r1<span class="sc">$</span>w)),</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>            <span class="fu">data.frame</span>(<span class="at">table =</span> <span class="st">"Table 2: zero contingency"</span>,    <span class="at">w =</span> r2<span class="sc">$</span>w, <span class="at">dens =</span> r2<span class="sc">$</span>wc_post <span class="sc">*</span> <span class="fu">length</span>(r2<span class="sc">$</span>w)))</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(sp, <span class="fu">aes</span>(w, dens, <span class="at">colour =</span> table, <span class="at">fill =</span> table)) <span class="sc">+</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_area</span>(<span class="at">alpha =</span> .<span class="dv">25</span>, <span class="at">position =</span> <span class="st">"identity"</span>) <span class="sc">+</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> (<span class="dv">16</span><span class="sc">/</span><span class="dv">20</span> <span class="sc">-</span> <span class="dv">8</span><span class="sc">/</span><span class="dv">20</span>) <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="dv">8</span><span class="sc">/</span><span class="dv">20</span>), <span class="at">linetype =</span> <span class="dv">2</span>, <span class="at">colour =</span> col_s1) <span class="sc">+</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(col_s1, col_s0), <span class="at">name =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(col_s1, col_s0), <span class="at">name =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(<span class="fu">paste</span>(<span class="st">"Causal strength "</span>, w[c])), <span class="at">y =</span> <span class="st">"Posterior density (under S1)"</span>,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">caption =</span> <span class="st">"Dashed: causal power for Table 1"</span>) <span class="sc">+</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/strength-plot-1.png" class="img-fluid figure-img" width="975"></p>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li><strong>Table 1:</strong> the posterior peaks near the causal power, but the 95% credible interval is wide: 40 observations say that <em>C</em> causes <em>E</em>, but not precisely how strongly.</li>
+<li><strong>Table 2:</strong> the posterior is very broad. Ceiling data are compatible with almost any strength of <em>C</em>, because <em>A</em> already produces <em>E</em> every time.</li>
+</ul>
+</section>
+<section id="step-5-combining-structure-and-strength" class="level3">
+<h3 class="anchored" data-anchor-id="step-5-combining-structure-and-strength">Step 5: combining structure and strength</h3>
+<p>The strength estimate above assumes that the link exists. <strong>Bayesian model averaging</strong> keeps the uncertainty about structure: with probability P(S0 | D), <em>w</em><sub>c</sub> is exactly 0; with probability P(S1 | D), it follows the posterior under S1.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>bma <span class="ot">&lt;-</span> <span class="cf">function</span>(r) {</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  p_zero <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">-</span> r<span class="sc">$</span>p_s1                                   <span class="co"># probability that wc = 0</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">`</span><span class="at">P(wc = 0)</span><span class="st">`</span> <span class="ot">=</span> p_zero, <span class="st">`</span><span class="at">mean wc</span><span class="st">`</span> <span class="ot">=</span> r<span class="sc">$</span>p_s1 <span class="sc">*</span> <span class="fu">wc_summary</span>(r)[[<span class="st">"mean"</span>]])</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">rbind</span>(<span class="st">`</span><span class="at">Table 1</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">bma</span>(r1), <span class="st">`</span><span class="at">Table 2</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">bma</span>(r2)), <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt;         P(wc = 0) mean wc
+#&gt; Table 1      0.06    0.56
+#&gt; Table 2      0.42    0.32</code></pre>
+</div>
+</div>
+<p>This is the step from <strong>statistical</strong> to <strong>causal</strong> inference: the question is not only how large an effect is, but which causal structure generated the data, and what follows for the strength of the link if we are uncertain about the structure.</p>
+</section>
+</section>
+<section id="materials" class="level2">
+<h2 class="anchored" data-anchor-id="materials">Materials</h2>
+<div class="materials">
+<ul>
+<li>Slides <span class="tag">coming soon</span></li>
+<li>R scripts <span class="tag">coming soon</span></li>
+</ul>
+</div>
+</section>
+<section id="reading" class="level2">
+<h2 class="anchored" data-anchor-id="reading">Reading</h2>
+<ul>
+<li>Cheng, P. W. (1997). From covariation to causation: A causal power theory. <em>Psychological Review, 104</em>(2), 367–405.</li>
+<li>Griffiths, T. L., &amp; Tenenbaum, J. B. (2005). Structure and strength in causal induction. <em>Cognitive Psychology, 51</em>(4), 334–384.</li>
+<li>Lu, H., Yuille, A. L., Liljeholm, M., Cheng, P. W., &amp; Holyoak, K. J. (2008). Bayesian generic priors for causal learning. <em>Psychological Review, 115</em>(4), 955–984.</li>
+<li>Meder, B., Mayrhofer, R., &amp; Waldmann, M. R. (2014). Structure induction in diagnostic causal reasoning. <em>Psychological Review, 121</em>(3), 277–301.</li>
+<li>Stephan, S., &amp; Waldmann, M. R. (2026). Manipulating prior causal beliefs affects the formation of apparent causal illusions. <em>Cognition, 277</em>, 106684. Materials and R code: <a href="https://github.com/SimonStephan31/Priors_and_Causal-Illusions" class="uri">https://github.com/SimonStephan31/Priors_and_Causal-Illusions</a></li>
+<li>Pearl, J. (2009). <em>Causality: Models, reasoning, and inference</em> (2nd ed.). Cambridge University Press.</li>
+</ul>
+
+
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/simonstephan31\.github\.io\/cbbstats\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+          // target, if specified
+          link.setAttribute("target", "_blank");
+          if (link.getAttribute("rel") === null) {
+            link.setAttribute("rel", "noopener");
+          }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>Simon Stephan · CBB Göttingen</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/SimonStephan31/cbbstats/blob/main/ibcm/index.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/SimonStephan31/cbbstats/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p>Built with <a href="https://quarto.org">Quarto</a> and R · Content licensed <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

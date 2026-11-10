@@ -92,18 +92,29 @@ ul.task-list li input[type="checkbox"] {
     <a class="nav-link" href="./index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./linear-models/index.html"> 
-<span class="menu-text">Linear Models</span></a>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-courses" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Courses</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-courses">    
+        <li>
+    <a class="dropdown-item" href="./linear-models/index.html">
+ <span class="dropdown-text">1 · Linear Models in R</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./ores/index.html"> 
-<span class="menu-text">ORES</span></a>
+        <li>
+    <a class="dropdown-item" href="./ores/index.html">
+ <span class="dropdown-text">2 · Open, Replicable, and Ethical Science (ORES)</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./tae/index.html"> 
-<span class="menu-text">TAE</span></a>
+        <li>
+    <a class="dropdown-item" href="./tae/index.html">
+ <span class="dropdown-text">3 · Testing for Absence and Equivalence (TAE)</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="./ibcm/index.html">
+ <span class="dropdown-text">4 · Inference with Bayesian Causal Models (IBCM)</span></a>
+  </li>  
+    </ul>
+  </li>
   <li class="nav-item">
     <a class="nav-link" href="./workshops/index.html"> 
 <span class="menu-text">Workshops</span></a>
@@ -188,7 +199,7 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>Short explanations of terms that come up again and again. Labels show where a term is introduced: <strong>LM</strong> = <a href="./linear-models/index.html">Linear Models in R</a> (with session number), <strong>ORES</strong> = <a href="./ores/index.html">Open, Replicable, and Ethical Science</a>, <strong>TAE</strong> = <a href="./tae/index.html">Testing for Absence and Equivalence</a>, <strong>WS</strong> = <a href="./workshops/index.html">short workshops</a>.</p>
+<p>Short explanations of terms that come up again and again. Labels show where a term is introduced: <strong>LM</strong> = <a href="./linear-models/index.html">Linear Models in R</a> (with session number), <strong>ORES</strong> = <a href="./ores/index.html">Open, Replicable, and Ethical Science</a>, <strong>TAE</strong> = <a href="./tae/index.html">Testing for Absence and Equivalence</a>, <strong>IBCM</strong> = <a href="./ibcm/index.html">Inference with Bayesian Causal Models</a>, <strong>WS</strong> = <a href="./workshops/index.html">short workshops</a>.</p>
 <p>Entries marked <span class="gl-tag gl-problem-tag">Problem</span> describe something that can go wrong, with steps towards a solution under <strong>What to do about it?</strong></p>
 <input id="gl-filter" class="form-control" type="search" placeholder="Filter terms … (e.g. converge, offset)" aria-label="Filter glossary">
 <section id="a" class="level2">
@@ -216,9 +227,29 @@ ul.task-list li input[type="checkbox"] {
 <p><span class="gl-tag">TAE</span></p>
 <p>The ratio of how well two hypotheses predicted the observed data, e.g.&nbsp;BF<sub>01</sub> = 5: the data are five times more likely under H<sub>0</sub> than under H<sub>1</sub>. Unlike a <em>p</em>-value, it can quantify evidence <strong>for</strong> the null. Depends on the prior for the effect under H<sub>1</sub>, so report and justify it.</p>
 </section>
+<section id="bma" class="level3">
+<h3 class="anchored" data-anchor-id="bma">Bayesian model averaging</h3>
+<p><span class="gl-tag">IBCM</span></p>
+<p>Combining the predictions or estimates of several models, weighted by their posterior probabilities, instead of selecting a single model. Keeps uncertainty about which model is correct, e.g.&nbsp;about whether a causal link exists at all.</p>
+</section>
 </section>
 <section id="c" class="level2">
 <h2 class="anchored" data-anchor-id="c">C</h2>
+<section id="causal-bayes-net" class="level3">
+<h3 class="anchored" data-anchor-id="causal-bayes-net">Causal Bayes net</h3>
+<p><span class="gl-tag">IBCM</span></p>
+<p>A directed graph whose arrows represent causal relations between variables, together with parameters that specify how causes produce their effects (e.g.&nbsp;causal strengths). Alternative graphs are alternative causal hypotheses that can be compared with data.</p>
+</section>
+<section id="causal-strength" class="level3">
+<h3 class="anchored" data-anchor-id="causal-strength">Causal strength</h3>
+<p><span class="gl-tag">IBCM</span></p>
+<p>How strongly a cause produces its effect, e.g.&nbsp;<em>w</em><sub>c</sub> in a <a href="#noisy-or">noisy-OR</a> model: the probability that <em>C</em> produces <em>E</em> when no other cause does. Can be estimated with a posterior distribution and a <a href="#credible-interval">credible interval</a>. Cheng’s (1997) causal power is a classic point estimate.</p>
+</section>
+<section id="causal-support" class="level3">
+<h3 class="anchored" data-anchor-id="causal-support">Causal support</h3>
+<p><span class="gl-tag">IBCM</span></p>
+<p>Griffiths and Tenenbaum’s (2005) measure of the evidence for a causal link: the log ratio of the marginal likelihoods of the data under a structure with the link (S1) and without it (S0), log P(D | S1) / P(D | S0). Positive values favour a link.</p>
+</section>
 <section id="centring" class="level3">
 <h3 class="anchored" data-anchor-id="centring">Centring</h3>
 <p><span class="gl-tag">LM 03, 05</span></p>
@@ -421,6 +452,11 @@ ul.task-list li input[type="checkbox"] {
 <p><span class="gl-tag">LM 10</span></p>
 <p>A term in a count model whose coefficient is fixed at 1, used when observation time or effort differs between observations. With a log link, <code>offset(log(hours))</code> turns a model of counts into a model of <strong>rates</strong> (counts per hour), without estimating an extra parameter.</p>
 </section>
+<section id="noisy-or" class="level3">
+<h3 class="anchored" data-anchor-id="noisy-or">Noisy-OR</h3>
+<p><span class="gl-tag">IBCM</span></p>
+<p>A common assumption about how independent generative causes combine: each cause produces the effect independently with its own strength, so P(e | c, a) = <em>w</em><sub>c</sub> + <em>w</em><sub>a</sub> − <em>w</em><sub>c</sub><em>w</em><sub>a</sub> when both are present.</p>
+</section>
 <section id="optional-stopping" class="level3">
 <h3 class="anchored" data-anchor-id="optional-stopping">Optional stopping</h3>
 <p><span class="gl-tag">ORES</span> <span class="gl-tag gl-problem-tag">Problem</span></p>
@@ -557,6 +593,11 @@ ul.task-list li input[type="checkbox"] {
 <h3 class="anchored" data-anchor-id="sesoi">SESOI (smallest effect size of interest)</h3>
 <p><span class="gl-tag">TAE</span></p>
 <p>The smallest effect that would be theoretically or practically meaningful. Needed for <a href="#equivalence-test">equivalence tests</a>, <a href="#rope">ROPEs</a> and power analyses. Justify it from theory, previous studies or practical considerations, and preregister it.</p>
+</section>
+<section id="si-model" class="level3">
+<h3 class="anchored" data-anchor-id="si-model">Structure Induction (SI) model</h3>
+<p><span class="gl-tag">IBCM</span></p>
+<p>A Bayesian model of causal structure learning (Meder et al., 2014): it computes the posterior probability that a causal link exists, P(S1 | D), from a structure prior and the marginal likelihoods of the data under alternative causal structures. Makes the same assumptions as the <a href="#causal-support">causal support</a> model.</p>
 </section>
 <section id="singular-fit" class="level3">
 <h3 class="anchored" data-anchor-id="singular-fit">Singular fit</h3>

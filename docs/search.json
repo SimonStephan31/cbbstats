@@ -103,7 +103,7 @@
     "href": "workshops/bayesian-modelling.html#worked-example-the-safe-vs-risky-box-study",
     "title": "Bayesian modelling with brms",
     "section": "Worked example: the Safe-vs-Risky box study",
-    "text": "Worked example: the Safe-vs-Risky box study\nWe return to the example from session 11. Chimpanzees choose into which of two boxes a grape is dropped. The Safe box clearly guarantees delivery; in the Risky box, the grape seems to get stuck. In fact, both boxes always deliver.\n\n\nRQ1: Do chimps prefer the Safe box on trial 1?\n\nRQ2: Does this preference change over trials?\n\n\nThe study (with the MPI EVA, Leipzig) is preregistered, but the data do not exist yet. As in session 11, we use simulated data of what we expect: 15 chimps × 4 sessions × 10 trials, with an initial Safe preference (P = .70), no average change over trials, but chimps that differ in whether they drift towards Safe or Risky. So we know the true answer.\n\nThe data\n\nSimulation code (same as session 11)side_sequence &lt;- function() {           # 5 x right, 5 x left; max. 2 in a row\n  repeat {\n    s &lt;- sample(rep(0:1, 5))\n    if (max(rle(s)$lengths) &lt;= 2) return(s)\n  }\n}\n\nsim_chimps &lt;- function(n = 15, b0 = qlogis(0.70), b.trial = 0, b.side = 0.3,\n                       sd.int = 0.8, sd.slope = 0.05) {\n  ids &lt;- sprintf(\"C%02d\", 1:n)\n  u0 &lt;- setNames(rnorm(n, 0, sd.int), ids); u1 &lt;- setNames(rnorm(n, 0, sd.slope), ids)\n  d &lt;- do.call(rbind, lapply(ids, function(id)\n    data.frame(subject = id, session = rep(1:4, each = 10), trial = 1:40,\n               side_safe = unlist(replicate(4, side_sequence(), simplify = FALSE)))))\n  d$trial_c &lt;- d$trial - 1                       # first-trial centred (as preregistered)\n  eta &lt;- b0 + u0[d$subject] + (b.trial + u1[d$subject]) * d$trial_c + b.side * d$side_safe\n  d$safe &lt;- rbinom(nrow(d), 1, plogis(eta))\n  d\n}\n\nset.seed(120)\nchimps &lt;- sim_chimps()\n\n\n\nCodeby_sess &lt;- aggregate(safe ~ subject + session, data = chimps, FUN = mean)\navg     &lt;- aggregate(safe ~ session, data = chimps, FUN = mean)\n\nggplot(by_sess, aes(session, safe)) +\n  geom_hline(yintercept = .5, linetype = 2, colour = col_muted) +\n  geom_line(aes(group = subject), colour = col_teal, alpha = .35) +\n  geom_line(data = avg, colour = col_red, linewidth = 1.3) +\n  geom_point(data = avg, colour = col_red, size = 2.5) +\n  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +\n  labs(x = \"Session\", y = \"Safe choices\",\n       subtitle = \"Thin lines: individual chimps · red: average\")\n\n\n\n\n\n\n\nStep 1: the GLMM from session 11\n\nglmm &lt;- glmer(safe ~ trial_c + side_safe + (1 + trial_c | subject),\n              family = binomial, data = chimps,\n              control = glmerControl(optimizer = \"bobyqa\"))\n\n\n\n\nFixed effects (log-odds scale), Wald confidence intervals\n\n\nEstimate\nSE\n95% CI\np\n\n\n\n(Intercept)\n1.15\n0.28\n[0.61, 1.70]\n0.000\n\n\ntrial_c\n-0.01\n0.02\n[-0.05, 0.02]\n0.507\n\n\nside_safe\n0.28\n0.21\n[-0.13, 0.69]\n0.178\n\n\n\n\n\nStep 2: priors\nA Bayesian model needs a prior for every parameter. We use weakly informative priors on the log-odds scale: they rule out absurd values but leave the data in charge.\n\npriors &lt;- c(prior(normal(0, 1.5), class = \"Intercept\"),   # P(Safe) on trial 1\n            prior(normal(0, 1),   class = \"b\"),           # trial and side effects\n            prior(exponential(1), class = \"sd\"),          # between-chimp SDs\n            prior(lkj(2),         class = \"cor\"))         # intercept-slope correlation\n\nWhat do these priors imply before seeing any data? A prior predictive check translates them into chimp-level choice probabilities on trial 1:\n\nCodeset.seed(1)\np_trial1 &lt;- plogis(rnorm(1e4, 0, 1.5) + rnorm(1e4, 0, rexp(1e4, 1)))\nggplot(data.frame(p = p_trial1), aes(p)) +\n  geom_histogram(bins = 40, fill = col_teal, colour = \"white\") +\n  scale_x_continuous(labels = scales::percent) +\n  labs(x = \"P(Safe) on trial 1 for a chimp, implied by the priors\", y = NULL) +\n  theme(axis.text.y = element_blank())\n\n\n\n\n\n\n\nThe priors allow anything from a strong Risky to a strong Safe preference. They put somewhat more weight on extreme preferences than on 50%; a narrower intercept prior, e.g. normal(0, 1), would flatten this.\nStep 3: fit the model\nThe formula is exactly the one from glmer(). bernoulli is the binomial family for single 0/1 choices.\n\nfit &lt;- brm(safe ~ trial_c + side_safe + (1 + trial_c | subject),\n           family = bernoulli, data = chimps, prior = priors,\n           chains = 4, iter = 2000, cores = 4, seed = 2026)\n\n\nsummary(fit)\n\n#&gt;  Family: bernoulli \n#&gt;   Links: mu = logit \n#&gt; Formula: safe ~ trial_c + side_safe + (1 + trial_c | subject) \n#&gt;    Data: chimps (Number of observations: 600) \n#&gt;   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n#&gt;          total post-warmup draws = 4000\n#&gt; \n#&gt; Group-Level Effects: \n#&gt; ~subject (Number of levels: 15) \n#&gt;                        Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS\n#&gt; sd(Intercept)              0.63      0.33     0.06     1.34 1.00     1409\n#&gt; sd(trial_c)                0.08      0.03     0.04     0.14 1.00     1226\n#&gt; cor(Intercept,trial_c)     0.20      0.36    -0.53     0.82 1.01      791\n#&gt;                        Tail_ESS\n#&gt; sd(Intercept)              1440\n#&gt; sd(trial_c)                2046\n#&gt; cor(Intercept,trial_c)     1284\n#&gt; \n#&gt; Population-Level Effects: \n#&gt;           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\n#&gt; Intercept     1.12      0.30     0.56     1.72 1.00     3636     3105\n#&gt; trial_c      -0.02      0.02    -0.06     0.03 1.00     1916     2096\n#&gt; side_safe     0.27      0.21    -0.13     0.67 1.00     5164     2971\n#&gt; \n#&gt; Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS\n#&gt; and Tail_ESS are effective sample size measures, and Rhat is the potential\n#&gt; scale reduction factor on split chains (at convergence, Rhat = 1).\n\n\nAll Rhat values are 1.00 and the effective sample sizes (ESS) are large, so the four chains agree. The trace plots should look like “hairy caterpillars”, with no chain drifting off:\n\nCodebayesplot::mcmc_trace(as.array(fit), pars = c(\"b_Intercept\", \"b_trial_c\", \"sd_subject__trial_c\"),\n                      facet_args = list(ncol = 3)) +\n  theme(legend.position = \"none\")\n\n\n\n\n\n\n\nStep 4: answer the research questions with the posterior\nThe posterior is a distribution, so we can answer the research questions on the response scale and as probabilities.\n\ndraws &lt;- as_draws_df(fit)\n# P(Safe) for an average chimp, averaged over the two sides\np1  &lt;- plogis(draws$b_Intercept +                      0.5 * draws$b_side_safe)  # trial 1\np40 &lt;- plogis(draws$b_Intercept + 39 * draws$b_trial_c + 0.5 * draws$b_side_safe)  # trial 40\n\n\nCodepost &lt;- rbind(data.frame(trial = \"Trial 1\", p = p1), data.frame(trial = \"Trial 40\", p = p40))\nggplot(post, aes(p, fill = trial)) +\n  geom_vline(xintercept = .5, linetype = 2, colour = col_muted) +\n  geom_density(alpha = .6, colour = NA) +\n  scale_fill_manual(values = c(col_teal, col_red), name = NULL) +\n  scale_x_continuous(labels = scales::percent, limits = c(.3, 1)) +\n  labs(x = \"P(Safe) for an average chimp\", y = \"Posterior density\")\n\n\n\n\n\n\n\n\n\nRQ1: On trial 1, an average chimp chooses the Safe box with probability 0.78, 95% credible interval [0.68, 0.86]. The posterior probability that chimps prefer the Safe box, i.e. that P(Safe) &gt; .5, is &gt; .99.\n\nRQ2: From trial 1 to trial 40, P(Safe) changes by -0.13, 95% CrI [-0.55, 0.17]. The interval is wide: these data cannot rule out a moderate change in either direction. Whether the change is practically zero is a question for an equivalence test or a ROPE (see TAE).\n\nThe model-implied learning curve, with 95% credible band:\n\nCodece &lt;- conditional_effects(fit, effects = \"trial_c\")$trial_c\nggplot(ce, aes(trial_c + 1, estimate__)) +\n  geom_hline(yintercept = .5, linetype = 2, colour = col_muted) +\n  geom_ribbon(aes(ymin = lower__, ymax = upper__), fill = col_teal, alpha = .25) +\n  geom_line(colour = col_teal, linewidth = 1.2) +\n  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +\n  labs(x = \"Trial\", y = \"P(Safe)\")\n\n\n\n\n\n\n\nStep 5: does the model reproduce the data?\nA posterior predictive check simulates new datasets from the fitted model and compares them with the observed data. Here: the proportion of Safe choices for each chimp.\n\nCodepp_check(fit, type = \"stat_grouped\", stat = \"mean\", group = \"subject\", ndraws = 1000) +\n  facet_wrap(~ group, ncol = 5) +\n  scale_x_continuous(breaks = c(0, .5, 1), labels = c(\"0\", \".5\", \"1\")) +\n  labs(x = \"Proportion of Safe choices\") +\n  theme(legend.position = \"bottom\")\n\n\n\n\n\n\n\nThe observed proportions (dark lines) lie well within the simulated ones for every chimp.\nStep 6: comparison with the GLMM from session 11\n\nCodefe_b &lt;- fixef(fit)\nvc   &lt;- as.data.frame(VarCorr(glmm))\nsd_b &lt;- summary(fit)$random$subject\n\ntab &lt;- data.frame(\n  Parameter = c(\"Intercept (trial 1)\", \"Trial\", \"Side\", \"SD intercept\", \"SD trial slope\", \"Correlation\"),\n  True      = f2(c(qlogis(.7), 0, 0.3, 0.8, 0.05, 0)),\n  glmer     = c(paste0(f2(cf[, 1]), \" [\", f2(ci[, 1]), \", \", f2(ci[, 2]), \"]\"),\n                f2(vc$sdcor[1]), f2(vc$sdcor[2]), f2(vc$sdcor[3])),\n  brms      = paste0(f2(c(fe_b[, 1], sd_b[, 1])), \" [\",\n                     f2(c(fe_b[, 3], sd_b[, 3])), \", \", f2(c(fe_b[, 4], sd_b[, 4])), \"]\"))\nknitr::kable(tab, align = \"lrrr\",\n             col.names = c(\"Parameter\", \"True value\", \"glmer: estimate [95% CI]\", \"brms: mean [95% CrI]\"),\n             caption = \"Log-odds scale. glmer reports no intervals for the variance components by default.\")\n\n\nLog-odds scale. glmer reports no intervals for the variance components by default.\n\n\n\n\n\n\n\nParameter\nTrue value\nglmer: estimate [95% CI]\nbrms: mean [95% CrI]\n\n\n\nIntercept (trial 1)\n0.85\n1.15 [0.61, 1.70]\n1.12 [0.56, 1.72]\n\n\nTrial\n0.00\n-0.01 [-0.05, 0.02]\n-0.02 [-0.06, 0.03]\n\n\nSide\n0.30\n0.28 [-0.13, 0.69]\n0.27 [-0.13, 0.67]\n\n\nSD intercept\n0.80\n0.60\n0.63 [0.06, 1.34]\n\n\nSD trial slope\n0.05\n0.06\n0.08 [0.04, 0.14]\n\n\nCorrelation\n0.00\n0.49\n0.20 [-0.53, 0.82]\n\n\n\n\n\n\nCodecmp &lt;- data.frame(\n  par   = rep(c(\"Intercept\", \"Trial\", \"Side\"), 2),\n  model = rep(c(\"glmer (session 11)\", \"brms\"), each = 3),\n  est   = c(cf[, 1], fe_b[, 1]),\n  lo    = c(ci[, 1], fe_b[, 3]),\n  hi    = c(ci[, 2], fe_b[, 4]))\ncmp$par &lt;- factor(cmp$par, levels = rev(c(\"Intercept\", \"Trial\", \"Side\")))\ntruth   &lt;- data.frame(par = factor(c(\"Intercept\", \"Trial\", \"Side\"), levels = levels(cmp$par)),\n                      est = c(qlogis(.7), 0, .3))\n\nggplot(cmp, aes(est, par, colour = model)) +\n  geom_vline(xintercept = 0, colour = col_muted) +\n  geom_pointrange(aes(xmin = lo, xmax = hi), position = position_dodge(width = .5)) +\n  geom_point(data = truth, aes(est, par), inherit.aes = FALSE, shape = 4, size = 3, colour = col_navy) +\n  scale_colour_manual(values = c(col_teal, col_red), name = NULL) +\n  labs(x = \"Estimate (log-odds) with 95% interval; cross = true value\", y = NULL) +\n  theme(legend.position = \"bottom\")\n\n\n\n\n\n\n\nWhat stays the same, and what changes\n\n\nThe estimates agree. With weakly informative priors and 600 observations, the posterior means and credible intervals are very close to the glmer() estimates and confidence intervals. Bayesian modelling is not a different model, but a different way of estimating it.\n\nThe interpretation changes. A 95% credible interval contains the parameter with 95% probability, given model and priors. That is how most people (mis)read a confidence interval anyway. And we can directly state things like “the probability that chimps prefer the Safe box on trial 1 is &gt; .99”.\n\nUncertainty about the variance components is visible. glmer() gives only point estimates for the between-chimp SDs; brms gives full intervals. The wide interval for the SD of the intercept shows how little 15 chimps tell us about individual differences.\n\nComplex random-effects structures become easier. With only 15 individuals, glmer() often runs into convergence warnings or singular fits. The priors keep brms stable, which helps with the maximal random-effects structures recommended for confirmatory tests.\n\nThe price: more computing time (here a few minutes instead of a second) and the need to choose and justify priors.",
+    "text": "Worked example: the Safe-vs-Risky box study\nWe return to the example from session 11, with the same data. Chimpanzees choose into which of two boxes a grape is dropped. The Safe box clearly guarantees delivery; in the Risky box, the grape seems to get stuck. In fact, both boxes always deliver.\n\n\nRQ1: Do chimps prefer the Safe box in session 1?\n\nRQ2: Does this preference change over sessions?\n\n\nThe study (with the MPI EVA, Leipzig) is preregistered, but the data do not exist yet. As in session 11, the numbers are made up to reflect what we expect: 10 chimps × 4 sessions × 10 trials; response: choice (1 = Safe, 0 = Risky).\n\nThe data\n\nData (same as session 11)# Safe choices (out of 10) of 10 chimps in sessions 1-4\nK &lt;- rbind(c( 9, 10, 10, 10), c(10,  9,  9,  8), c(10, 10,  9,  7), c(10, 10,  6,  8),\n           c( 5,  8,  8,  8), c( 8,  6,  6,  3), c( 5,  3,  2,  4), c( 5,  2,  3,  3),\n           c( 1,  0,  1,  0), c( 1,  0,  0,  0))\ncd &lt;- data.frame(chimp = factor(rep(1:10, 4)), session = rep(1:4, each = 10), safe = c(K))\n\n# trial-level data: one row per choice\nset.seed(11)\ntrials &lt;- do.call(rbind, lapply(seq_len(nrow(cd)), function(i)\n  data.frame(chimp = cd$chimp[i], session = cd$session[i],\n             trial = (cd$session[i] - 1) * 10 + 1:10,\n             choice = sample(rep(c(1, 0), c(cd$safe[i], 10 - cd$safe[i]))))))\ntrials$session_c &lt;- trials$session - 1          # session 1 = 0\n\n\n\nCodecd$p &lt;- cd$safe / 10\navg  &lt;- aggregate(p ~ session, data = cd, FUN = mean)\n\nggplot(cd, aes(session, p)) +\n  geom_hline(yintercept = .5, linetype = 2, colour = col_muted) +\n  geom_line(aes(group = chimp), colour = col_teal, alpha = .35) +\n  geom_line(data = avg, colour = col_red, linewidth = 1.3) +\n  geom_point(data = avg, colour = col_red, size = 2.5) +\n  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +\n  labs(x = \"Session\", y = \"Safe choices\",\n       subtitle = \"Thin lines: individual chimps · red: average\")\n\n\n\n\n\n\n\nStep 1: the GLMM from session 11\n\nglmm &lt;- glmer(choice ~ session_c + (1 + session_c | chimp),\n              family = binomial, data = trials,\n              control = glmerControl(optimizer = \"bobyqa\"))\n\n\n\n\nFixed effects (log-odds scale), Wald confidence intervals\n\n\nEstimate\nSE\n95% CI\np\n\n\n\n(Intercept)\n0.91\n0.79\n[-0.63, 2.45]\n0.246\n\n\nsession_c\n-0.36\n0.17\n[-0.69, -0.03]\n0.030\n\n\n\n\n\nStep 2: priors\nA Bayesian model needs a prior for every parameter. We use weakly informative priors on the log-odds scale: they rule out absurd values but leave the data in charge.\n\npriors &lt;- c(prior(normal(0, 1.5), class = \"Intercept\"),   # P(Safe) in session 1\n            prior(normal(0, 1),   class = \"b\"),           # change per session\n            prior(exponential(0.5), class = \"sd\"),        # between-chimp SDs (mean 2)\n            prior(lkj(2),         class = \"cor\"))         # intercept-slope correlation\n\nWhat do these priors imply before seeing any data? A prior predictive check translates them into chimp-level choice probabilities in session 1:\n\nCodeset.seed(1)\np_session1 &lt;- plogis(rnorm(1e4, 0, 1.5) + rnorm(1e4, 0, rexp(1e4, 0.5)))\nggplot(data.frame(p = p_session1), aes(p)) +\n  geom_histogram(bins = 40, fill = col_teal, colour = \"white\") +\n  scale_x_continuous(labels = scales::percent) +\n  labs(x = \"P(Safe) in session 1 for a chimp, implied by the priors\", y = NULL) +\n  theme(axis.text.y = element_blank())\n\n\n\n\n\n\n\nThe priors allow chimps with strong Safe or strong Risky preferences, as in our data, where some chimps almost always and others almost never choose Safe.\nStep 3: fit the model\nThe formula is exactly the one from glmer(). bernoulli is the binomial family for single 0/1 choices.\n\nfit &lt;- brm(choice ~ session_c + (1 + session_c | chimp),\n           family = bernoulli, data = trials, prior = priors,\n           chains = 4, iter = 2000, cores = 4, seed = 2026)\n\n\nsummary(fit)\n\n#&gt;  Family: bernoulli \n#&gt;   Links: mu = logit \n#&gt; Formula: choice ~ session_c + (1 + session_c | chimp) \n#&gt;    Data: trials (Number of observations: 400) \n#&gt;   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n#&gt;          total post-warmup draws = 4000\n#&gt; \n#&gt; Group-Level Effects: \n#&gt; ~chimp (Number of levels: 10) \n#&gt;                          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS\n#&gt; sd(Intercept)                2.58      0.71     1.54     4.41 1.00     1753\n#&gt; sd(session_c)                0.45      0.30     0.03     1.16 1.00     1008\n#&gt; cor(Intercept,session_c)    -0.01      0.40    -0.75     0.71 1.00     3411\n#&gt;                          Tail_ESS\n#&gt; sd(Intercept)                2042\n#&gt; sd(session_c)                1323\n#&gt; cor(Intercept,session_c)     2310\n#&gt; \n#&gt; Population-Level Effects: \n#&gt;           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\n#&gt; Intercept     0.79      0.78    -0.77     2.42 1.01     1025     1427\n#&gt; session_c    -0.37      0.22    -0.83     0.02 1.00     1947     1639\n#&gt; \n#&gt; Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS\n#&gt; and Tail_ESS are effective sample size measures, and Rhat is the potential\n#&gt; scale reduction factor on split chains (at convergence, Rhat = 1).\n\n\nAll Rhat values are close to 1.00 and the effective sample sizes (ESS) are large, so the four chains agree. The trace plots should look like “hairy caterpillars”, with no chain drifting off:\n\nCodebayesplot::mcmc_trace(as.array(fit), pars = c(\"b_Intercept\", \"b_session_c\", \"sd_chimp__session_c\"),\n                      facet_args = list(ncol = 3)) +\n  theme(legend.position = \"none\")\n\n\n\n\n\n\n\nStep 4: answer the research questions with the posterior\nThe posterior is a distribution, so we can answer the research questions on the response scale and as probabilities.\n\ndraws &lt;- as_draws_df(fit)\np1 &lt;- plogis(draws$b_Intercept)                            # session 1, average chimp\np4 &lt;- plogis(draws$b_Intercept + 3 * draws$b_session_c)    # session 4, average chimp\n\n\nCodepost &lt;- rbind(data.frame(session = \"Session 1\", p = p1), data.frame(session = \"Session 4\", p = p4))\nggplot(post, aes(p, fill = session)) +\n  geom_vline(xintercept = .5, linetype = 2, colour = col_muted) +\n  geom_density(alpha = .6, colour = NA) +\n  scale_fill_manual(values = c(col_teal, col_red), name = NULL) +\n  scale_x_continuous(labels = scales::percent, limits = c(0, 1)) +\n  labs(x = \"P(Safe) for an average chimp\", y = \"Posterior density\")\n\n\n\n\n\n\n\n\n\nRQ1: In session 1, an average chimp chooses the Safe box with probability 0.68, 95% credible interval [0.32, 0.92]. The posterior probability that the average chimp prefers Safe, i.e. that P(Safe) &gt; .5, is 0.86. The interval is wide: with chimps that differ this much, 10 chimps say little about the average chimp’s preference.\n\nRQ2: The change per session is -0.36 on the log-odds scale, 95% CrI [-0.83, 0.02]; the posterior probability of a decline is 0.97. From session 1 to session 4, P(Safe) changes by -0.23 for the average chimp, 95% CrI [-0.51, 0.01].\n\nThe model-implied curve for the average chimp, with 95% credible band:\n\nCodece &lt;- conditional_effects(fit, effects = \"session_c\")$session_c\nggplot(ce, aes(session_c + 1, estimate__)) +\n  geom_hline(yintercept = .5, linetype = 2, colour = col_muted) +\n  geom_ribbon(aes(ymin = lower__, ymax = upper__), fill = col_teal, alpha = .25) +\n  geom_line(colour = col_teal, linewidth = 1.2) +\n  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +\n  labs(x = \"Session\", y = \"P(Safe)\")\n\n\n\n\n\n\n\nStep 5: does the model reproduce the data?\nA posterior predictive check simulates new datasets from the fitted model and compares them with the observed data. Here: the proportion of Safe choices for each chimp.\n\nCodepp_check(fit, type = \"stat_grouped\", stat = \"mean\", group = \"chimp\", ndraws = 1000) +\n  facet_wrap(~ group, ncol = 5) +\n  scale_x_continuous(breaks = c(0, .5, 1), labels = c(\"0\", \".5\", \"1\")) +\n  labs(x = \"Proportion of Safe choices\") +\n  theme(legend.position = \"bottom\")\n\n\n\n\n\n\n\nThe observed proportions (dark lines) lie well within the simulated ones for every chimp.\nStep 6: comparison with the GLMM from session 11\n\nCodefe_b &lt;- fixef(fit)\nvc   &lt;- as.data.frame(VarCorr(glmm))\nsd_b &lt;- summary(fit)$random$chimp\n\ntab &lt;- data.frame(\n  Parameter = c(\"Intercept (session 1)\", \"Session\", \"SD intercept\", \"SD session slope\", \"Correlation\"),\n  glmer     = c(paste0(f2(cf[, 1]), \" [\", f2(ci[, 1]), \", \", f2(ci[, 2]), \"]\"),\n                f2(vc$sdcor[1]), f2(vc$sdcor[2]), f2(vc$sdcor[3])),\n  brms      = paste0(f2(c(fe_b[, 1], sd_b[, 1])), \" [\",\n                     f2(c(fe_b[, 3], sd_b[, 3])), \", \", f2(c(fe_b[, 4], sd_b[, 4])), \"]\"))\nknitr::kable(tab, align = \"lrr\",\n             col.names = c(\"Parameter\", \"glmer: estimate [95% CI]\", \"brms: mean [95% CrI]\"),\n             caption = \"Log-odds scale. glmer reports no intervals for the variance components by default.\")\n\n\nLog-odds scale. glmer reports no intervals for the variance components by default.\n\nParameter\nglmer: estimate [95% CI]\nbrms: mean [95% CrI]\n\n\n\nIntercept (session 1)\n0.91 [-0.63, 2.45]\n0.79 [-0.77, 2.42]\n\n\nSession\n-0.36 [-0.69, -0.03]\n-0.37 [-0.83, 0.02]\n\n\nSD intercept\n2.32\n2.58 [1.54, 4.41]\n\n\nSD session slope\n0.30\n0.45 [0.03, 1.16]\n\n\nCorrelation\n-0.26\n-0.01 [-0.75, 0.71]\n\n\n\n\n\n\nCodecmp &lt;- data.frame(\n  par   = rep(c(\"Intercept\", \"Session\"), 2),\n  model = rep(c(\"glmer (session 11)\", \"brms\"), each = 2),\n  est   = c(cf[, 1], fe_b[, 1]),\n  lo    = c(ci[, 1], fe_b[, 3]),\n  hi    = c(ci[, 2], fe_b[, 4]))\ncmp$par &lt;- factor(cmp$par, levels = c(\"Session\", \"Intercept\"))\n\nggplot(cmp, aes(est, par, colour = model)) +\n  geom_vline(xintercept = 0, colour = col_muted) +\n  geom_pointrange(aes(xmin = lo, xmax = hi), position = position_dodge(width = .5)) +\n  scale_colour_manual(values = c(col_teal, col_red), name = NULL) +\n  labs(x = \"Estimate (log-odds) with 95% interval\", y = NULL) +\n  theme(legend.position = \"bottom\")\n\n\n\n\n\n\n\nWhat stays the same, and what changes\n\n\nThe estimates agree, the intervals differ. The posterior means are close to the glmer() estimates: Bayesian modelling is not a different model, but a different way of estimating it. The credible interval for the session effect is wider and just includes zero. The Wald interval of glmer() treats the estimated between-chimp SDs as known; the posterior also carries their uncertainty, which is large with only 10 chimps.\n\nThe interpretation changes. A 95% credible interval contains the parameter with 95% probability, given model and priors. That is how most people (mis)read a confidence interval anyway. And we can directly state things like “the probability that the preference declines over sessions is 0.97”.\n\nUncertainty about the variance components is visible. glmer() gives only point estimates for the between-chimp SDs and their correlation; brms gives full intervals. The wide intervals show how little 10 chimps tell us about individual differences.\n\nComplex random-effects structures become easier. With only 10 individuals, glmer() often runs into convergence warnings or singular fits. The priors keep brms stable, which helps with the maximal random-effects structures recommended for confirmatory tests.\n\nThe price: more computing time (here a few minutes instead of a second) and the need to choose and justify priors.",
     "crumbs": [
       "Workshops",
       "Bayesian modelling with brms"
@@ -144,6 +144,13 @@
     "title": "Testing for Absence and Equivalence",
     "section": "Topics",
     "text": "Topics\n\nWhy p &gt; .05 is not evidence for “no effect”: absence of evidence vs. evidence of absence.\nThe smallest effect size of interest (SESOI): how to justify which effects are too small to matter.\nEquivalence tests (TOST): how to test predictions of “no effect” with classical significance tests, based on a justified SESOI (R package TOSTER).\nBayes factors: quantifying the evidence for the null relative to the alternative (R package BayesFactor).\nBayesian estimation with a region of practical equivalence (ROPE): deciding on the basis of the posterior distribution (R packages brms and bayestestR).\nComparing the approaches: when they agree, when they differ, and the role of priors.\n\nOutcome: each participant plans how to test a “no effect” prediction in their own project, including a sample-size justification.\n\nKey terms: p-value, SESOI (smallest effect size of interest), Equivalence test (TOST), Bayes factor, ROPE (region of practical equivalence), Prior, posterior"
+  },
+  {
+    "objectID": "tae/index.html#four-tests-one-dataset",
+    "href": "tae/index.html#four-tests-one-dataset",
+    "title": "Testing for Absence and Equivalence",
+    "section": "Four tests, one dataset",
+    "text": "Four tests, one dataset\nClassical significance tests can do much more than reject an effect of exactly zero. Lakens (2022, ch. 9) distinguishes four kinds of tests. They differ only in which hypothesis is tested, so all four can be applied to the same data: each answers a different question.\n\nThe data\nParticipants solve a puzzle; we measure the solution time in seconds. A control group is compared with a training group (500 participants each). The effect of interest is the time saved by training, Δ = control − training.\n\nThe smallest effect size of interest (SESOI) is 2 seconds: savings below 2 s are too small to matter in practice.\nA theory predicts savings between 0.5 and 2.5 s.\n\n\nset.seed(4)\ncontrol  &lt;- rnorm(500, mean = 20,   sd = 5)\ntraining &lt;- rnorm(500, mean = 18.8, sd = 5)\n\nsesoi &lt;- 2                     # smallest effect size of interest (s)\nlower &lt;- 0.5; upper &lt;- 2.5     # range predicted by the theory (s)\n\nThe observed saving is Δ = 1.25 s, 95% CI [0.65, 1.85], 90% CI [0.75, 1.76].\n\n\nThe four tests at a glance\n\n\nCode\nlim &lt;- c(-4, 4)\npanels &lt;- c(\"A: two-sided null hypothesis test\", \"B: interval hypothesis test\",\n            \"C: equivalence test\", \"D: minimum effect test\")\nreg &lt;- function(panel, xmin, xmax, hyp) data.frame(panel, xmin, xmax, hyp)\nregions &lt;- rbind(\n  reg(panels[1], lim[1], lim[2], \"H1\"),\n  reg(panels[2], c(lim[1], upper), c(lower, lim[2]), \"H0\"), reg(panels[2], lower, upper, \"H1\"),\n  reg(panels[3], c(lim[1], sesoi), c(-sesoi, lim[2]), \"H1\"), reg(panels[3], -sesoi, sesoi, \"H0\"),\n  reg(panels[4], c(lim[1], sesoi), c(-sesoi, lim[2]), \"H1\"), reg(panels[4], -sesoi, sesoi, \"H0\"))\nregions$hyp[regions$panel == panels[3]] &lt;- ifelse(regions$hyp[regions$panel == panels[3]] == \"H0\", \"H1\", \"H0\")\nregions$panel &lt;- factor(regions$panel, levels = panels)\nnil &lt;- data.frame(panel = factor(panels[1], levels = panels), x = 0)\nci  &lt;- data.frame(panel = factor(panels, levels = panels), est = est,\n                  lo = c(t95$conf.int[1], rep(t90$conf.int[1], 3)),\n                  hi = c(t95$conf.int[2], rep(t90$conf.int[2], 3)))\n\nggplot() +\n  geom_rect(data = regions, aes(xmin = xmin, xmax = xmax, ymin = -.4, ymax = .4, fill = hyp), alpha = .35) +\n  geom_segment(data = nil, aes(x = x, xend = x, y = -.4, yend = .4), colour = col_h0, linewidth = 1.6) +\n  geom_errorbarh(data = ci, aes(y = 0, xmin = lo, xmax = hi), height = .25, linewidth = 1, colour = col_navy) +\n  geom_point(data = ci, aes(est, 0), size = 2.6, colour = col_navy) +\n  facet_wrap(~ panel, ncol = 1, strip.position = \"left\", dir = \"v\") +\n  scale_fill_manual(values = c(H0 = col_h0, H1 = col_h1), name = NULL,\n                    labels = c(H0 = \"null hypothesis (H0)\", H1 = \"alternative hypothesis (H1)\")) +\n  scale_x_continuous(breaks = c(-sesoi, 0, lower, sesoi, upper), labels = c(\"-2\", \"0\", \"0.5\", \"2\", \"2.5\"),\n                     limits = lim, expand = c(0, 0)) +\n  labs(x = expression(paste(\"Time saved by training, \", Delta, \" (s)\")), y = NULL) +\n  theme_minimal(base_size = 12) +\n  theme(axis.text.y = element_blank(), panel.grid.major.y = element_blank(), panel.grid.minor = element_blank(),\n        strip.text.y.left = element_text(angle = 0, hjust = 1, face = \"bold\"),\n        legend.position = \"top\")\n\n\n\n\n\n\n\n\nFigure 1: Two-sided null hypothesis test (A), interval hypothesis test (B), equivalence test (C) and minimum effect test (D). Red: values in the null hypothesis; blue: values in the alternative hypothesis. Point and bar: our estimate with 95% CI (A) or 90% CI (B–D). Adapted from Lakens (2022), Fig. 9.1; this figure is licensed CC BY-NC-SA 4.0.\n\n\n\n\n\n\n\nA: two-sided null hypothesis test\nQuestion: Is there any effect at all? H0: Δ = 0. H1: Δ ≠ 0. The classic t-test; significant if the 95% CI excludes 0.\n\nt.test(control, training, var.equal = TRUE)\n\n#&gt; \n#&gt;  Two Sample t-test\n#&gt; \n#&gt; data:  control and training\n#&gt; t = 4.0852, df = 998, p-value = 4.757e-05\n#&gt; alternative hypothesis: true difference in means is not equal to 0\n#&gt; 95 percent confidence interval:\n#&gt;  0.6510149 1.8545975\n#&gt; sample estimates:\n#&gt; mean of x mean of y \n#&gt;  19.85426  18.60146\n\n\nResult: p &lt; .001. Training saves time, but this test says nothing about whether the saving is large enough to matter.\n\n\nB: interval hypothesis test\nQuestion: Does the effect fall within the range the theory predicts? H0: Δ ≤ 0.5 or Δ ≥ 2.5. H1: 0.5 &lt; Δ &lt; 2.5. Two one-sided tests, one against each bound; the prediction is supported if both are significant, i.e. the 90% CI lies inside the predicted range.\n\n# H0a: Delta &lt;= 0.5 (test: greater than the lower bound)\np_lo &lt;- t.test(control, training, mu = lower,\n               alternative = \"greater\", var.equal = TRUE)$p.value\n# H0b: Delta &gt;= 2.5 (test: less than the upper bound)\np_hi &lt;- t.test(control, training, mu = upper,\n               alternative = \"less\", var.equal = TRUE)$p.value\nc(p_lower = p_lo, p_upper = p_hi, p = max(p_lo, p_hi))\n\n#&gt;      p_lower      p_upper            p \n#&gt; 7.133457e-03 2.569832e-05 7.133457e-03\n\n\nResult: p = .007. The saving lies within the predicted range of 0.5 to 2.5 s.\n\n\nC: equivalence test (TOST)\nQuestion: Is the effect too small to matter? H0: Δ ≤ −2 or Δ ≥ 2. H1: −2 &lt; Δ &lt; 2. The same two one-sided tests as in B, now against −SESOI and +SESOI; equivalence is shown if the 90% CI lies inside the equivalence bounds.\n\n# H0a: Delta &lt;= -2 (test: greater than the lower equivalence bound)\np_lo &lt;- t.test(control, training, mu = -sesoi,\n               alternative = \"greater\", var.equal = TRUE)$p.value\n# H0b: Delta &gt;= 2 (test: less than the upper equivalence bound)\np_hi &lt;- t.test(control, training, mu = sesoi,\n               alternative = \"less\", var.equal = TRUE)$p.value\nc(p_lower = p_lo, p_upper = p_hi, p = max(p_lo, p_hi))\n\n#&gt;      p_lower      p_upper            p \n#&gt; 2.791839e-25 7.502522e-03 7.502522e-03\n\n\nResult: p = .008. The saving is statistically equivalent to zero within ±2 s: it is real (test A), but smaller than anything we consider meaningful.\n\n\nD: minimum effect test\nQuestion: Is the effect larger than the smallest effect of interest? H0: −2 ≤ Δ ≤ 2. H1: Δ &lt; −2 or Δ &gt; 2. The reverse of the equivalence test; here we test only the direction the theory predicts (Δ &gt; 2).\n\n# H0: Delta &lt;= 2 (test: greater than the SESOI)\nt.test(control, training, mu = sesoi,\n       alternative = \"greater\", var.equal = TRUE)$p.value\n\n#&gt; [1] 0.9924975\n\n\nResult: p = .992. We cannot claim a saving larger than 2 s.\n\n\nWith the TOSTER package\nThe R package TOSTER runs tests C and D in one call and adds effect sizes and plots:\n\nlibrary(TOSTER)\n# C: equivalence test\nt_TOST(x = control, y = training, eqb = sesoi, var.equal = TRUE)\n# D: minimum effect test\nt_TOST(x = control, y = training, eqb = sesoi, var.equal = TRUE, hypothesis = \"MET\")\n\n\n\nSummary\n\n\n\n\n\n\n\n\n\nTest\nQuestion\nH0\nResult here\n\n\n\n\nA: two-sided null hypothesis test\nAny effect?\nΔ = 0\nrejected: training saves time\n\n\nB: interval hypothesis test\nWithin the predicted range?\nΔ ≤ 0.5 or Δ ≥ 2.5\nrejected: prediction supported\n\n\nC: equivalence test\nToo small to matter?\n|Δ| ≥ 2\nrejected: equivalent to zero\n\n\nD: minimum effect test\nLarger than the SESOI?\n|Δ| ≤ 2\nnot rejected\n\n\n\nThe same data give four different answers because the tests ask four different questions. Which test is appropriate follows from the hypothesis, and should be decided, and preregistered, before the data are seen.\n\nNote: With 500 participants per group, even a saving of about 1 s is detected (A) and shown to be negligible (C). With small samples, typical for animal studies, all four tests are often inconclusive. Planning the sample size for the test you intend to run is part of the course.\n\nReference: Lakens, D. (2022). Improving your statistical inferences (ch. 9: Equivalence testing and interval hypotheses). https://doi.org/10.5281/zenodo.6409077. Licensed CC BY-NC-SA 4.0."
   },
   {
     "objectID": "tae/index.html#simulate-first-three-answers-to-the-same-data",
@@ -208,7 +215,6 @@
     "section": "",
     "text": "What to do if the DV is not normal?\nThe first assumption we relax: normality.",
     "crumbs": [
-      "Linear Models",
       "Relaxing assumptions",
       "10 · Generalized linear models (GLM)"
     ]
@@ -218,9 +224,8 @@
     "href": "linear-models/sessions/10-glm.html#in-this-session",
     "title": "10 · Generalized linear models (GLM)",
     "section": "In this session",
-    "text": "In this session\n\nResponses that are counts, proportions or binary choices\nThe three parts of a GLM: distribution, linear predictor, link function\nPoisson and binomial models; offsets for observation time\nOverdispersion and the negative binomial model\nInterpreting coefficients and plotting predictions on the response scale\n\n\nKey terms: Link function, Log-odds (logit), Offset, Overdispersion, Zero-inflation, Complete separation",
+    "text": "In this session\n\nWhy the linear model fails for binary data and counts\nThe three parts of a GLM: distribution, linear predictor, link function\nLogistic regression: log-odds, odds ratios, predicted probabilities\nPoisson regression: rate ratios, offsets for different observation times\nMaximum likelihood, deviance and likelihood-ratio tests\nChecking GLMs: simulated residuals, overdispersion, the negative binomial model\nPractical: maternal approaches in wild Guinea baboons (real DPZ field data)\n\n\nKey terms: Link function, Log-odds (logit), Offset, Likelihood-ratio test, Overdispersion, Zero-inflation, Complete separation",
     "crumbs": [
-      "Linear Models",
       "Relaxing assumptions",
       "10 · Generalized linear models (GLM)"
     ]
@@ -230,21 +235,8 @@
     "href": "linear-models/sessions/10-glm.html#learning-goals",
     "title": "10 · Generalized linear models (GLM)",
     "section": "Learning goals",
-    "text": "Learning goals\nAfter this session you can\n\nchoose a distribution and link function that fit the response,\nfit Poisson and binomial GLMs and interpret them on the response scale,\ndetect and handle overdispersion.",
+    "text": "Learning goals\nAfter this session you can\n\nexplain why the linear model fails for binary and count data,\nname the three parts of a GLM: distribution, linear predictor, link function,\nfit and interpret logistic and Poisson regressions in R, on the response scale,\ndetect overdispersion and know what to do about it.",
     "crumbs": [
-      "Linear Models",
-      "Relaxing assumptions",
-      "10 · Generalized linear models (GLM)"
-    ]
-  },
-  {
-    "objectID": "linear-models/sessions/10-glm.html#simulate-first",
-    "href": "linear-models/sessions/10-glm.html#simulate-first",
-    "title": "10 · Generalized linear models (GLM)",
-    "section": "Simulate first",
-    "text": "Simulate first\nCounts of approaches per focal observation, increasing with age on the log scale.\n\nset.seed(10)\nage    &lt;- runif(150, 0, 12)                    # months\nmu     &lt;- exp(0.2 + 0.12 * age)                # log link\ncounts &lt;- rpois(150, mu)\n\nm &lt;- glm(counts ~ age, family = poisson)\nround(coef(m), 2)                              # back on the log scale\n\n#&gt; (Intercept)         age \n#&gt;        0.33        0.11\n\nround(exp(coef(m)[2]), 2)                      # multiplicative change per month\n\n#&gt;  age \n#&gt; 1.11\n\nplot(age, counts, pch = 19, col = adjustcolor(\"#1b6f8a\", .5),\n     xlab = \"Age (months)\", ylab = \"Count\")\ncurve(predict(m, data.frame(age = x), type = \"response\"),\n      add = TRUE, col = \"#c0392b\", lwd = 2)",
-    "crumbs": [
-      "Linear Models",
       "Relaxing assumptions",
       "10 · Generalized linear models (GLM)"
     ]
@@ -254,9 +246,41 @@
     "href": "linear-models/sessions/10-glm.html#materials",
     "title": "10 · Generalized linear models (GLM)",
     "section": "Materials",
-    "text": "Materials\n\n\nSlides coming soon\n\nR script coming soon\n\nExercises coming soon",
+    "text": "Materials\n\n\nSlides (press F for full screen, S for speaker notes)\nR script for the worked examples below\nPractical with solutions: maternal approaches in wild Guinea baboons, with the open data of Dal Pesco et al. (2026)",
     "crumbs": [
-      "Linear Models",
+      "Relaxing assumptions",
+      "10 · Generalized linear models (GLM)"
+    ]
+  },
+  {
+    "objectID": "linear-models/sessions/10-glm.html#worked-example-1-who-solves-the-puzzle-box",
+    "href": "linear-models/sessions/10-glm.html#worked-example-1-who-solves-the-puzzle-box",
+    "title": "10 · Generalized linear models (GLM)",
+    "section": "Worked example 1: who solves the puzzle box?",
+    "text": "Worked example 1: who solves the puzzle box?\n120 monkeys are each tested once with a new puzzle box. Do younger monkeys solve novel problems more often? The response is binary: solved (1) or not (0). The data are simulated.\n\nset.seed(10)\npuzzle &lt;- data.frame(age = round(runif(120, 2, 22), 1))\npuzzle$age_c  &lt;- puzzle$age - 10                     # centred at 10 years\npuzzle$solved &lt;- rbinom(120, 1, plogis(0.4 - 0.18 * puzzle$age_c))\n\n\nLogistic regression\nThe binomial distribution with the logit link: logit(p) = log(p / (1 − p)) = β0 + β1 · age.\n\nglm1 &lt;- glm(solved ~ age_c, family = binomial, data = puzzle)\nsummary(glm1)$coefficients\n\n#&gt;               Estimate Std. Error   z value     Pr(&gt;|z|)\n#&gt; (Intercept)  0.4815479 0.21833960  2.205500 2.741906e-02\n#&gt; age_c       -0.1982492 0.04362213 -4.544693 5.501545e-06\n\nexp(coef(glm1))        # odds ratios\n\n#&gt; (Intercept)       age_c \n#&gt;   1.6185778   0.8201655\n\n\n\nIntercept 0.48: the log-odds of solving for a 10-year-old, i.e. P(solved) = plogis(0.48) = 62%.\nSlope -0.20 per year; odds ratio 0.82: with each year, the odds of solving are multiplied by 0.82. Odds are not probabilities: how much the probability changes depends on where you are on the S-curve. A rule of thumb: β/4 ≈ -0.05 is the maximum change in probability per year (at 50%).\n\n\n\nPredictions on the response scale\nCompute the confidence interval on the link scale, then back-transform, so that it stays within 0–1:\n\nnd &lt;- data.frame(age = seq(2, 22, by = 0.2)); nd$age_c &lt;- nd$age - 10\npr &lt;- predict(glm1, newdata = nd, type = \"link\", se.fit = TRUE)\nnd$p  &lt;- plogis(pr$fit)\nnd$lo &lt;- plogis(pr$fit - 1.96 * pr$se.fit)\nnd$hi &lt;- plogis(pr$fit + 1.96 * pr$se.fit)\n\nggplot(nd, aes(age, p)) +\n  geom_jitter(data = puzzle, aes(age, solved), height = .03, width = 0, colour = col_lm, alpha = .5) +\n  geom_ribbon(aes(ymin = lo, ymax = hi), fill = col_glm, alpha = .2) +\n  geom_line(colour = col_glm, linewidth = 1.2) +\n  scale_y_continuous(labels = scales::percent) +\n  labs(x = \"Age (years)\", y = \"P(solved)\")\n\n\n\n\n\n\n\n\n\n\nTest: likelihood-ratio test\n\nglm0 &lt;- glm(solved ~ 1, family = binomial, data = puzzle)\nanova(glm0, glm1, test = \"Chisq\")\n\n#&gt; Analysis of Deviance Table\n#&gt; \n#&gt; Model 1: solved ~ 1\n#&gt; Model 2: solved ~ age_c\n#&gt;   Resid. Df Resid. Dev Df Deviance  Pr(&gt;Chi)    \n#&gt; 1       119     165.52                          \n#&gt; 2       118     139.51  1   26.012 3.393e-07 ***\n#&gt; ---\n#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1",
+    "crumbs": [
+      "Relaxing assumptions",
+      "10 · Generalized linear models (GLM)"
+    ]
+  },
+  {
+    "objectID": "linear-models/sessions/10-glm.html#worked-example-2-grunts-in-focal-observations",
+    "href": "linear-models/sessions/10-glm.html#worked-example-2-grunts-in-focal-observations",
+    "title": "10 · Generalized linear models (GLM)",
+    "section": "Worked example 2: grunts in focal observations",
+    "text": "Worked example 2: grunts in focal observations\n90 monkeys are each observed once, for 10–60 minutes, and we count their grunts. Do higher-ranking monkeys grunt more? The data are simulated.\n\nset.seed(3)\ncalls &lt;- data.frame(rank_z = round(rnorm(90), 2), minutes = round(runif(90, 10, 60)))\nmu    &lt;- calls$minutes * exp(log(0.15) + 0.35 * calls$rank_z)\ncalls$grunts &lt;- rnbinom(90, mu = mu, size = 2)          # overdispersed counts\n\n\nPoisson regression with an offset\nThe Poisson distribution with the log link. Because observation times differ, offset(log(minutes)) turns the model of counts into a model of rates (grunts per minute).\n\npois &lt;- glm(grunts ~ rank_z + offset(log(minutes)), family = poisson, data = calls)\nsummary(pois)$coefficients\n\n#&gt;               Estimate Std. Error    z value     Pr(&gt;|z|)\n#&gt; (Intercept) -1.7599468 0.04414725 -39.865381 0.000000e+00\n#&gt; rank_z       0.4046258 0.04999826   8.092797 5.831013e-16\n\nexp(coef(pois))        # rate per minute (intercept) and rate ratio (rank)\n\n#&gt; (Intercept)      rank_z \n#&gt;    0.172054    1.498742\n\n\nAn average-ranking monkey grunts 0.17 times per minute (10.3 per hour); one SD higher rank multiplies the rate by 1.50.\n\n\nOverdispersion\nThe Poisson model assumes that the variance equals the mean. The dispersion ratio should be close to 1:\n\nsum(residuals(pois, type = \"pearson\")^2) / df.residual(pois)\n\n#&gt; [1] 3.968674\n\n\nAt 3.97, the counts vary much more than the model expects, so its standard errors are too small. Simulated quantile residuals show the same (plot(DHARMa::simulateResiduals(pois))). A negative binomial model adds a parameter for the extra variance:\n\nnb &lt;- glm.nb(grunts ~ rank_z + offset(log(minutes)), data = calls)\nsummary(nb)$coefficients\n\n#&gt;              Estimate Std. Error    z value     Pr(&gt;|z|)\n#&gt; (Intercept) -1.783289  0.0916880 -19.449539 2.940641e-84\n#&gt; rank_z       0.392227  0.1059704   3.701287 2.145085e-04\n\n\nThe estimate for rank hardly changes (0.39 vs. 0.40), but its standard error more than doubles (0.106 vs. 0.050). Here the effect survives; with a weaker or no effect, the Poisson model could easily produce a false positive (see the simulation in the slides).",
+    "crumbs": [
+      "Relaxing assumptions",
+      "10 · Generalized linear models (GLM)"
+    ]
+  },
+  {
+    "objectID": "linear-models/sessions/10-glm.html#practical",
+    "href": "linear-models/sessions/10-glm.html#practical",
+    "title": "10 · Generalized linear models (GLM)",
+    "section": "Practical: maternal approaches in wild Guinea baboons",
+    "text": "Practical: maternal approaches in wild Guinea baboons\nHow often do mothers approach their infants in the first six months of life, and does this depend on the infant’s sex or on the mother’s age? You use real field data from the DPZ field station Simenti (Senegal):\n\nDal Pesco, F., et al. (2026). Maternal style does not predict infant growth and survival in wild Guinea baboons. Animal Behaviour.\n\nThe data are openly available on OSF (https://doi.org/10.17605/OSF.IO/YH2BW). Please cite the paper and the repository when you use them.\nDownload dataset_mothering_behaviors_Anonymized.csv\nThe file has one row per infant and month. To keep the observations independent (the topic of session 11), we first aggregate the data to one row per infant: all approaches and all observation time in the first six months. The variables you need:\n\n\n\n\n\n\n\nVariable\nMeaning\n\n\n\n\nimmature_ID\ninfant ID\n\n\nmother_ID\nmother ID\n\n\nage\ninfant age in days\n\n\nimmature_sex\ninfant sex (F, M)\n\n\nmother_monthly_age\nmother’s age class in this month: young (YAF), middle-aged (MAF), old (OAF) adult female\n\n\nimm_focal_duration_sec\nfocal observation time in this month (seconds)\n\n\nnormal_approach_received_freq\nnumber of approaches received from the mother\n\n\n\n\nxdata &lt;- read.csv(\"dataset_mothering_behaviors_Anonymized.csv\")\n\n\nExercise 1: one row per infant\nKeep the months in which the infant was younger than six months (age &lt; 183 days). Then aggregate to one row per infant with the total number of approaches, the total observation time in hours, the infant’s sex and the mother’s (most frequent) age class.\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nxdata &lt;- xdata[, !duplicated(names(xdata))]          # 'immature_ID' appears twice\nw &lt;- xdata[xdata$age &lt; 183, ]\n\ninfants &lt;- do.call(rbind, lapply(split(w, w$immature_ID), function(d) data.frame(\n  infant     = d$immature_ID[1],\n  mother     = d$mother_ID[1],\n  sex        = d$immature_sex[1],\n  mother_age = names(which.max(table(d$mother_monthly_age))),\n  hours      = sum(d$imm_focal_duration_sec) / 3600,\n  approaches = sum(d$normal_approach_received_freq))))\ninfants$mother_age &lt;- factor(infants$mother_age, levels = c(\"MAF\", \"YAF\", \"OAF\"))  # most common class as reference\ninfants$sex &lt;- factor(infants$sex)\n\nnrow(infants)\n\n#&gt; [1] 68\n\ntable(infants$sex, infants$mother_age)\n\n#&gt;    \n#&gt;     MAF YAF OAF\n#&gt;   F  21   9   6\n#&gt;   M  24   4   4\n\n\n\n\n\n\n\nExercise 2: explore the data\nPlot the number of approaches against observation time, and the rate (approaches per hour) by sex and mother’s age class. What do you notice about the distribution of the counts?\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nsummary(infants$approaches)\n\n#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. \n#&gt;   0.000   0.000   1.000   4.662   5.000  39.000\n\nmean(infants$approaches == 0)                        # proportion of zeros\n\n#&gt; [1] 0.3823529\n\ninfants$rate &lt;- infants$approaches / infants$hours\nggplot(infants, aes(mother_age, rate, colour = sex)) +\n  geom_jitter(width = .15, alpha = .7, size = 2) +\n  scale_colour_manual(values = c(col_glm, col_red)) +\n  labs(x = \"Mother's age class\", y = \"Approaches per hour\")\n\n\n\n\n\n\n\n\nThe counts are small, skewed and contain many zeros, and observation time varies a lot between infants: a count model with an offset is needed.\n\n\n\n\n\nExercise 3: a Poisson GLM\nFit a Poisson GLM of approaches with sex and mother_age as predictors and the appropriate offset. Interpret the coefficients as rate ratios and test both predictors with likelihood-ratio tests.\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\npois_b &lt;- glm(approaches ~ sex + mother_age + offset(log(hours)),\n              family = poisson, data = infants)\nsummary(pois_b)$coefficients\n\n#&gt;                  Estimate Std. Error    z value  Pr(&gt;|z|)\n#&gt; (Intercept)    0.19998044 0.09690815  2.0636080 0.0390549\n#&gt; sexM           0.08873380 0.11676871  0.7599107 0.4473079\n#&gt; mother_ageYAF -0.08850002 0.15126632 -0.5850610 0.5585067\n#&gt; mother_ageOAF -0.50930028 0.23206578 -2.1946376 0.0281896\n\nexp(coef(pois_b))                                     # rate ratios\n\n#&gt;   (Intercept)          sexM mother_ageYAF mother_ageOAF \n#&gt;     1.2213789     1.0927897     0.9153031     0.6009159\n\ndrop1(pois_b, test = \"Chisq\")                         # LRT for each predictor\n\n#&gt; Single term deletions\n#&gt; \n#&gt; Model:\n#&gt; approaches ~ sex + mother_age + offset(log(hours))\n#&gt;            Df Deviance    AIC    LRT Pr(&gt;Chi)  \n#&gt; &lt;none&gt;          173.49 317.28                  \n#&gt; sex         1   174.07 315.86 0.5792   0.4466  \n#&gt; mother_age  2   179.00 318.79 5.5165   0.0634 .\n#&gt; ---\n#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n\nTaken at face value, infants of old mothers (OAF) receive about 40% fewer approaches than infants of middle-aged mothers (MAF; Wald test p &lt; .05), although the overall likelihood-ratio test of mother_age is only marginal. But can we trust these standard errors?\n\n\n\n\n\nExercise 4: check the model\nCompute the dispersion ratio. If DHARMa is installed, also look at the simulated residuals.\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nsum(residuals(pois_b, type = \"pearson\")^2) / df.residual(pois_b)\n\n#&gt; [1] 2.554734\n\n\n\nlibrary(DHARMa)\nplot(simulateResiduals(pois_b))\ntestDispersion(simulateResiduals(pois_b))\n\nThe dispersion ratio is well above 1: the data are overdispersed, and the Poisson standard errors are too small.\n\n\n\n\n\nExercise 5: a negative binomial GLM\nFit the same model as a negative binomial GLM. Compare the estimates, standard errors and tests with the Poisson model. Does your conclusion change?\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nnb_b &lt;- glm.nb(approaches ~ sex + mother_age + offset(log(hours)), data = infants)\nsummary(nb_b)$coefficients\n\n#&gt;                  Estimate Std. Error     z value  Pr(&gt;|z|)\n#&gt; (Intercept)    0.02966697  0.2120112  0.13993111 0.8887144\n#&gt; sexM           0.02279024  0.2620325  0.08697484 0.9306915\n#&gt; mother_ageYAF -0.03990511  0.3376029 -0.11820133 0.9059081\n#&gt; mother_ageOAF -0.40752939  0.3941762 -1.03387623 0.3011940\n\nnb_b$theta\n\n#&gt; [1] 1.765522\n\ndrop1(nb_b, test = \"Chisq\")\n\n#&gt; Single term deletions\n#&gt; \n#&gt; Model:\n#&gt; approaches ~ sex + mother_age + offset(log(hours))\n#&gt;            Df Deviance    AIC     LRT Pr(&gt;Chi)\n#&gt; &lt;none&gt;          74.458 274.19                 \n#&gt; sex         1   74.466 272.20 0.00802   0.9287\n#&gt; mother_age  2   75.599 271.33 1.14087   0.5653\n\n# standard errors side by side\nround(cbind(Poisson = sqrt(diag(vcov(pois_b))), NegBin = sqrt(diag(vcov(nb_b)))), 3)\n\n#&gt;               Poisson NegBin\n#&gt; (Intercept)     0.097  0.212\n#&gt; sexM            0.117  0.262\n#&gt; mother_ageYAF   0.151  0.338\n#&gt; mother_ageOAF   0.232  0.394\n\n\nThe estimates are similar, but the standard errors are roughly twice as large, and the apparent effect of the mother’s age class is no longer supported. The Poisson result relied on standard errors that were too small.\n\n\n\n\n\nExercise 6: predictions on the response scale\nCompute the predicted number of approaches per hour, with 95% confidence intervals, for each mother’s age class (for female infants), from the negative binomial model.\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nnd &lt;- data.frame(sex = factor(\"F\", levels = levels(infants$sex)),\n                 mother_age = factor(levels(infants$mother_age), levels = levels(infants$mother_age)),\n                 hours = 1)                                    # rate per hour\npr &lt;- predict(nb_b, newdata = nd, type = \"link\", se.fit = TRUE)\nnd$rate &lt;- exp(pr$fit)\nnd$lo   &lt;- exp(pr$fit - 1.96 * pr$se.fit)\nnd$hi   &lt;- exp(pr$fit + 1.96 * pr$se.fit)\nnd\n\n#&gt;   sex mother_age hours      rate        lo       hi\n#&gt; 1   F        MAF     1 1.0301114 0.6798555 1.560816\n#&gt; 2   F        YAF     1 0.9898141 0.5480971 1.787515\n#&gt; 3   F        OAF     1 0.6853248 0.3375195 1.391535\n\nggplot(nd, aes(mother_age, rate)) +\n  geom_pointrange(aes(ymin = lo, ymax = hi), colour = col_glm, size = .6) +\n  labs(x = \"Mother's age class\", y = \"Approaches per hour (female infants)\")\n\n\n\n\n\n\n\n\nAlternatively: emmeans::emmeans(nb_b, ~ mother_age, type = \"response\", offset = 0).\n\n\n\n\n\nExercise 7: report and reflect\nWrite two or three sentences reporting the results. Then check how many mothers contribute more than one infant to the data. Why could this be a problem, and what would you do about it?\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nsum(table(infants$mother) &gt; 1)\n\n#&gt; [1] 16\n\n\nInfants of the same mother are probably more similar to each other than infants of different mothers, so the observations are not fully independent. This can itself cause overdispersion and too small standard errors. The solution is a random intercept for mother: a GLMM, the topic of session 11.",
+    "crumbs": [
       "Relaxing assumptions",
       "10 · Generalized linear models (GLM)"
     ]
@@ -266,9 +290,8 @@
     "href": "linear-models/sessions/10-glm.html#reading",
     "title": "10 · Generalized linear models (GLM)",
     "section": "Reading",
-    "text": "Reading\n\nGelman, Hill & Vehtari (2020), ch. 13–15.\nFox (2016), ch. 14–15.",
+    "text": "Reading\n\nGelman, A., Hill, J., & Vehtari, A. (2020). Regression and other stories, ch. 13–15. Cambridge University Press.\nFox, J. (2016). Applied regression analysis and generalized linear models (3rd ed.), ch. 14–15. Sage.\nO’Hara, R. B., & Kotze, D. J. (2010). Do not log-transform count data. Methods in Ecology and Evolution, 1(2), 118–122.\nWarton, D. I., & Hui, F. K. C. (2011). The arcsine is asinine: The analysis of proportions in ecology. Ecology, 92(1), 3–10.\nHartig, F. DHARMa: Residual diagnostics for hierarchical (multi-level/mixed) regression models. https://cran.r-project.org/package=DHARMa",
     "crumbs": [
-      "Linear Models",
       "Relaxing assumptions",
       "10 · Generalized linear models (GLM)"
     ]
@@ -280,7 +303,6 @@
     "section": "",
     "text": "How do I build a good model?",
     "crumbs": [
-      "Linear Models",
       "Building and choosing models",
       "08 · Model building"
     ]
@@ -292,7 +314,6 @@
     "section": "In this session",
     "text": "In this session\n\nModels follow from the research question, not from the data\nChoosing predictors and control variables: causal reasoning and DAGs\nNon-linear effects with polynomials and transformations\nSimulating data from your planned model to check design and power\nWriting down the model before data collection (link to the course Open, Replicable, and Ethical Science)\n\n\nKey terms: Polynomial term, Power, Preregistration",
     "crumbs": [
-      "Linear Models",
       "Building and choosing models",
       "08 · Model building"
     ]
@@ -304,7 +325,6 @@
     "section": "Learning goals",
     "text": "Learning goals\nAfter this session you can\n\nderive a model from a research question and justify each term,\nrecognise when to include a quadratic term or transform a variable,\nrun a simple power analysis by simulation.",
     "crumbs": [
-      "Linear Models",
       "Building and choosing models",
       "08 · Model building"
     ]
@@ -316,7 +336,6 @@
     "section": "Simulate first",
     "text": "Simulate first\nPower analysis by simulation: how often do we detect a slope of 0.3 with n animals?\n\nset.seed(8)\npower_for_n &lt;- function(n, b1 = 0.3, nsim = 500) {\n  mean(replicate(nsim, {\n    x &lt;- rnorm(n); y &lt;- b1 * x + rnorm(n)\n    summary(lm(y ~ x))$coefficients[2, 4] &lt; .05\n  }))\n}\nns  &lt;- seq(10, 120, by = 10)\npow &lt;- sapply(ns, power_for_n)\n\nplot(ns, pow, type = \"b\", pch = 19, col = \"#1b6f8a\", ylim = c(0, 1),\n     xlab = \"Sample size\", ylab = \"Power\")\nabline(h = .8, lty = 2, col = \"#c0392b\")",
     "crumbs": [
-      "Linear Models",
       "Building and choosing models",
       "08 · Model building"
     ]
@@ -328,7 +347,6 @@
     "section": "Materials",
     "text": "Materials\n\n\nSlides coming soon\n\nR script coming soon\n\nExercises coming soon",
     "crumbs": [
-      "Linear Models",
       "Building and choosing models",
       "08 · Model building"
     ]
@@ -340,7 +358,6 @@
     "section": "Reading",
     "text": "Reading\n\nMcElreath, R. (2020). Statistical rethinking (2nd ed.), ch. 5–6 (on confounds and DAGs). CRC Press.\nGelman, Hill & Vehtari (2020), ch. 12 and 16.",
     "crumbs": [
-      "Linear Models",
       "Building and choosing models",
       "08 · Model building"
     ]
@@ -352,7 +369,6 @@
     "section": "",
     "text": "Isn’t a t-test something else?",
     "crumbs": [
-      "Linear Models",
       "Classic tests as linear models",
       "06 · The t-test as a linear model"
     ]
@@ -364,7 +380,6 @@
     "section": "In this session",
     "text": "In this session\n\nThe independent-samples t-test is a regression with one binary predictor\nThe one-sample and the paired t-test are intercept-only models\nWelch’s t-test and what it changes (unequal variances)\nWhy this matters: one framework instead of a decision tree of tests\n\n\nKey terms: p-value, Degrees of freedom",
     "crumbs": [
-      "Linear Models",
       "Classic tests as linear models",
       "06 · The t-test as a linear model"
     ]
@@ -376,7 +391,6 @@
     "section": "Learning goals",
     "text": "Learning goals\nAfter this session you can\n\nreproduce a t-test with lm() and show that the results are identical,\nexplain what the intercept and the slope correspond to in a t-test,\nrun a paired t-test as a model of differences.",
     "crumbs": [
-      "Linear Models",
       "Classic tests as linear models",
       "06 · The t-test as a linear model"
     ]
@@ -388,7 +402,6 @@
     "section": "Simulate first",
     "text": "Simulate first\n\nset.seed(6)\ngroup &lt;- factor(rep(c(\"young\", \"old\"), each = 25), levels = c(\"young\", \"old\"))\ny     &lt;- rnorm(50, ifelse(group == \"old\", 12, 10), 3)\n\nt.test(y ~ group, var.equal = TRUE)$statistic   # classic t-test\n\n#&gt;         t \n#&gt; -1.736361\n\nsummary(lm(y ~ group))$coefficients             # same t (sign flipped), same p\n\n#&gt;              Estimate Std. Error   t value     Pr(&gt;|t|)\n#&gt; (Intercept) 10.480585  0.6348610 16.508472 2.003183e-21\n#&gt; groupold     1.558956  0.8978291  1.736361 8.891506e-02\n\n\n\nPaired t-test = intercept-only model of the differences: lm(after - before ~ 1).",
     "crumbs": [
-      "Linear Models",
       "Classic tests as linear models",
       "06 · The t-test as a linear model"
     ]
@@ -400,7 +413,6 @@
     "section": "Materials",
     "text": "Materials\n\n\nSlides coming soon\n\nR script coming soon\n\nExercises coming soon",
     "crumbs": [
-      "Linear Models",
       "Classic tests as linear models",
       "06 · The t-test as a linear model"
     ]
@@ -412,7 +424,6 @@
     "section": "Reading",
     "text": "Reading\n\nLindeløv, J. K. (2019). Common statistical tests are linear models (or: how to teach stats). https://lindeloev.github.io/tests-as-linear/",
     "crumbs": [
-      "Linear Models",
       "Classic tests as linear models",
       "06 · The t-test as a linear model"
     ]
@@ -424,7 +435,6 @@
     "section": "",
     "text": "What if a predictor is a category?",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "04 · Categorical predictors"
     ]
@@ -436,7 +446,6 @@
     "section": "In this session",
     "text": "In this session\n\nDummy (treatment) coding and the reference level\nWhat the coefficients of a factor mean\nOther contrasts (sum coding) and when to use them\nEstimated marginal means and pairwise comparisons with emmeans\n\n\n\nKey terms: Contrasts and dummy coding, Reference level, Estimated marginal means",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "04 · Categorical predictors"
     ]
@@ -448,7 +457,6 @@
     "section": "Learning goals",
     "text": "Learning goals\nAfter this session you can\n\nexplain how R turns a factor into numeric predictors,\ninterpret coefficients relative to a reference level,\nobtain group means and contrasts with emmeans.",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "04 · Categorical predictors"
     ]
@@ -460,7 +468,6 @@
     "section": "Simulate first",
     "text": "Simulate first\n\nset.seed(4)\ngroup &lt;- factor(rep(c(\"control\", \"food\", \"toy\"), each = 20))\nmu    &lt;- c(control = 10, food = 14, toy = 12)\ny     &lt;- rnorm(60, mu[group], 3)\n\nm &lt;- lm(y ~ group)\nround(coef(m), 2)                       # intercept = control, others = differences\n\n#&gt; (Intercept)   groupfood    grouptoy \n#&gt;       11.13        3.79        0.85\n\nhead(model.matrix(m)[c(1, 21, 41), ])   # the dummy variables behind the scenes\n\n#&gt;    (Intercept) groupfood grouptoy\n#&gt; 1            1         0        0\n#&gt; 21           1         1        0\n#&gt; 41           1         0        1",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "04 · Categorical predictors"
     ]
@@ -472,7 +479,6 @@
     "section": "Materials",
     "text": "Materials\n\n\nSlides coming soon\n\nR script coming soon\n\nExercises coming soon",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "04 · Categorical predictors"
     ]
@@ -484,7 +490,6 @@
     "section": "Reading",
     "text": "Reading\n\nSchad, D. J., Vasishth, S., Hohenstein, S., & Kliegl, R. (2020). How to capitalize on a priori contrasts in linear (mixed) models: A tutorial. Journal of Memory and Language, 110, 104038.",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "04 · Categorical predictors"
     ]
@@ -496,7 +501,6 @@
     "section": "",
     "text": "How does one variable predict another?",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "02 · Simple regression"
     ]
@@ -508,7 +512,6 @@
     "section": "In this session",
     "text": "In this session\n\nLeast squares: fitting a line with lm()\n\nInterpreting intercept, slope and residual standard deviation\nInference: standard errors, confidence intervals, t- and p-values\nAssumptions and diagnostics: residual plots, influential cases\nReporting a regression result\n\n\nKey terms: Intercept, Residuals, Standard error, Confidence interval, p-value, Assumptions (of the linear model), Heteroscedasticity, Influential cases, Cook’s distance",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "02 · Simple regression"
     ]
@@ -520,7 +523,6 @@
     "section": "Learning goals",
     "text": "Learning goals\nAfter this session you can\n\nfit a simple regression in R and interpret its coefficients,\nexplain what a standard error and a confidence interval mean,\ncheck model assumptions with diagnostic plots.",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "02 · Simple regression"
     ]
@@ -532,7 +534,6 @@
     "section": "Simulate first",
     "text": "Simulate first\nIf we simulate data from a known model again and again, the estimated slopes scatter around the true value. Their spread is the standard error.\n\nset.seed(2)\ntrue_b1 &lt;- 0.8\nslopes &lt;- replicate(2000, {\n  age  &lt;- runif(30, 1, 10)\n  mass &lt;- 3 + true_b1 * age + rnorm(30, 0, 1.5)\n  coef(lm(mass ~ age))[2]\n})\n\nhist(slopes, breaks = 40, col = \"#1b6f8a\", border = \"white\",\n     main = \"Sampling distribution of the slope\", xlab = \"Estimated slope\")\nabline(v = true_b1, col = \"#c0392b\", lwd = 2)\n\n\n\n\n\n\nsd(slopes)   # compare with the SE that summary(lm(...)) reports for one sample\n\n#&gt; [1] 0.1070556",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "02 · Simple regression"
     ]
@@ -544,7 +545,6 @@
     "section": "Materials",
     "text": "Materials\n\n\nSlides coming soon\n\nR script coming soon\n\nExercises coming soon",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "02 · Simple regression"
     ]
@@ -556,7 +556,6 @@
     "section": "Reading",
     "text": "Reading\n\nGelman, Hill & Vehtari (2020), ch. 6–7.\nFox, J. (2016). Applied regression analysis and generalized linear models (3rd ed.), ch. 5–6. Sage.",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "02 · Simple regression"
     ]
@@ -568,7 +567,6 @@
     "section": "",
     "text": "Early-career PhD students in CBB (behaviour, cognition, neuroscience) with mixed statistical backgrounds. After the course, they can formulate, fit, check, interpret and report linear models in R on their own data, and they know when to seek advice.",
     "crumbs": [
-      "Linear Models",
       "Course overview"
     ]
   },
@@ -579,7 +577,6 @@
     "section": "",
     "text": "Early-career PhD students in CBB (behaviour, cognition, neuroscience) with mixed statistical backgrounds. After the course, they can formulate, fit, check, interpret and report linear models in R on their own data, and they know when to seek advice.",
     "crumbs": [
-      "Linear Models",
       "Course overview"
     ]
   },
@@ -590,7 +587,6 @@
     "section": "One framework, not a toolbox of tests",
     "text": "One framework, not a toolbox of tests\nEverything is a linear model; t-tests and ANOVA are shown as special cases. The final sessions each relax one assumption: normality (GLM), then independence (GLMM).",
     "crumbs": [
-      "Linear Models",
       "Course overview"
     ]
   },
@@ -601,7 +597,6 @@
     "section": "Format",
     "text": "Format\nA three-week block course with 11 sessions. Each day combines\n\na short theory input,\nguided live coding, and\nsupervised exercises (with basic and advanced parts).\n\n\nBefore the course: a mandatory R primer sets a common baseline (R, RStudio, data import, the tidyverse basics, plotting, Quarto).",
     "crumbs": [
-      "Linear Models",
       "Course overview"
     ]
   },
@@ -612,7 +607,6 @@
     "section": "Schedule",
     "text": "Schedule\n\n\n\n#\nSession\nGuiding question\nWeek\n\n\n\n\n01\nIntroduction\nWhat is a statistical model?\n1\n\n\n02\nSimple regression\nHow does one variable predict another?\n1\n\n\n03\nMultiple regression\nWhat if there are several predictors?\n1\n\n\n04\nCategorical predictors\nWhat if a predictor is a category?\n1\n\n\n05\nInteractions\nWhat if the effect of one predictor depends on another?\n2\n\n\n06\nThe t-test as a linear model\nIsn’t a t-test something else?\n2\n\n\n07\nANOVA as a linear model\nAnd what about ANOVA?\n2\n\n\n08\nModel building\nHow do I build a good model?\n2\n\n\n09\nModel selection\nHow do I select the best model?\n3\n\n\n10\nGLM\nWhat to do if the DV is not normal?\n3\n\n\n11\nGLMM\nWhat to do if observations are not independent?\n3\n\n\n–\nFinal project presentations\n\n3\n\n\n\nDates and rooms will be announced here.",
     "crumbs": [
-      "Linear Models",
       "Course overview"
     ]
   },
@@ -623,7 +617,6 @@
     "section": "Materials",
     "text": "Materials\nQuarto slides, R scripts and exercises for every session are linked on the session pages. All code runs on the datasets in the data/ folder of this site’s repository.",
     "crumbs": [
-      "Linear Models",
       "Course overview"
     ]
   },
@@ -634,7 +627,6 @@
     "section": "Assessment",
     "text": "Assessment\n\nExercises during the course.\nA final project: in the last days, students analyse a dataset (their own or one provided) and present it briefly. This links the course directly to individual consultation. See Final project.",
     "crumbs": [
-      "Linear Models",
       "Course overview"
     ]
   },
@@ -645,136 +637,50 @@
     "section": "Software",
     "text": "Software\nPlease install before the course:\n\na current version of R and RStudio\nQuarto (bundled with recent RStudio versions)\nthe course packages:\n\ninstall.packages(c(\"tidyverse\", \"lme4\", \"glmmTMB\", \"emmeans\",\n                   \"performance\", \"DHARMa\", \"car\"))",
     "crumbs": [
-      "Linear Models",
       "Course overview"
     ]
   },
   {
-    "objectID": "linear-models/exercises/11-glmm.html",
-    "href": "linear-models/exercises/11-glmm.html",
-    "title": "Exercises · Session 11",
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Statistics Teaching at CBB",
     "section": "",
-    "text": "Back to session 11.",
-    "crumbs": [
-      "Linear Models",
-      "Relaxing assumptions",
-      "11 · Exercises"
-    ]
+    "text": "Four courses for early-career PhD students in behaviour, cognition and neuroscience with mixed statistical backgrounds, plus statistical consultation for their own projects."
   },
   {
-    "objectID": "linear-models/exercises/11-glmm.html#the-data",
-    "href": "linear-models/exercises/11-glmm.html#the-data",
-    "title": "Exercises · Session 11",
-    "section": "The data",
-    "text": "The data\nMothers’ behaviour towards their infants changes as the infants grow up. In this practical, you analyse how often wild Guinea baboon infants receive approaches from their mothers, using real field data from the DPZ field station Simenti (Senegal):\n\nDal Pesco, F., et al. (2026). Maternal style does not predict infant growth and survival in wild Guinea baboons. Animal Behaviour.\n\nThe data are openly available on OSF (https://doi.org/10.17605/OSF.IO/YH2BW). Download the file and save it in your project folder. Please cite the paper and the OSF repository when you use the data.\nDownload dataset_mothering_behaviors_Anonymized.csv\nEach row is one infant in one month: 582 infant-months from 80 infants of 49 mothers. The variables you need:\n\n\n\n\n\n\nVariable\nMeaning\n\n\n\nimmature_ID\ninfant ID\n\n\nmother_ID\nmother ID (some mothers have several infants in the data)\n\n\nage\ninfant age in days\n\n\nimm_focal_duration_sec\nfocal observation time of the infant in this month (seconds)\n\n\nnormal_approach_received_freq\nnumber of approaches received from the mother\n\n\n\n\nxdata &lt;- read.csv(\"dataset_mothering_behaviors_Anonymized.csv\")\n\n\nxdata &lt;- xdata[, !duplicated(names(xdata))]          # 'immature_ID' appears twice\nxdata$approaches &lt;- xdata$normal_approach_received_freq\nxdata$hours      &lt;- xdata$imm_focal_duration_sec / 3600\nxdata$age.months &lt;- xdata$age / 30.44\nxdata$z.age      &lt;- as.numeric(scale(xdata$age))",
-    "crumbs": [
-      "Linear Models",
-      "Relaxing assumptions",
-      "11 · Exercises"
-    ]
+    "objectID": "index.html#formulate-fit-check-interpret-and-report",
+    "href": "index.html#formulate-fit-check-interpret-and-report",
+    "title": "Statistics Teaching at CBB",
+    "section": "",
+    "text": "Four courses for early-career PhD students in behaviour, cognition and neuroscience with mixed statistical backgrounds, plus statistical consultation for their own projects."
   },
   {
-    "objectID": "linear-models/exercises/11-glmm.html#exercise-1-explore-the-data",
-    "href": "linear-models/exercises/11-glmm.html#exercise-1-explore-the-data",
-    "title": "Exercises · Session 11",
-    "section": "Exercise 1: explore the data",
-    "text": "Exercise 1: explore the data\nHow many rows, infants and mothers are there? How many mothers have more than one infant in the data? Plot the rate of approaches (per hour) against age, with one line per infant.\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nnrow(xdata)\n\n#&gt; [1] 582\n\nlength(unique(xdata$immature_ID))\n\n#&gt; [1] 80\n\nlength(unique(xdata$mother_ID))\n\n#&gt; [1] 49\n\nsum(tapply(xdata$immature_ID, xdata$mother_ID, function(x) length(unique(x))) &gt; 1)\n\n#&gt; [1] 19\n\nxdata$rate &lt;- xdata$approaches / xdata$hours\nggplot(xdata, aes(age.months, rate, group = immature_ID)) +\n  geom_line(alpha = .3, colour = \"#1b6f8a\") +\n  labs(x = \"Age (months)\", y = \"Approaches per hour\")\n\n\n\n\n\n\n\nEach infant contributes several months, and several infants share a mother: the rows are not independent, and the data have two nested grouping factors (infants within mothers).",
-    "crumbs": [
-      "Linear Models",
-      "Relaxing assumptions",
-      "11 · Exercises"
-    ]
+    "objectID": "index.html#guiding-principles",
+    "href": "index.html#guiding-principles",
+    "title": "Statistics Teaching at CBB",
+    "section": "Guiding principles",
+    "text": "Guiding principles\n\nModel before data. Models follow from the research question, not from the data. Students simulate data from their model to understand it and to check design and power.\nInterpretation over p-values. Effect sizes, predictions on the response scale, effect plots, diagnostics, and reporting.\nReal and simulated data. Real data from DPZ/CBB research show what analyses look like in practice; simulated data isolate exactly the aspect a session is about. Later, students work with their own projects.\nReproducibility. Script-based analyses in Quarto; open code and data as the default."
   },
   {
-    "objectID": "linear-models/exercises/11-glmm.html#exercise-2-the-model-we-already-know",
-    "href": "linear-models/exercises/11-glmm.html#exercise-2-the-model-we-already-know",
-    "title": "Exercises · Session 11",
-    "section": "Exercise 2: the model we already know",
-    "text": "Exercise 2: the model we already know\nFit a Poisson GLM of approaches with z.age as predictor. Why do you need an offset, and what does it look like? Interpret the age effect, and check for overdispersion.\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nglm.mod &lt;- glm(approaches ~ z.age + offset(log(hours)), family = poisson, data = xdata)\nsummary(glm.mod)$coefficients\n\n#&gt;               Estimate Std. Error   z value     Pr(&gt;|z|)\n#&gt; (Intercept) -0.1129134 0.04586247 -2.462001 1.381643e-02\n#&gt; z.age       -0.2442834 0.04642188 -5.262247 1.423057e-07\n\nexp(coef(glm.mod)[\"z.age\"])                                   # rate ratio per SD of age\n\n#&gt;     z.age \n#&gt; 0.7832656\n\nsum(residuals(glm.mod, type = \"pearson\")^2) / df.residual(glm.mod)   # dispersion\n\n#&gt; [1] 1.555269\n\n\nObservation time differs between rows, so we model the rate of approaches: offset(log(hours)) (see offset). The GLM reports a clear decline of approaches with age. The dispersion ratio is above 1: the counts vary more than a Poisson model expects (overdispersion), often a symptom of ignored structure.",
-    "crumbs": [
-      "Linear Models",
-      "Relaxing assumptions",
-      "11 · Exercises"
-    ]
+    "objectID": "index.html#courses",
+    "href": "index.html#courses",
+    "title": "Statistics Teaching at CBB",
+    "section": "Courses",
+    "text": "Courses\n\n\nCourse 1 · basic course, start here\n\nLinear Models in R\nA three-week block course with 11 sessions, from simple regression to GLMMs, and a final project on your own data.\n\n\n\nCourse 2 · ORES · after Linear Models\n\nOpen, Replicable, and Ethical Science\nPlanning studies that justify their inferences: preregistration, sequential designs, stopping for futility.\n\n\n\nCourse 3 · TAE · after Linear Models\n\nTesting for Absence and Equivalence\nHow to support a prediction of “no effect”: equivalence tests and Bayesian alternatives.\n\n\n\nCourse 4 · IBCM · after Linear Models\n\nInference with Bayesian Causal Models\nDoes C cause E, and how strongly? Bayesian updating over alternative causal structures and causal strengths."
   },
   {
-    "objectID": "linear-models/exercises/11-glmm.html#exercise-3-add-a-random-intercept-for-infants",
-    "href": "linear-models/exercises/11-glmm.html#exercise-3-add-a-random-intercept-for-infants",
-    "title": "Exercises · Session 11",
-    "section": "Exercise 3: add a random intercept for infants",
-    "text": "Exercise 3: add a random intercept for infants\nFit the same model with a random intercept for immature_ID. What happens to the age effect and its standard error?\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nri.mod &lt;- glmer(approaches ~ z.age + offset(log(hours)) + (1 | immature_ID),\n                family = poisson, data = xdata,\n                control = glmerControl(optimizer = \"bobyqa\"))\nsummary(ri.mod)$coefficients\n\n#&gt;                Estimate Std. Error   z value     Pr(&gt;|z|)\n#&gt; (Intercept) -0.35153921 0.10512521 -3.344005 0.0008257829\n#&gt; z.age       -0.06841068 0.06551286 -1.044233 0.2963776425\n\nVarCorr(ri.mod)\n\n#&gt;  Groups      Name        Std.Dev.\n#&gt;  immature_ID (Intercept) 0.64346\n\n\nThe picture changes completely: the age effect is much smaller and no longer significant. Infants differ strongly in their baseline rate (SD of the random intercept), and because infants are observed at different ages, the GLM mistook differences between infants for a change with age.",
-    "crumbs": [
-      "Linear Models",
-      "Relaxing assumptions",
-      "11 · Exercises"
-    ]
-  },
-  {
-    "objectID": "linear-models/exercises/11-glmm.html#exercise-4-infants-within-mothers",
-    "href": "linear-models/exercises/11-glmm.html#exercise-4-infants-within-mothers",
-    "title": "Exercises · Session 11",
-    "section": "Exercise 4: infants within mothers",
-    "text": "Exercise 4: infants within mothers\nSeveral infants share a mother. Add a random intercept for mother_ID. Look at the output: what does the message boundary (singular) fit mean here?\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nri2.mod &lt;- glmer(approaches ~ z.age + offset(log(hours)) + (1 | mother_ID) + (1 | immature_ID),\n                 family = poisson, data = xdata,\n                 control = glmerControl(optimizer = \"bobyqa\"))\nVarCorr(ri2.mod)\n\n#&gt;  Groups      Name        Std.Dev.\n#&gt;  immature_ID (Intercept) 0.64344 \n#&gt;  mother_ID   (Intercept) 0.00000\n\nisSingular(ri2.mod)\n\n#&gt; [1] TRUE\n\n\nThe SD of the mother intercept is estimated as zero: once infants’ baselines are modelled, there is no additional variation between mothers that the data can detect. This is a singular fit. It is not an error, and the fixed effects are unchanged. Whether to keep the term depends on the design, not on the fit: with a nested design, many researchers keep it to represent the structure of the data.",
-    "crumbs": [
-      "Linear Models",
-      "Relaxing assumptions",
-      "11 · Exercises"
-    ]
-  },
-  {
-    "objectID": "linear-models/exercises/11-glmm.html#exercise-5-random-slopes-as-in-the-paper",
-    "href": "linear-models/exercises/11-glmm.html#exercise-5-random-slopes-as-in-the-paper",
-    "title": "Exercises · Session 11",
-    "section": "Exercise 5: random slopes, as in the paper",
-    "text": "Exercise 5: random slopes, as in the paper\nDal Pesco et al. (2026) included random slopes of age within both mother and infant, without correlations between intercepts and slopes. Fit this model. Which variance components are estimated as (near) zero?\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nrs.mod &lt;- glmer(approaches ~ z.age + offset(log(hours)) +\n                  (1 + z.age || mother_ID) + (1 + z.age || immature_ID),\n                family = poisson, data = xdata,\n                control = glmerControl(optimizer = \"bobyqa\"))\nVarCorr(rs.mod)\n\n#&gt;  Groups        Name        Std.Dev.\n#&gt;  immature_ID   z.age       0.000000\n#&gt;  immature_ID.1 (Intercept) 0.638724\n#&gt;  mother_ID     z.age       0.076766\n#&gt;  mother_ID.1   (Intercept) 0.000000\n\nsummary(rs.mod)$coefficients\n\n#&gt;                Estimate Std. Error   z value     Pr(&gt;|z|)\n#&gt; (Intercept) -0.35100931 0.10487605 -3.346897 0.0008172162\n#&gt; z.age       -0.07138771 0.06946104 -1.027737 0.3040733560\n\n\nAgain some components sit at zero (singular fit), but the estimate of the age effect barely changes. Removing the correlations (||) is a common first step when complex structures do not converge (see convergence failure); the paper reports the same reason.",
-    "crumbs": [
-      "Linear Models",
-      "Relaxing assumptions",
-      "11 · Exercises"
-    ]
-  },
-  {
-    "objectID": "linear-models/exercises/11-glmm.html#exercise-6-test-the-age-effect-and-check-the-model",
-    "href": "linear-models/exercises/11-glmm.html#exercise-6-test-the-age-effect-and-check-the-model",
-    "title": "Exercises · Session 11",
-    "section": "Exercise 6: test the age effect and check the model",
-    "text": "Exercise 6: test the age effect and check the model\nTest the age effect with a likelihood-ratio test, keeping the random-effects structure. Then check the dispersion of the final model.\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nrs.null &lt;- glmer(approaches ~ 1 + offset(log(hours)) +\n                   (1 + z.age || mother_ID) + (1 + z.age || immature_ID),\n                 family = poisson, data = xdata,\n                 control = glmerControl(optimizer = \"bobyqa\"))\nanova(rs.null, rs.mod)\n\n#&gt; Data: xdata\n#&gt; Models:\n#&gt; rs.null: approaches ~ 1 + offset(log(hours)) + (1 + z.age || mother_ID) + (1 + z.age || immature_ID)\n#&gt; rs.mod: approaches ~ z.age + offset(log(hours)) + (1 + z.age || mother_ID) + (1 + z.age || immature_ID)\n#&gt;         npar    AIC    BIC  logLik deviance  Chisq Df Pr(&gt;Chisq)\n#&gt; rs.null    5 1302.4 1324.2 -646.19   1292.4                     \n#&gt; rs.mod     6 1303.3 1329.5 -645.66   1291.3 1.0623  1     0.3027\n\nsum(residuals(rs.mod, type = \"pearson\")^2) / df.residual(rs.mod)   # dispersion\n\n#&gt; [1] 1.104892\n\n\nNo evidence for a change in maternal approaches with age once the non-independence is modelled. The dispersion ratio is now close to 1: the overdispersion of the GLM was largely due to differences between infants.",
-    "crumbs": [
-      "Linear Models",
-      "Relaxing assumptions",
-      "11 · Exercises"
-    ]
-  },
-  {
-    "objectID": "linear-models/exercises/11-glmm.html#exercise-7-plot-the-result",
-    "href": "linear-models/exercises/11-glmm.html#exercise-7-plot-the-result",
-    "title": "Exercises · Session 11",
-    "section": "Exercise 7: plot the result",
-    "text": "Exercise 7: plot the result\nPlot the model-predicted rate of approaches over age: one line per infant, plus the population-average line.\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nnd &lt;- transform(xdata, hours = 1)                                   # rate per hour\nnd$p_inf &lt;- predict(rs.mod, newdata = nd, type = \"response\")\navg &lt;- data.frame(age.months = seq(0, 18, by = .5), hours = 1)\navg$z.age &lt;- (avg$age.months * 30.44 - mean(xdata$age)) / sd(xdata$age)\navg$p &lt;- predict(rs.mod, newdata = avg, type = \"response\", re.form = NA)  # without random effects\n\nggplot(nd, aes(age.months, p_inf, group = immature_ID)) +\n  geom_line(alpha = .25, colour = \"#1b6f8a\") +\n  geom_line(data = avg, aes(age.months, p), inherit.aes = FALSE, colour = \"#c0392b\", linewidth = 1.3) +\n  labs(x = \"Age (months)\", y = \"Predicted approaches per hour\",\n       caption = \"Blue: infants · red: population average\")",
-    "crumbs": [
-      "Linear Models",
-      "Relaxing assumptions",
-      "11 · Exercises"
-    ]
-  },
-  {
-    "objectID": "linear-models/exercises/11-glmm.html#exercise-8-report-and-compare",
-    "href": "linear-models/exercises/11-glmm.html#exercise-8-report-and-compare",
-    "title": "Exercises · Session 11",
-    "section": "Exercise 8: report and compare",
-    "text": "Exercise 8: report and compare\nWrite two or three sentences reporting the age effect as you would in a paper, including the model, the effect size on the response scale and the test. Then compare your model with the one described in the methods of Dal Pesco et al. (2026).\n\n\n\n\n\n\nBonus: when the truth is known\n\n\n\n\n\nReal data never tell you the true values. To check how well the model recovers them, repeat Exercises 2–6 with simulated_baboons.csv: simulated data with the same structure (infant IDs only, plus infant sex), generated with an age effect of −0.3 (log scale, per SD of age), no sex effect, an SD of 0.6 for the infant intercept and an SD of 0.25 for the infant age slope.",
-    "crumbs": [
-      "Linear Models",
-      "Relaxing assumptions",
-      "11 · Exercises"
-    ]
+    "objectID": "index.html#beyond-the-courses",
+    "href": "index.html#beyond-the-courses",
+    "title": "Statistics Teaching at CBB",
+    "section": "Beyond the courses",
+    "text": "Beyond the courses\n\nStatistical consultation: regular open consultation hours plus individual appointments, ideally before data collection.\nFollow-up workshop on Bayesian modelling (brms): for participants who have completed Linear Models in R.\nFurther short workshops on demand, e.g., power analysis by simulation or advanced GLMMs (glmmTMB).\nEvaluation: participant feedback every year, and recurring questions from consultations feed back into the curriculum.\n\nSee also: Resources (readings, R packages, R primer)."
   },
   {
     "objectID": "glossary.html",
     "href": "glossary.html",
     "title": "Glossary",
     "section": "",
-    "text": "Short explanations of terms that come up again and again. Labels show where a term is introduced: LM = Linear Models in R (with session number), ORES = Open, Replicable, and Ethical Science, TAE = Testing for Absence and Equivalence, WS = short workshops.\nEntries marked Problem describe something that can go wrong, with steps towards a solution under What to do about it?"
+    "text": "Short explanations of terms that come up again and again. Labels show where a term is introduced: LM = Linear Models in R (with session number), ORES = Open, Replicable, and Ethical Science, TAE = Testing for Absence and Equivalence, IBCM = Inference with Bayesian Causal Models, WS = short workshops.\nEntries marked Problem describe something that can go wrong, with steps towards a solution under What to do about it?"
   },
   {
     "objectID": "glossary.html#a",
@@ -788,14 +694,14 @@
     "href": "glossary.html#b",
     "title": "Glossary",
     "section": "B",
-    "text": "B\n\nBayes factor\nTAE\nThe ratio of how well two hypotheses predicted the observed data, e.g. BF01 = 5: the data are five times more likely under H0 than under H1. Unlike a p-value, it can quantify evidence for the null. Depends on the prior for the effect under H1, so report and justify it."
+    "text": "B\n\nBayes factor\nTAE\nThe ratio of how well two hypotheses predicted the observed data, e.g. BF01 = 5: the data are five times more likely under H0 than under H1. Unlike a p-value, it can quantify evidence for the null. Depends on the prior for the effect under H1, so report and justify it.\n\n\nBayesian model averaging\nIBCM\nCombining the predictions or estimates of several models, weighted by their posterior probabilities, instead of selecting a single model. Keeps uncertainty about which model is correct, e.g. about whether a causal link exists at all."
   },
   {
     "objectID": "glossary.html#c",
     "href": "glossary.html#c",
     "title": "Glossary",
     "section": "C",
-    "text": "C\n\nCentring\nLM 03, 05\nSubtracting a value (usually the mean, or a meaningful reference such as trial 1) from a predictor. It changes the meaning of the intercept and of main effects in models with interactions, but not the fit of the model. See also z-transformation.\n\n\nCollinearity\nLM 03 Problem\nTwo or more predictors are strongly correlated, so the model cannot separate their effects. Symptoms: large standard errors, estimates that change a lot when a predictor is added or removed. Diagnose with variance inflation factors (car::vif(), performance::check_collinearity()); VIF &gt; 5–10 is often taken as a warning sign.\n\nWhat to do about it?\n\nAsk whether both predictors are needed for the research question.\nCombine them (e.g. into an index or a principal component) if they measure the same thing.\nAccept wide intervals: collinearity is a property of the data, not an error. Do not drop predictors just to make p-values smaller.\n\n\n\n\nComplete separation\nLM 10 Problem\nIn a binomial model, a predictor (or combination) perfectly predicts the 0/1 outcome, e.g. all animals in one condition chose “yes”. The maximum-likelihood estimate is then infinite: huge estimates and standard errors, warnings such as “fitted probabilities numerically 0 or 1 occurred”.\n\nWhat to do about it?\n\nCheck the cross-tabulation of predictor and response to find the cause.\nUse penalised (Firth) logistic regression (logistf, brglm2) or a Bayesian model with a weakly informative prior.\nReport the pattern descriptively; it may be the most informative result.\n\n\n\n\nConfidence interval\nLM 02\nA range computed so that, across many repetitions of the study, 95% of such intervals contain the true value. It does not mean that this particular interval contains the true value with 95% probability; that is the interpretation of a Bayesian credible interval.\n\n\nContrasts and dummy coding\nLM 04\nHow a categorical predictor is turned into numbers. Dummy (treatment) coding, R’s default, compares each level with a reference level. Sum coding compares each level with the grand mean, which makes main effects interpretable in models with interactions. Set with contrasts(); check what R did with model.matrix().\n\n\nConvergence failure\nLM 11 Problem\nThe fitting algorithm did not reliably find the maximum of the likelihood, e.g. lme4’s “Model failed to converge with max|grad| = …”. Common in mixed models with complex random effects, few levels of a grouping factor, or predictors on very different scales. The estimates may or may not be trustworthy.\n\nWhat to do about it?\n\nz-transform or rescale continuous predictors.\nTry another optimizer: control = glmerControl(optimizer = \"bobyqa\"), or compare all with allFit(). If they give the same estimates, the warning is usually a false alarm.\nIncrease the number of iterations, e.g. optCtrl = list(maxfun = 1e5).\nCheck for a singular fit; simplify the random-effects structure step by step (e.g. drop the correlations first: (1 + x || id)).\nConsider glmmTMB or a Bayesian model (brms), where priors stabilise the fit.\n\n\n\n\nCook’s distance\nLM 02\nA measure of how much the model’s estimates change when a single observation is removed. Large values flag influential cases. See influential cases.\n\n\nCredible interval\nWS Bayes, TAE\nIn Bayesian statistics, an interval that contains the parameter with a given probability (e.g. 95%), given the model, the data and the prior."
+    "text": "C\n\nCausal Bayes net\nIBCM\nA directed graph whose arrows represent causal relations between variables, together with parameters that specify how causes produce their effects (e.g. causal strengths). Alternative graphs are alternative causal hypotheses that can be compared with data.\n\n\nCausal strength\nIBCM\nHow strongly a cause produces its effect, e.g. wc in a noisy-OR model: the probability that C produces E when no other cause does. Can be estimated with a posterior distribution and a credible interval. Cheng’s (1997) causal power is a classic point estimate.\n\n\nCausal support\nIBCM\nGriffiths and Tenenbaum’s (2005) measure of the evidence for a causal link: the log ratio of the marginal likelihoods of the data under a structure with the link (S1) and without it (S0), log P(D | S1) / P(D | S0). Positive values favour a link.\n\n\nCentring\nLM 03, 05\nSubtracting a value (usually the mean, or a meaningful reference such as trial 1) from a predictor. It changes the meaning of the intercept and of main effects in models with interactions, but not the fit of the model. See also z-transformation.\n\n\nCollinearity\nLM 03 Problem\nTwo or more predictors are strongly correlated, so the model cannot separate their effects. Symptoms: large standard errors, estimates that change a lot when a predictor is added or removed. Diagnose with variance inflation factors (car::vif(), performance::check_collinearity()); VIF &gt; 5–10 is often taken as a warning sign.\n\nWhat to do about it?\n\nAsk whether both predictors are needed for the research question.\nCombine them (e.g. into an index or a principal component) if they measure the same thing.\nAccept wide intervals: collinearity is a property of the data, not an error. Do not drop predictors just to make p-values smaller.\n\n\n\n\nComplete separation\nLM 10 Problem\nIn a binomial model, a predictor (or combination) perfectly predicts the 0/1 outcome, e.g. all animals in one condition chose “yes”. The maximum-likelihood estimate is then infinite: huge estimates and standard errors, warnings such as “fitted probabilities numerically 0 or 1 occurred”.\n\nWhat to do about it?\n\nCheck the cross-tabulation of predictor and response to find the cause.\nUse penalised (Firth) logistic regression (logistf, brglm2) or a Bayesian model with a weakly informative prior.\nReport the pattern descriptively; it may be the most informative result.\n\n\n\n\nConfidence interval\nLM 02\nA range computed so that, across many repetitions of the study, 95% of such intervals contain the true value. It does not mean that this particular interval contains the true value with 95% probability; that is the interpretation of a Bayesian credible interval.\n\n\nContrasts and dummy coding\nLM 04\nHow a categorical predictor is turned into numbers. Dummy (treatment) coding, R’s default, compares each level with a reference level. Sum coding compares each level with the grand mean, which makes main effects interpretable in models with interactions. Set with contrasts(); check what R did with model.matrix().\n\n\nConvergence failure\nLM 11 Problem\nThe fitting algorithm did not reliably find the maximum of the likelihood, e.g. lme4’s “Model failed to converge with max|grad| = …”. Common in mixed models with complex random effects, few levels of a grouping factor, or predictors on very different scales. The estimates may or may not be trustworthy.\n\nWhat to do about it?\n\nz-transform or rescale continuous predictors.\nTry another optimizer: control = glmerControl(optimizer = \"bobyqa\"), or compare all with allFit(). If they give the same estimates, the warning is usually a false alarm.\nIncrease the number of iterations, e.g. optCtrl = list(maxfun = 1e5).\nCheck for a singular fit; simplify the random-effects structure step by step (e.g. drop the correlations first: (1 + x || id)).\nConsider glmmTMB or a Bayesian model (brms), where priors stabilise the fit.\n\n\n\n\nCook’s distance\nLM 02\nA measure of how much the model’s estimates change when a single observation is removed. Large values flag influential cases. See influential cases.\n\n\nCredible interval\nWS Bayes, TAE\nIn Bayesian statistics, an interval that contains the parameter with a given probability (e.g. 95%), given the model, the data and the prior."
   },
   {
     "objectID": "glossary.html#d",
@@ -851,7 +757,7 @@
     "href": "glossary.html#o",
     "title": "Glossary",
     "section": "O",
-    "text": "O\n\nOffset\nLM 10\nA term in a count model whose coefficient is fixed at 1, used when observation time or effort differs between observations. With a log link, offset(log(hours)) turns a model of counts into a model of rates (counts per hour), without estimating an extra parameter.\n\n\nOptional stopping\nORES Problem\nTesting repeatedly as data come in and stopping as soon as p &lt; .05. This inflates the type I error rate far above 5% (see the simulation on the ORES page).\n\nWhat to do about it?\n\nFix the sample size in advance, based on a power analysis.\nIf you want to look early, plan a sequential analysis with alpha spending.\nBayesian analyses are less affected, but their error rates still depend on the stopping rule; plan it.\n\n\n\n\nOverdispersion\nLM 10 Problem\nThe data vary more than the model assumes. A Poisson model assumes variance = mean; real counts usually vary more. Ignoring it gives too small standard errors and too many false positives. Check with the ratio of residual deviance (or Pearson χ²) to residual df (≫ 1 is a warning sign), performance::check_overdispersion() or DHARMa.\n\nWhat to do about it?\n\nCheck for missing predictors or non-independence first; overdispersion is often a symptom.\nUse a negative binomial model (MASS::glm.nb, glmmTMB(family = nbinom2)).\nIn GLMMs, an observation-level random effect, (1 | obs), can absorb extra variation.\nFor many zeros, consider zero-inflation.\n\n\n\n\nOverfitting\nLM 09 Problem\nThe model fits noise in the sample rather than the underlying pattern, usually because it has too many parameters for the amount of data. It fits the sample well but predicts new data poorly, and its effects are overestimated.\n\nWhat to do about it?\n\nLimit the number of predictors (a common rule of thumb: at least 10–20 observations per parameter).\nSpecify the model from the research question, not from the data.\nEvaluate predictions on new data or with cross-validation."
+    "text": "O\n\nOffset\nLM 10\nA term in a count model whose coefficient is fixed at 1, used when observation time or effort differs between observations. With a log link, offset(log(hours)) turns a model of counts into a model of rates (counts per hour), without estimating an extra parameter.\n\n\nNoisy-OR\nIBCM\nA common assumption about how independent generative causes combine: each cause produces the effect independently with its own strength, so P(e | c, a) = wc + wa − wcwa when both are present.\n\n\nOptional stopping\nORES Problem\nTesting repeatedly as data come in and stopping as soon as p &lt; .05. This inflates the type I error rate far above 5% (see the simulation on the ORES page).\n\nWhat to do about it?\n\nFix the sample size in advance, based on a power analysis.\nIf you want to look early, plan a sequential analysis with alpha spending.\nBayesian analyses are less affected, but their error rates still depend on the stopping rule; plan it.\n\n\n\n\nOverdispersion\nLM 10 Problem\nThe data vary more than the model assumes. A Poisson model assumes variance = mean; real counts usually vary more. Ignoring it gives too small standard errors and too many false positives. Check with the ratio of residual deviance (or Pearson χ²) to residual df (≫ 1 is a warning sign), performance::check_overdispersion() or DHARMa.\n\nWhat to do about it?\n\nCheck for missing predictors or non-independence first; overdispersion is often a symptom.\nUse a negative binomial model (MASS::glm.nb, glmmTMB(family = nbinom2)).\nIn GLMMs, an observation-level random effect, (1 | obs), can absorb extra variation.\nFor many zeros, consider zero-inflation.\n\n\n\n\nOverfitting\nLM 09 Problem\nThe model fits noise in the sample rather than the underlying pattern, usually because it has too many parameters for the amount of data. It fits the sample well but predicts new data poorly, and its effects are overestimated.\n\nWhat to do about it?\n\nLimit the number of predictors (a common rule of thumb: at least 10–20 observations per parameter).\nSpecify the model from the research question, not from the data.\nEvaluate predictions on new data or with cross-validation."
   },
   {
     "objectID": "glossary.html#p",
@@ -872,7 +778,7 @@
     "href": "glossary.html#s",
     "title": "Glossary",
     "section": "S",
-    "text": "S\n\nSequential analysis\nORES\nA design with planned interim analyses, at which data collection can stop for efficacy or futility, while alpha spending keeps the overall error rate at α. With animals, it reduces the expected number of animals needed. In R: rpact.\n\n\nSESOI (smallest effect size of interest)\nTAE\nThe smallest effect that would be theoretically or practically meaningful. Needed for equivalence tests, ROPEs and power analyses. Justify it from theory, previous studies or practical considerations, and preregister it.\n\n\nSingular fit\nLM 11 Problem\nlme4’s message “boundary (singular) fit”: a random-effect variance is estimated as (nearly) zero or a correlation as ±1. The random-effects structure is too complex for the data, often because a grouping factor has few levels.\n\nWhat to do about it?\n\nInspect VarCorr(model) to see which component is at the boundary.\nSimplify: first remove the random-effect correlations (||), then random slopes with (near-)zero variance, guided by the design rather than by p-values.\nKeep in mind that removing random slopes for within-unit predictors makes tests of these predictors too liberal; report what you did.\nA Bayesian model (brms) with weakly informative priors avoids estimates at the boundary.\n\n\n\n\nStandard error\nLM 02\nThe standard deviation of an estimate across repeated samples: how much the estimate would vary if the study were repeated. The basis of confidence intervals and tests.\n\n\nStopping for futility\nORES\nEnding a study early at a planned interim analysis because the effect is unlikely to reach significance even with the full sample. Saves resources and, in animal research, animals."
+    "text": "S\n\nSequential analysis\nORES\nA design with planned interim analyses, at which data collection can stop for efficacy or futility, while alpha spending keeps the overall error rate at α. With animals, it reduces the expected number of animals needed. In R: rpact.\n\n\nSESOI (smallest effect size of interest)\nTAE\nThe smallest effect that would be theoretically or practically meaningful. Needed for equivalence tests, ROPEs and power analyses. Justify it from theory, previous studies or practical considerations, and preregister it.\n\n\nStructure Induction (SI) model\nIBCM\nA Bayesian model of causal structure learning (Meder et al., 2014): it computes the posterior probability that a causal link exists, P(S1 | D), from a structure prior and the marginal likelihoods of the data under alternative causal structures. Makes the same assumptions as the causal support model.\n\n\nSingular fit\nLM 11 Problem\nlme4’s message “boundary (singular) fit”: a random-effect variance is estimated as (nearly) zero or a correlation as ±1. The random-effects structure is too complex for the data, often because a grouping factor has few levels.\n\nWhat to do about it?\n\nInspect VarCorr(model) to see which component is at the boundary.\nSimplify: first remove the random-effect correlations (||), then random slopes with (near-)zero variance, guided by the design rather than by p-values.\nKeep in mind that removing random slopes for within-unit predictors makes tests of these predictors too liberal; report what you did.\nA Bayesian model (brms) with weakly informative priors avoids estimates at the boundary.\n\n\n\n\nStandard error\nLM 02\nThe standard deviation of an estimate across repeated samples: how much the estimate would vary if the study were repeated. The basis of confidence intervals and tests.\n\n\nStopping for futility\nORES\nEnding a study early at a planned interim analysis because the effect is unlikely to reach significance even with the full sample. Saves resources and, in animal research, animals."
   },
   {
     "objectID": "glossary.html#z",
@@ -886,7 +792,7 @@
     "href": "about.html",
     "title": "About",
     "section": "",
-    "text": "This website accompanies three courses (Linear Models in R, Open, Replicable, and Ethical Science, and Testing for Absence and Equivalence) and the statistical consultation for PhD students of the Campus Research Alliance Cognition, Brain, and Behavior (CBB) at the University of Göttingen and the German Primate Center (DPZ)."
+    "text": "This website accompanies four courses (Linear Models in R, Open, Replicable, and Ethical Science, Testing for Absence and Equivalence, and Inference with Bayesian Causal Models) and the statistical consultation for PhD students of the Campus Research Alliance Cognition, Brain, and Behavior (CBB) at the University of Göttingen and the German Primate Center (DPZ)."
   },
   {
     "objectID": "about.html#instructor",
@@ -945,39 +851,39 @@
     "text": "Workshops on demand\nRecurring questions from consultations feed back into the curriculum and into short workshops, for example:\n\nBayesian modelling with brms, for participants who completed Linear Models in R\nPower analysis by simulation\nAdvanced GLMMs with glmmTMB\n\nSuggestions for topics are welcome."
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Statistics Teaching at CBB",
+    "objectID": "ibcm/index.html",
+    "href": "ibcm/index.html",
+    "title": "Inference with Bayesian Causal Models",
     "section": "",
-    "text": "Three courses for early-career PhD students in behaviour, cognition and neuroscience with mixed statistical backgrounds, plus statistical consultation for their own projects."
+    "text": "A hands-on course that brings together statistical inference and causal inference. Most statistical models answer “how strongly are X and Y related?”. Causal models ask “does X cause Y, and how strongly?”. Bayesian causal models answer both questions in one framework: we specify alternative causal structures as hypotheses, and update our beliefs about them, and about the strength of causal links, in light of data."
   },
   {
-    "objectID": "index.html#formulate-fit-check-interpret-and-report",
-    "href": "index.html#formulate-fit-check-interpret-and-report",
-    "title": "Statistics Teaching at CBB",
-    "section": "",
-    "text": "Three courses for early-career PhD students in behaviour, cognition and neuroscience with mixed statistical backgrounds, plus statistical consultation for their own projects."
+    "objectID": "ibcm/index.html#topics",
+    "href": "ibcm/index.html#topics",
+    "title": "Inference with Bayesian Causal Models",
+    "section": "Topics",
+    "text": "Topics\n\nCausal Bayes nets: representing causal hypotheses as graphs with parameters\nCausal structure induction: Bayesian updating over alternative causal structures; the causal support model (Griffiths & Tenenbaum, 2005) and the Structure Induction (SI) model (Meder et al., 2014)\nCausal strength: Bayesian estimation of the strength of a causal link, with credible intervals\nPriors: structure priors and parameter priors, and how they shape conclusions from limited data (Stephan & Waldmann, 2026)\nBayesian model averaging: combining uncertainty about structure and strength\nFrom 2×2 tables to richer structures: multiple causes, common causes and causal chains\n\nOutcome: each participant formulates competing causal hypotheses for their own research question and evaluates them with a Bayesian causal model.\nPrerequisites: Linear Models in R. The short workshop Bayesian modelling with brms is a helpful complement.\n\nKey terms: Causal Bayes net, Noisy-OR, Causal support, Structure Induction (SI) model, Causal strength, Bayesian model averaging, Prior, posterior"
   },
   {
-    "objectID": "index.html#guiding-principles",
-    "href": "index.html#guiding-principles",
-    "title": "Statistics Teaching at CBB",
-    "section": "Guiding principles",
-    "text": "Guiding principles\n\nModel before data. Models follow from the research question, not from the data. Students simulate data from their model to understand it and to check design and power.\nInterpretation over p-values. Effect sizes, predictions on the response scale, effect plots, diagnostics, and reporting.\nReal and simulated data. Real data from DPZ/CBB research show what analyses look like in practice; simulated data isolate exactly the aspect a session is about. Later, students work with their own projects.\nReproducibility. Script-based analyses in Quarto; open code and data as the default."
+    "objectID": "ibcm/index.html#worked-example-does-c-cause-e",
+    "href": "ibcm/index.html#worked-example-does-c-cause-e",
+    "title": "Inference with Bayesian Causal Models",
+    "section": "Worked example: does C cause E?",
+    "text": "Worked example: does C cause E?\nThe simplest causal inference problem: we observe whether a potential cause C is present or absent, and whether an effect E occurs. The data form a 2×2 contingency table. Two causal structures could have generated them:\n\n\n\n\n\n\n\n\n\n\nUnder S1, E is produced by C (with causal strength wc) and by unobserved background causes A (strength wa). The two causes combine as a noisy-OR: P(e+ | c+) = wc + wa − wcwa, and P(e+ | c−) = wa.\nUnder S0, there is no link: E is produced by A only, so P(e+ | c+) = P(e+ | c−) = wa.\nA third parameter, the base rate bc of C, is part of both structures. With the same prior in both, it cancels from the comparison, so we leave it out below.\n\n\nThe data\n\n# Table 1: positive contingency\nd1 &lt;- c(n_ce = 16, n_c = 20,    # E present in 16 of 20 cases with C\n        n_nce = 8, n_nc = 20)   # E present in  8 of 20 cases without C\n\n# Table 2: zero contingency, high outcome density (a classic \"causal illusion\" set)\nd2 &lt;- c(n_ce = 10, n_c = 10,\n        n_nce = 10, n_nc = 10)\n\n\n\n\n\n\n\n\n\n\n\n\nTable 1: E present\nTable 1: E absent\nTable 2: E present\nTable 2: E absent\n\n\n\n\nC present\n16\n4\n10\n0\n\n\nC absent\n8\n12\n10\n0\n\n\nP(e+ | c+) − P(e+ | c−) = ΔP\n0.80 − 0.40 = 0.40\n\n1.00 − 1.00 = 0\n\n\n\n\n\n\nStep 1: how likely are the data under each structure?\nBayesian inference compares structures by their marginal likelihood: how probable the data are under a structure, averaged over all values of its parameters, weighted by the parameter priors. As in the standard SI model, we use flat Beta(1, 1) priors for wc and wa. With two parameters, a fine grid is enough to compute the integral.\n\nsi_model &lt;- function(n_ce, n_c, n_nce, n_nc, prior_s1 = .5,\n                     wc_prior = c(1, 1), wa_prior = c(1, 1), grid = 401) {\n  w &lt;- (seq_len(grid) - .5) / grid            # grid over (0, 1)\n\n  # S1: noisy-OR of C (wc, rows) and A (wa, columns)\n  p_c   &lt;- outer(w, w, function(wc, wa) wc + wa - wc * wa)  # P(e+|c+)\n  p_nc  &lt;- matrix(w, grid, grid, byrow = TRUE)               # P(e+|c-)\n  lik1  &lt;- exp(n_ce * log(p_c)  + (n_c  - n_ce)  * log1p(-p_c) +\n               n_nce * log(p_nc) + (n_nc - n_nce) * log1p(-p_nc))\n  prior &lt;- outer(dbeta(w, wc_prior[1], wc_prior[2]),\n                 dbeta(w, wa_prior[1], wa_prior[2])) / grid^2\n  ml1   &lt;- sum(lik1 * prior)                   # marginal likelihood P(D | S1)\n\n  # S0: only A, so P(e+ | c+) = P(e+ | c-) = wa\n  lik0 &lt;- w^(n_ce + n_nce) * (1 - w)^(n_c - n_ce + n_nc - n_nce)\n  ml0  &lt;- sum(lik0 * dbeta(w, wa_prior[1], wa_prior[2]) / grid)  # P(D | S0)\n\n  post_w &lt;- lik1 * prior / sum(lik1 * prior)   # joint posterior of wc, wa (S1)\n  list(ml1 = ml1, ml0 = ml0,\n       # causal support (Griffiths & Tenenbaum, 2005)\n       support = log(ml1 / ml0),\n       # SI model: posterior probability of S1\n       p_s1 = prior_s1 * ml1 / (prior_s1 * ml1 + (1 - prior_s1) * ml0),\n       # marginal posterior of wc under S1\n       w = w, wc_post = rowSums(post_w))\n}\n\nr1 &lt;- do.call(si_model, as.list(d1))\nr2 &lt;- do.call(si_model, as.list(d2))\n\n\n\nStep 2: posterior probability of a causal link\nBayes’ rule combines the marginal likelihoods with the structure prior P(S1):\n\\[\nP(S_1 \\mid D) = \\frac{P(D \\mid S_1)\\,P(S_1)}{P(D \\mid S_1)\\,P(S_1) + P(D \\mid S_0)\\,P(S_0)}\n\\]\n\n\n\n\n\n\n\n\n\n\nTable\nCausal support, log P(D|S1)/P(D|S0)\nP(S1 | D), prior 0.5\n\n\n\n\n1: positive contingency (ΔP = 0.40)\n2.81\n0.94\n\n\n2: zero contingency (ΔP = 0)\n0.31\n0.58\n\n\n\n\n\n\nTable 1: the data clearly favour a causal link, P(S1 | D) = 0.94.\nTable 2: although ΔP = 0, the posterior rises above the prior of 0.5. Ceiling data leave the strength of C undetermined: E may be fully produced by A, with C’s influence masked. S1 is consistent with the data over a wider range of parameters than S0, which needs wa ≈ 1. A non-zero belief in a link after zero-contingency data is therefore not necessarily a bias, but can be the result of rational Bayesian updating (Stephan & Waldmann, 2026).\n\nHow the posterior depends on the structure prior:\n\n\nCode\npriors &lt;- seq(0, 1, by = .01)\npp &lt;- rbind(\n  data.frame(table = \"Table 1: positive contingency\", prior = priors,\n             post = priors * r1$ml1 / (priors * r1$ml1 + (1 - priors) * r1$ml0)),\n  data.frame(table = \"Table 2: zero contingency\",    prior = priors,\n             post = priors * r2$ml1 / (priors * r2$ml1 + (1 - priors) * r2$ml0)))\n\nggplot(pp, aes(prior, post, colour = table)) +\n  geom_abline(linetype = 2, colour = col_muted) +\n  geom_line(linewidth = 1.2) +\n  scale_colour_manual(values = c(col_s1, col_s0), name = NULL) +\n  coord_equal() +\n  labs(x = \"Prior P(S1)\", y = \"Posterior P(S1 | D)\", caption = \"Dashed: no change from prior to posterior\") +\n  theme(legend.position = \"right\")\n\n\n\n\n\n\n\n\n\n\n\nStep 3: what if we are unsure about the prior?\nSo far the structure prior was a fixed number. Often we are not sure which prior is appropriate. We can express this uncertainty as a distribution over the prior, P(S1) ~ Beta(a, b), and propagate it: each possible prior gives a posterior P(S1 | D). The result is a distribution over the posterior probability of a link, which we can summarise with a 95% interval. We compare an uninformed learner, P(S1) ~ Beta(1, 1), with a sceptical one, P(S1) ~ Beta(2, 8), who expects links to be rare.\n\npost_s1 &lt;- function(prior, r) prior * r$ml1 / (prior * r$ml1 + (1 - prior) * r$ml0)\n\nset.seed(1)\ndraws &lt;- list(uninformed = rbeta(1e5, 1, 1),   # P(S1) ~ Beta(1, 1)\n              sceptical  = rbeta(1e5, 2, 8))   # P(S1) ~ Beta(2, 8), mean 0.2\n\nsumm &lt;- function(x) c(mean = mean(x), quantile(x, c(.025, .975)))\nround(rbind(`Table 1, uninformed` = summ(post_s1(draws$uninformed, r1)),\n            `Table 1, sceptical`  = summ(post_s1(draws$sceptical,  r1)),\n            `Table 2, uninformed` = summ(post_s1(draws$uninformed, r2)),\n            `Table 2, sceptical`  = summ(post_s1(draws$sceptical,  r2))), 2)\n\n#&gt;                     mean 2.5% 97.5%\n#&gt; Table 1, uninformed 0.87 0.29  1.00\n#&gt; Table 1, sceptical  0.74 0.32  0.94\n#&gt; Table 2, uninformed 0.55 0.03  0.98\n#&gt; Table 2, sceptical  0.25 0.04  0.56\n\n\n\n\nCode\npu &lt;- do.call(rbind, lapply(names(draws), function(p) rbind(\n  data.frame(prior = p, table = \"Table 1: positive contingency\", x = post_s1(draws[[p]], r1)),\n  data.frame(prior = p, table = \"Table 2: zero contingency\",    x = post_s1(draws[[p]], r2)))))\npu$prior &lt;- factor(pu$prior, levels = c(\"uninformed\", \"sceptical\"),\n                   labels = c(\"Uninformed: P(S1) ~ Beta(1, 1)\", \"Sceptical: P(S1) ~ Beta(2, 8)\"))\nci &lt;- aggregate(x ~ prior + table, pu, function(v) quantile(v, c(.025, .975)))\nci &lt;- data.frame(ci[, 1:2], lo = ci$x[, 1], hi = ci$x[, 2])\n\nggplot(pu, aes(x, fill = table)) +\n  geom_histogram(aes(y = after_stat(density)), bins = 50, alpha = .6, position = \"identity\") +\n  geom_errorbarh(data = ci, aes(y = -0.4, xmin = lo, xmax = hi, colour = table),\n                 inherit.aes = FALSE, height = .3, linewidth = 1) +\n  facet_wrap(~ prior, ncol = 1) +\n  scale_fill_manual(values = c(col_s1, col_s0), name = NULL) +\n  scale_colour_manual(values = c(col_s1, col_s0), guide = \"none\") +\n  coord_cartesian(ylim = c(-0.6, 8)) +\n  labs(x = \"Posterior P(S1 | D)\", y = \"Density\", caption = \"Bars: 95% intervals\") +\n  theme(legend.position = \"top\")\n\n\n\n\n\n\n\n\n\nThe interval shows how much the conclusion depends on prior assumptions. With Table 1, both learners end up favouring a link, but the sceptic is less sure. With Table 2, the conclusion is driven almost entirely by the prior: the data cannot settle whether C causes E.\n\n\nStep 4: how strong is the causal link?\nStructure induction asks whether C causes E. Causal strength asks how strongly. Within S1, the posterior distribution of wc follows directly from the grid computed in Step 1 (cf. Lu et al., 2008, for Bayesian strength learning). For comparison, the classic point estimate is Cheng’s (1997) causal power, ΔP / (1 − P(e+ | c−)).\n\nwc_summary &lt;- function(r) {\n  cdf &lt;- cumsum(r$wc_post)\n  c(mean = sum(r$w * r$wc_post),\n    lower = r$w[which(cdf &gt;= .025)[1]], upper = r$w[which(cdf &gt;= .975)[1]])\n}\nround(rbind(`Table 1` = wc_summary(r1), `Table 2` = wc_summary(r2)), 2)\n\n#&gt;         mean lower upper\n#&gt; Table 1 0.59  0.19  0.86\n#&gt; Table 2 0.55  0.03  0.98\n\n(16/20 - 8/20) / (1 - 8/20)    # causal power for Table 1\n\n#&gt; [1] 0.6666667\n\n\n\n\nCode\nsp &lt;- rbind(data.frame(table = \"Table 1: positive contingency\", w = r1$w, dens = r1$wc_post * length(r1$w)),\n            data.frame(table = \"Table 2: zero contingency\",    w = r2$w, dens = r2$wc_post * length(r2$w)))\nggplot(sp, aes(w, dens, colour = table, fill = table)) +\n  geom_area(alpha = .25, position = \"identity\") +\n  geom_vline(xintercept = (16/20 - 8/20) / (1 - 8/20), linetype = 2, colour = col_s1) +\n  scale_colour_manual(values = c(col_s1, col_s0), name = NULL) +\n  scale_fill_manual(values = c(col_s1, col_s0), name = NULL) +\n  labs(x = expression(paste(\"Causal strength \", w[c])), y = \"Posterior density (under S1)\",\n       caption = \"Dashed: causal power for Table 1\") +\n  theme(legend.position = \"top\")\n\n\n\n\n\n\n\n\n\n\nTable 1: the posterior peaks near the causal power, but the 95% credible interval is wide: 40 observations say that C causes E, but not precisely how strongly.\nTable 2: the posterior is very broad. Ceiling data are compatible with almost any strength of C, because A already produces E every time.\n\n\n\nStep 5: combining structure and strength\nThe strength estimate above assumes that the link exists. Bayesian model averaging keeps the uncertainty about structure: with probability P(S0 | D), wc is exactly 0; with probability P(S1 | D), it follows the posterior under S1.\n\nbma &lt;- function(r) {\n  p_zero &lt;- 1 - r$p_s1                                   # probability that wc = 0\n  c(`P(wc = 0)` = p_zero, `mean wc` = r$p_s1 * wc_summary(r)[[\"mean\"]])\n}\nround(rbind(`Table 1` = bma(r1), `Table 2` = bma(r2)), 2)\n\n#&gt;         P(wc = 0) mean wc\n#&gt; Table 1      0.06    0.56\n#&gt; Table 2      0.42    0.32\n\n\nThis is the step from statistical to causal inference: the question is not only how large an effect is, but which causal structure generated the data, and what follows for the strength of the link if we are uncertain about the structure."
   },
   {
-    "objectID": "index.html#courses",
-    "href": "index.html#courses",
-    "title": "Statistics Teaching at CBB",
-    "section": "Courses",
-    "text": "Courses\n\n\nCourse 1 · basic course, start here\n\nLinear Models in R\nA three-week block course with 11 sessions, from simple regression to GLMMs, and a final project on your own data.\n\n\n\nCourse 2 · ORES · after Linear Models\n\nOpen, Replicable, and Ethical Science\nPlanning studies that justify their inferences: preregistration, sequential designs, stopping for futility.\n\n\n\nCourse 3 · TAE · after Linear Models\n\nTesting for Absence and Equivalence\nHow to support a prediction of “no effect”: equivalence tests and Bayesian alternatives."
+    "objectID": "ibcm/index.html#materials",
+    "href": "ibcm/index.html#materials",
+    "title": "Inference with Bayesian Causal Models",
+    "section": "Materials",
+    "text": "Materials\n\n\nSlides coming soon\nR scripts coming soon"
   },
   {
-    "objectID": "index.html#beyond-the-courses",
-    "href": "index.html#beyond-the-courses",
-    "title": "Statistics Teaching at CBB",
-    "section": "Beyond the courses",
-    "text": "Beyond the courses\n\nStatistical consultation: regular open consultation hours plus individual appointments, ideally before data collection.\nFollow-up workshop on Bayesian modelling (brms): for participants who have completed Linear Models in R.\nFurther short workshops on demand, e.g., power analysis by simulation or advanced GLMMs (glmmTMB).\nEvaluation: participant feedback every year, and recurring questions from consultations feed back into the curriculum.\n\nSee also: Resources (readings, R packages, R primer)."
+    "objectID": "ibcm/index.html#reading",
+    "href": "ibcm/index.html#reading",
+    "title": "Inference with Bayesian Causal Models",
+    "section": "Reading",
+    "text": "Reading\n\nCheng, P. W. (1997). From covariation to causation: A causal power theory. Psychological Review, 104(2), 367–405.\nGriffiths, T. L., & Tenenbaum, J. B. (2005). Structure and strength in causal induction. Cognitive Psychology, 51(4), 334–384.\nLu, H., Yuille, A. L., Liljeholm, M., Cheng, P. W., & Holyoak, K. J. (2008). Bayesian generic priors for causal learning. Psychological Review, 115(4), 955–984.\nMeder, B., Mayrhofer, R., & Waldmann, M. R. (2014). Structure induction in diagnostic causal reasoning. Psychological Review, 121(3), 277–301.\nStephan, S., & Waldmann, M. R. (2026). Manipulating prior causal beliefs affects the formation of apparent causal illusions. Cognition, 277, 106684. Materials and R code: https://github.com/SimonStephan31/Priors_and_Causal-Illusions\nPearl, J. (2009). Causality: Models, reasoning, and inference (2nd ed.). Cambridge University Press."
   },
   {
     "objectID": "linear-models/final-project.html",
@@ -986,7 +892,6 @@
     "section": "",
     "text": "In the last days of the course, every participant analyses a dataset (their own or one provided) and presents it briefly. This links the course directly to individual consultation.",
     "crumbs": [
-      "Linear Models",
       "Final project"
     ]
   },
@@ -997,7 +902,6 @@
     "section": "What you do",
     "text": "What you do\n\nQuestion. State the research question and the hypothesis or quantity of interest.\nDesign. Describe the unit of observation, grouping factors (nesting) and the type of response.\nModel. Derive the model from the question and justify each term. Simulate data from it.\nFit and check. Fit the model in R and check its assumptions.\nInterpret. Show effect sizes and predictions on the response scale, with an effect plot.\nReport. Write the results as you would in a paper.",
     "crumbs": [
-      "Linear Models",
       "Final project"
     ]
   },
@@ -1008,7 +912,6 @@
     "section": "Format",
     "text": "Format\n\nA short presentation (about 10 minutes plus discussion)\nA Quarto document with the full analysis, rendered to HTML",
     "crumbs": [
-      "Linear Models",
       "Final project"
     ]
   },
@@ -1019,7 +922,6 @@
     "section": "Datasets",
     "text": "Datasets\nBring your own data if you have them. Otherwise, choose one of the provided datasets in the data/ folder.\n\nTip: If your own data are not yet collected, simulate them from your planned model. This doubles as a power analysis and a first draft of your preregistration (see the course Open, Replicable, and Ethical Science).",
     "crumbs": [
-      "Linear Models",
       "Final project"
     ]
   },
@@ -1030,7 +932,6 @@
     "section": "",
     "text": "What is a statistical model?",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "01 · Introduction"
     ]
@@ -1042,7 +943,6 @@
     "section": "In this session",
     "text": "In this session\n\nWhy statistics in CBB research: description, estimation, inference, prediction\nA statistical model = a systematic part (what we expect) + a random part (how observations scatter around it)\nThe linear model as the common language of this course\nFrom research question to model: response, predictors, unit of observation\nCourse overview and workflow (R projects, Quarto, reproducibility)\n\n\nKey terms: Assumptions (of the linear model), Residuals",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "01 · Introduction"
     ]
@@ -1054,7 +954,6 @@
     "section": "Learning goals",
     "text": "Learning goals\nAfter this session you can\n\nexplain what a statistical model is and which parts it has,\nwrite a simple linear model as an equation and translate it into words,\nset up an R project with a Quarto document for your analyses.",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "01 · Introduction"
     ]
@@ -1066,7 +965,6 @@
     "section": "Simulate first",
     "text": "Simulate first\nBefore we fit anything, we write down a model and let it generate data. Here: body mass (kg) increases with age (years), plus random variation.\n\nset.seed(1)\nn    &lt;- 50\nage  &lt;- runif(n, 1, 10)\nb0   &lt;- 3; b1 &lt;- 0.8; sigma &lt;- 1.5        # the \"true\" model\nmass &lt;- b0 + b1 * age + rnorm(n, 0, sigma)\n\nplot(age, mass, pch = 19, col = \"#1b6f8a\",\n     xlab = \"Age (years)\", ylab = \"Body mass (kg)\")\nabline(b0, b1, col = \"#c0392b\", lwd = 2)   # the systematic part\n\n\n\n\n\n\n\n\nSystematic part: \\(\\mu_i = \\beta_0 + \\beta_1 \\cdot \\text{age}_i\\)Random part: \\(y_i \\sim \\text{Normal}(\\mu_i, \\sigma)\\)",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "01 · Introduction"
     ]
@@ -1078,7 +976,6 @@
     "section": "Materials",
     "text": "Materials\n\n\nSlides coming soon\n\nR script coming soon\n\nExercises coming soon",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "01 · Introduction"
     ]
@@ -1090,7 +987,6 @@
     "section": "Reading",
     "text": "Reading\n\nGelman, A., Hill, J., & Vehtari, A. (2020). Regression and other stories, ch. 1. Cambridge University Press.",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "01 · Introduction"
     ]
@@ -1102,7 +998,6 @@
     "section": "",
     "text": "What if there are several predictors?",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "03 · Multiple regression"
     ]
@@ -1114,7 +1009,6 @@
     "section": "In this session",
     "text": "In this session\n\nPartial effects: the effect of one predictor holding the others constant\n\nWhy simple and multiple regression can give different answers\nStandardising predictors (z-transformation) and comparing effects\nCollinearity and variance inflation\nDiagnostics in multiple regression\n\n\nKey terms: Collinearity, z-transformation (standardisation), Centring",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "03 · Multiple regression"
     ]
@@ -1126,7 +1020,6 @@
     "section": "Learning goals",
     "text": "Learning goals\nAfter this session you can\n\nfit and interpret a model with several predictors,\nexplain why an estimate changes when another predictor is added,\ndiagnose collinearity.",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "03 · Multiple regression"
     ]
@@ -1138,7 +1031,6 @@
     "section": "Simulate first",
     "text": "Simulate first\nAge and body size are correlated, but only age affects the response. The simple regression on size finds an “effect” that disappears once age is in the model.\n\nset.seed(3)\nn    &lt;- 200\nage  &lt;- rnorm(n)\nsize &lt;- 0.7 * age + rnorm(n, 0, 0.7)       # size depends on age\ny    &lt;- 1 + 0.5 * age + rnorm(n)           # y depends on age only\n\nround(coef(lm(y ~ size)), 2)               # size seems to matter ...\n\n#&gt; (Intercept)        size \n#&gt;        0.99        0.35\n\nround(coef(lm(y ~ size + age)), 2)         # ... until age is controlled for\n\n#&gt; (Intercept)        size         age \n#&gt;        1.00        0.01        0.50",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "03 · Multiple regression"
     ]
@@ -1150,7 +1042,6 @@
     "section": "Materials",
     "text": "Materials\n\n\nSlides coming soon\n\nR script coming soon\n\nExercises coming soon",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "03 · Multiple regression"
     ]
@@ -1162,7 +1053,6 @@
     "section": "Reading",
     "text": "Reading\n\nGelman, Hill & Vehtari (2020), ch. 10–11.\nFox (2016), ch. 5 and 13.",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "03 · Multiple regression"
     ]
@@ -1174,7 +1064,6 @@
     "section": "",
     "text": "What if the effect of one predictor depends on another?",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "05 · Interactions"
     ]
@@ -1186,7 +1075,6 @@
     "section": "In this session",
     "text": "In this session\n\nInteractions between a continuous and a categorical predictor, and between two continuous predictors\nWhy centring matters for interpreting main effects in the presence of interactions\nEffect plots: showing what an interaction means\nInteractions and statistical power\n\n\nKey terms: Interaction, Centring",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "05 · Interactions"
     ]
@@ -1198,7 +1086,6 @@
     "section": "Learning goals",
     "text": "Learning goals\nAfter this session you can\n\nspecify and interpret models with interaction terms,\ncentre predictors and explain how that changes the coefficients,\nplot model predictions to communicate an interaction.",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "05 · Interactions"
     ]
@@ -1210,7 +1097,6 @@
     "section": "Simulate first",
     "text": "Simulate first\nThe effect of age on foraging success is steeper in one population than in the other.\n\nlibrary(ggplot2)\nset.seed(5)\nd &lt;- data.frame(age = runif(120, 1, 10),\n                pop = factor(rep(c(\"A\", \"B\"), each = 60)))\nd$y &lt;- 2 + 0.3 * d$age + ifelse(d$pop == \"B\", 0.4 * d$age, 0) + rnorm(120)\n\nm &lt;- lm(y ~ age * pop, data = d)\nround(coef(m), 2)\n\n#&gt; (Intercept)         age        popB    age:popB \n#&gt;        2.15        0.27       -0.01        0.40\n\nggplot(d, aes(age, y, colour = pop)) +\n  geom_point(alpha = .6) +\n  geom_smooth(method = \"lm\", se = TRUE) +\n  scale_colour_manual(values = c(\"#1b6f8a\", \"#c0392b\")) +\n  theme_minimal()",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "05 · Interactions"
     ]
@@ -1222,7 +1108,6 @@
     "section": "Materials",
     "text": "Materials\n\n\nSlides coming soon\n\nR script coming soon\n\nExercises coming soon",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "05 · Interactions"
     ]
@@ -1234,7 +1119,6 @@
     "section": "Reading",
     "text": "Reading\n\nGelman, Hill & Vehtari (2020), ch. 10.3 and 12.\nSchielzeth, H. (2010). Simple means to improve the interpretability of regression coefficients. Methods in Ecology and Evolution, 1(2), 103–113.",
     "crumbs": [
-      "Linear Models",
       "Foundations",
       "05 · Interactions"
     ]
@@ -1246,7 +1130,6 @@
     "section": "",
     "text": "And what about ANOVA?",
     "crumbs": [
-      "Linear Models",
       "Classic tests as linear models",
       "07 · ANOVA as a linear model"
     ]
@@ -1258,7 +1141,6 @@
     "section": "In this session",
     "text": "In this session\n\nOne-way ANOVA = linear model with one categorical predictor (session 04 revisited)\nFactorial ANOVA = categorical predictors with interactions (session 05 revisited)\n\nF-tests as comparisons between nested models\nTypes of sums of squares (I, II, III) and why the order of terms can matter\nRepeated measures: a first look at non-independence (prepares session 11)\n\n\nKey terms: Contrasts and dummy coding, Degrees of freedom",
     "crumbs": [
-      "Linear Models",
       "Classic tests as linear models",
       "07 · ANOVA as a linear model"
     ]
@@ -1270,7 +1152,6 @@
     "section": "Learning goals",
     "text": "Learning goals\nAfter this session you can\n\nreproduce an ANOVA table from a linear model,\nexplain an F-test as a comparison of a full and a reduced model,\nchoose an appropriate type of sums of squares for unbalanced data.",
     "crumbs": [
-      "Linear Models",
       "Classic tests as linear models",
       "07 · ANOVA as a linear model"
     ]
@@ -1282,7 +1163,6 @@
     "section": "Simulate first",
     "text": "Simulate first\n\nset.seed(7)\ngroup &lt;- factor(rep(c(\"control\", \"food\", \"toy\"), each = 20))\ny     &lt;- rnorm(60, c(control = 10, food = 14, toy = 12)[group], 3)\n\nsummary(aov(y ~ group))            # classic one-way ANOVA\n\n#&gt;             Df Sum Sq Mean Sq F value  Pr(&gt;F)   \n#&gt; group        2   91.2   45.59   5.186 0.00853 **\n#&gt; Residuals   57  501.1    8.79                   \n#&gt; ---\n#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nfull &lt;- lm(y ~ group)\nnull &lt;- lm(y ~ 1)\nanova(null, full)                  # same F: a comparison of two models\n\n#&gt; Analysis of Variance Table\n#&gt; \n#&gt; Model 1: y ~ 1\n#&gt; Model 2: y ~ group\n#&gt;   Res.Df    RSS Df Sum of Sq      F  Pr(&gt;F)   \n#&gt; 1     59 592.30                               \n#&gt; 2     57 501.12  2    91.179 5.1856 0.00853 **\n#&gt; ---\n#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1",
     "crumbs": [
-      "Linear Models",
       "Classic tests as linear models",
       "07 · ANOVA as a linear model"
     ]
@@ -1294,7 +1174,6 @@
     "section": "Materials",
     "text": "Materials\n\n\nSlides coming soon\n\nR script coming soon\n\nExercises coming soon",
     "crumbs": [
-      "Linear Models",
       "Classic tests as linear models",
       "07 · ANOVA as a linear model"
     ]
@@ -1306,7 +1185,6 @@
     "section": "Reading",
     "text": "Reading\n\nFox (2016), ch. 8.\nLindeløv (2019), see session 06.",
     "crumbs": [
-      "Linear Models",
       "Classic tests as linear models",
       "07 · ANOVA as a linear model"
     ]
@@ -1318,7 +1196,6 @@
     "section": "",
     "text": "How do I select the best model?",
     "crumbs": [
-      "Linear Models",
       "Building and choosing models",
       "09 · Model selection"
     ]
@@ -1330,7 +1207,6 @@
     "section": "In this session",
     "text": "In this session\n\nWhat “best” means: testing hypotheses vs. predicting well\nFull–null model comparisons and likelihood-ratio tests\nInformation criteria (AIC) and multi-model inference\nOverfitting, and why stepwise selection is a problem\nPre-specifying the model as the default for confirmatory analyses\n\n\nKey terms: AIC (Akaike information criterion), Likelihood-ratio test, Full–null model comparison, Overfitting, Model selection",
     "crumbs": [
-      "Linear Models",
       "Building and choosing models",
       "09 · Model selection"
     ]
@@ -1342,7 +1218,6 @@
     "section": "Learning goals",
     "text": "Learning goals\nAfter this session you can\n\ncompare nested models with a likelihood-ratio test,\nuse and interpret AIC for a set of candidate models,\nexplain why selecting predictors by p-values inflates false positives.",
     "crumbs": [
-      "Linear Models",
       "Building and choosing models",
       "09 · Model selection"
     ]
@@ -1354,7 +1229,6 @@
     "section": "Simulate first",
     "text": "Simulate first\nAdding predictors that are pure noise always increases R². A good model selection strategy must guard against this.\n\nset.seed(9)\nn &lt;- 40\nnoise &lt;- as.data.frame(matrix(rnorm(n * 20), n))\ny &lt;- rnorm(n)                                    # y is unrelated to all predictors\n\nr2 &lt;- sapply(1:20, function(k)\n  summary(lm(y ~ ., data = noise[, 1:k, drop = FALSE]))$r.squared)\n\nplot(1:20, r2, type = \"b\", pch = 19, col = \"#c0392b\",\n     xlab = \"Number of noise predictors\", ylab = expression(R^2))",
     "crumbs": [
-      "Linear Models",
       "Building and choosing models",
       "09 · Model selection"
     ]
@@ -1366,7 +1240,6 @@
     "section": "Materials",
     "text": "Materials\n\n\nSlides coming soon\n\nR script coming soon\n\nExercises coming soon",
     "crumbs": [
-      "Linear Models",
       "Building and choosing models",
       "09 · Model selection"
     ]
@@ -1378,7 +1251,6 @@
     "section": "Reading",
     "text": "Reading\n\nBurnham, K. P., & Anderson, D. R. (2002). Model selection and multimodel inference (2nd ed.). Springer.\nForstmeier, W., & Schielzeth, H. (2011). Cryptic multiple hypotheses testing in linear models: Overestimated effect sizes and the winner’s curse. Behavioral Ecology and Sociobiology, 65, 47–55.",
     "crumbs": [
-      "Linear Models",
       "Building and choosing models",
       "09 · Model selection"
     ]
@@ -1390,7 +1262,6 @@
     "section": "",
     "text": "What to do if observations are not independent?\nThe second assumption we relax: independence.",
     "crumbs": [
-      "Linear Models",
       "Relaxing assumptions",
       "11 · Generalized linear mixed models (GLMM)"
     ]
@@ -1400,9 +1271,8 @@
     "href": "linear-models/sessions/11-glmm.html#in-this-session",
     "title": "11 · Generalized linear mixed models (GLMM)",
     "section": "In this session",
-    "text": "In this session\n\nRepeated observations of the same individuals, groups or sites: pseudoreplication\nOptions: averaging, fixed factors, or random effects\nRandom intercepts and random slopes; partial pooling\nFitting GLMMs with lme4\n\nWorked example: the Safe-vs-Risky box study with chimpanzees (simulated data)\nPractical: maternal behaviour in wild Guinea baboons (real DPZ field data), a Poisson GLMM\n\n\nKey terms: Pseudoreplication, Random effects (random intercepts and slopes), Fixed effect, Partial pooling, Convergence failure, Singular fit",
+    "text": "In this session\n\nRepeated observations of the same individuals: non-independence and pseudo-replication\nTwo solutions: the individual as a fixed factor, or as a random effect\nRandom intercepts and random slopes\nFitting GLMMs with lme4\n\nWorked example: the Safe-vs-Risky box study with chimpanzees (made-up data)\nPractical: maternal behaviour in wild Guinea baboons (real DPZ field data), a Poisson GLMM\n\n\nKey terms: Pseudoreplication, Random effects (random intercepts and slopes), Fixed effect, Partial pooling, Convergence failure, Singular fit",
     "crumbs": [
-      "Linear Models",
       "Relaxing assumptions",
       "11 · Generalized linear mixed models (GLMM)"
     ]
@@ -1414,7 +1284,6 @@
     "section": "Learning goals",
     "text": "Learning goals\nAfter this session you can\n\nexplain why repeated observations violate the independence assumption,\ndescribe what a random intercept and a random slope are,\nspecify a simple GLMM in lme4 and say how its result differs from a GLM.",
     "crumbs": [
-      "Linear Models",
       "Relaxing assumptions",
       "11 · Generalized linear mixed models (GLMM)"
     ]
@@ -1424,21 +1293,30 @@
     "href": "linear-models/sessions/11-glmm.html#materials",
     "title": "11 · Generalized linear mixed models (GLMM)",
     "section": "Materials",
-    "text": "Materials\n\n\n\nSlides (press F for full screen)\n\nR script for the worked example below\n\nExercises with solutions: a Poisson GLMM on maternal behaviour in wild Guinea baboons, with the open data of Dal Pesco et al. (2026)",
+    "text": "Materials\n\n\n\nSlides (press F for full screen)\n\nR script for the worked example below\n\nPractical with solutions: a Poisson GLMM on maternal behaviour in wild Guinea baboons, with the open data of Dal Pesco et al. (2026)",
     "crumbs": [
-      "Linear Models",
       "Relaxing assumptions",
       "11 · Generalized linear mixed models (GLMM)"
     ]
   },
   {
-    "objectID": "linear-models/sessions/11-glmm.html#simulate-first-do-chimpanzees-understand-mechanisms",
-    "href": "linear-models/sessions/11-glmm.html#simulate-first-do-chimpanzees-understand-mechanisms",
+    "objectID": "linear-models/sessions/11-glmm.html#worked-example-do-chimpanzees-understand-mechanisms",
+    "href": "linear-models/sessions/11-glmm.html#worked-example-do-chimpanzees-understand-mechanisms",
     "title": "11 · Generalized linear mixed models (GLMM)",
-    "section": "Simulate first: do chimpanzees understand mechanisms?",
-    "text": "Simulate first: do chimpanzees understand mechanisms?\nChimpanzees choose into which of two boxes a grape is dropped. The Safe box clearly guarantees delivery; in the Risky box, the grape seems to get stuck. In fact, both boxes always deliver.\n\n\nRQ1: Do chimps prefer the Safe box on trial 1?\n\nRQ2: Does this preference change over trials?\n\n\nOngoing study with the MPI EVA, Leipzig; preregistered. The data do not exist yet: these are simulated data of what we expect, so we know the true answer: a clear Safe preference on trial 1 (70%), no average change over trials, but chimps that differ in whether they drift towards Safe or Risky.\n\n\nSimulation codeTRUE.INT   &lt;- qlogis(0.70)  # log-odds of choosing Safe on trial 1 (Side = left)\nTRUE.TRIAL &lt;- 0             # average change per trial (log-odds)\nTRUE.SIDE  &lt;- 0.3           # small bias towards the right side\nSD.INT     &lt;- 0.8           # between-chimp SD of the intercept\nSD.SLOPE   &lt;- 0.05          # between-chimp SD of the trial slope (per trial)\n\nside_sequence &lt;- function() {           # 5 x right, 5 x left; max. 2 in a row\n  repeat {\n    s &lt;- sample(rep(0:1, 5))\n    if (max(rle(s)$lengths) &lt;= 2) return(s)\n  }\n}\n\nsim_chimps &lt;- function(n = 15, b0 = TRUE.INT, b.trial = TRUE.TRIAL, b.side = TRUE.SIDE,\n                       sd.int = SD.INT, sd.slope = SD.SLOPE) {\n  ids &lt;- sprintf(\"C%02d\", 1:n)\n  u0 &lt;- setNames(rnorm(n, 0, sd.int), ids); u1 &lt;- setNames(rnorm(n, 0, sd.slope), ids)\n  d &lt;- do.call(rbind, lapply(ids, function(id)\n    data.frame(subject = id, session = rep(1:4, each = 10), trial = 1:40,\n               side_safe = unlist(replicate(4, side_sequence(), simplify = FALSE)))))\n  d$trial_c &lt;- d$trial - 1                       # first-trial centred (as preregistered)\n  eta &lt;- b0 + u0[d$subject] + (b.trial + u1[d$subject]) * d$trial_c + b.side * d$side_safe\n  d$safe &lt;- rbinom(nrow(d), 1, plogis(eta))\n  d\n}\n\nset.seed(120)\nxdata &lt;- sim_chimps()      # 15 chimps x 4 sessions x 10 trials\n\n\n600 choices, but only 15 chimpanzees\n\nCodeps  &lt;- aggregate(safe ~ subject + session, xdata, mean)\nchg &lt;- tapply(ps$safe, ps$subject, function(x) x[4] - x[1])\nord &lt;- names(sort(chg))                                   # strongest drift to Risky first\ngd  &lt;- xdata\ngd$subject &lt;- factor(gd$subject, levels = rev(ord))\ngd$choice  &lt;- factor(ifelse(gd$safe == 1, \"Safe\", \"Risky\"), levels = c(\"Safe\", \"Risky\"))\ngd$session &lt;- factor(paste(\"session\", gd$session))\n\nggplot(gd, aes(trial, subject, fill = choice)) +\n  geom_tile(colour = \"white\", linewidth = 0.4) +\n  facet_grid(~ session, scales = \"free_x\", space = \"free_x\") +\n  scale_fill_manual(values = c(Safe = col_safe, Risky = col_risk), name = NULL) +\n  scale_x_continuous(breaks = c(1, 10, 20, 30, 40), expand = c(0, 0)) +\n  labs(x = \"Trial\", y = \"Chimpanzee\", subtitle = \"All 600 choices, one row per chimpanzee\") +\n  theme(legend.position = \"top\", panel.grid = element_blank(),\n        panel.spacing = unit(0.3, \"lines\"), axis.text.y = element_text(size = 8))\n\n\n\n\n\n\n\nChimps differ in their overall preference and in how their preference changes. Choices of the same chimp are more similar to each other than to choices of other chimps: they are not independent. A GLM treats the 600 choices as 600 pieces of information (pseudoreplication).\nThree models\n\nglm.mod &lt;- glm(safe ~ trial_c + side_safe, family = binomial, data = xdata)\n\n# random intercepts\nri.mod  &lt;- glmer(safe ~ trial_c + side_safe + (1 | subject),\n                 family = binomial, data = xdata,\n                 control = glmerControl(optimizer = \"bobyqa\"))\n\n# random intercepts + random slopes\nrs.mod  &lt;- glmer(safe ~ trial_c + side_safe + (1 + trial_c | subject),\n                 family = binomial, data = xdata,\n                 control = glmerControl(optimizer = \"bobyqa\"))\n\n\nCodend &lt;- expand.grid(trial_c = 0:39, subject = unique(xdata$subject), side_safe = 0.5)\nnd$trial &lt;- nd$trial_c + 1\nlabs3 &lt;- c(\"GLM\", \"GLMM (1 | subject)\", \"GLMM (1 + trial_c | subject)\")\nln &lt;- rbind(transform(nd, p = predict(glm.mod, newdata = nd, type = \"response\"), model = labs3[1]),\n            transform(nd, p = predict(ri.mod,  newdata = nd, type = \"response\"), model = labs3[2]),\n            transform(nd, p = predict(rs.mod,  newdata = nd, type = \"response\"), model = labs3[3]))\nln$model &lt;- factor(ln$model, levels = labs3)\n\nggplot(ln, aes(trial, p, group = subject, colour = model)) +\n  geom_hline(yintercept = .5, linetype = \"dotted\", colour = \"grey50\") +\n  geom_line(alpha = .7, linewidth = .8) +\n  facet_wrap(~ model) +\n  scale_colour_manual(values = c(col_glm, col_ri, col_glmm), guide = \"none\") +\n  scale_y_continuous(limits = c(0, 1), labels = scales::percent) +\n  labs(x = \"Trial\", y = \"Predicted P(Safe)\", caption = \"Lines = model-predicted probabilities per chimp\")\n\n\n\n\n\n\n\nWhat changes? And what is true?\n\nCodecg &lt;- summary(glm.mod)$coefficients; cri &lt;- summary(ri.mod)$coefficients; crs &lt;- summary(rs.mod)$coefficients\nrq &lt;- c(\"RQ1: Safe preference on trial 1\\n(intercept, log-odds)\", \"RQ2: change per 10 trials\\n(log-odds)\")\ncmp &lt;- data.frame(\n  term  = factor(rep(rq, each = 3), levels = rq),\n  model = factor(rep(labs3, 2), levels = rev(labs3)),\n  est = c(cg[\"(Intercept)\", 1], cri[\"(Intercept)\", 1], crs[\"(Intercept)\", 1],\n          10 * c(cg[\"trial_c\", 1], cri[\"trial_c\", 1], crs[\"trial_c\", 1])),\n  se  = c(cg[\"(Intercept)\", 2], cri[\"(Intercept)\", 2], crs[\"(Intercept)\", 2],\n          10 * c(cg[\"trial_c\", 2], cri[\"trial_c\", 2], crs[\"trial_c\", 2])))\ntruth &lt;- data.frame(term = factor(rq, levels = rq), val = c(TRUE.INT, 10 * TRUE.TRIAL))\n\nggplot(cmp, aes(est, model, colour = model)) +\n  geom_vline(xintercept = 0, colour = \"grey60\", linetype = \"dotted\") +\n  geom_vline(data = truth, aes(xintercept = val), colour = col_true, linetype = \"longdash\") +\n  geom_errorbarh(aes(xmin = est - 1.96 * se, xmax = est + 1.96 * se), height = .15, linewidth = 1) +\n  geom_point(size = 3) +\n  facet_wrap(~ term, scales = \"free_x\") +\n  scale_colour_manual(values = c(\"GLM\" = col_glm, \"GLMM (1 | subject)\" = col_ri,\n                                 \"GLMM (1 + trial_c | subject)\" = col_glmm), guide = \"none\") +\n  labs(x = \"Estimate with 95% CI (dashed line = true value)\", y = NULL)\n\n\n\n\n\n\n\n\n\n\nRQ1: intercept\nRQ2: trial\n\n\n\nGLM\n1.08 (p &lt; .001)\n-0.022 (p = .004)\n\n\nGLMM: intercepts\n1.50 (p &lt; .001)\n-0.031 (p &lt; .001)\n\n\nGLMM: + slopes\n1.15 (p &lt; .001)\n-0.013 (p = .507)\n\n\n\nAll models find the Safe preference on trial 1. But the GLM and the random-intercept model report a “significant” decline over trials, which does not exist. Only the model with random slopes gets RQ2 right.\nWas this just bad luck? 1000 simulations\n\n# Repeat the whole study 1000 times and record the p-value of the trial effect\n# (fit_chimps() is defined in the R script; takes a few minutes)\nset.seed(2026)\nsims &lt;- as.data.frame(t(replicate(1000, suppressMessages(fit_chimps(sim_chimps())))))\n\n\nCodesims &lt;- read.csv(\"../../data/sim_results_chimps_1000.csv\")\nfp   &lt;- colMeans(sims &lt; 0.05)\nsv &lt;- data.frame(model = factor(labs3, levels = labs3), val = as.numeric(fp[c(\"glm.p\", \"ri.p\", \"rs.p\")]))\n\nggplot(sv, aes(model, val, fill = model)) +\n  geom_col(width = .6) +\n  geom_hline(yintercept = .05, linetype = \"longdash\", colour = col_true) +\n  annotate(\"text\", x = .55, y = .075, label = \"nominal 5%\", hjust = 0, colour = col_true) +\n  geom_text(aes(label = pc(val)), vjust = -.5, fontface = \"bold\") +\n  scale_fill_manual(values = c(col_glm, col_ri, col_glmm), guide = \"none\") +\n  scale_y_continuous(labels = scales::percent, limits = c(0, .5)) +\n  labs(x = NULL, y = \"Significant trial effect\", subtitle = \"1000 simulations; true average change = 0\")\n\n\n\n\n\n\n\nWith a true average change of zero, the GLM finds a “significant” change in 32% of the runs, the random-intercept model in 37%, and the model with random slopes in 9%, much closer to the nominal 5%. The small remaining excess comes from the Wald tests that glmer() reports by default, which are slightly too liberal with only 15 individuals; likelihood-ratio tests or a parametric bootstrap do better.\n\nSimulating your expected data lets you check your planned model before you collect a single data point.",
+    "section": "Worked example: do chimpanzees understand mechanisms?",
+    "text": "Worked example: do chimpanzees understand mechanisms?\nChimpanzees choose into which of two boxes a grape is dropped. The Safe box clearly guarantees delivery; in the Risky box, the grape seems to get stuck. In fact, both boxes always deliver.\n\n\nRQ1: Do chimps prefer the Safe box in session 1?\n\nRQ2: Does this preference change over sessions? (Curiosity → below 50%? Indifference → towards 50%? Utility → stays Safe?)\n\n\nOngoing study with the MPI EVA, Leipzig; preregistered. The data do not exist yet: the numbers below are made up to reflect what we expect. A small example: 10 chimps × 4 sessions × 10 trials; response: choice (1 = Safe, 0 = Risky).\n\nThe data\n\n# Safe choices (out of 10) of 10 chimps in sessions 1-4\nK &lt;- rbind(c( 9, 10, 10, 10), c(10,  9,  9,  8), c(10, 10,  9,  7), c(10, 10,  6,  8),\n           c( 5,  8,  8,  8), c( 8,  6,  6,  3), c( 5,  3,  2,  4), c( 5,  2,  3,  3),\n           c( 1,  0,  1,  0), c( 1,  0,  0,  0))\ncd &lt;- data.frame(chimp = factor(rep(1:10, 4)), session = rep(1:4, each = 10), safe = c(K))\n\n# trial-level data (what the models are fitted to): one row per choice\nset.seed(11)\ntrials &lt;- do.call(rbind, lapply(seq_len(nrow(cd)), function(i)\n  data.frame(chimp = cd$chimp[i], session = cd$session[i],\n             trial = (cd$session[i] - 1) * 10 + 1:10,\n             choice = sample(rep(c(1, 0), c(cd$safe[i], 10 - cd$safe[i]))))))\ntrials$session_c &lt;- trials$session - 1          # session 1 = 0\n\n\n\n\nSafe choices (out of 10 per session)\n\nChimp\nSession 1\nSession 2\nSession 3\nSession 4\n\n\n\nChimp 1\n9\n10\n10\n10\n\n\nChimp 2\n10\n9\n9\n8\n\n\nChimp 3\n10\n10\n9\n7\n\n\nChimp 4\n10\n10\n6\n8\n\n\nChimp 5\n5\n8\n8\n8\n\n\nChimp 6\n8\n6\n6\n3\n\n\nChimp 7\n5\n3\n2\n4\n\n\nChimp 8\n5\n2\n3\n3\n\n\nChimp 9\n1\n0\n1\n0\n\n\nChimp 10\n1\n0\n0\n0\n\n\n\n\n\n\nCodecd$p &lt;- cd$safe / 10\nggplot(cd, aes(session, p, group = chimp, colour = chimp)) +\n  geom_line(alpha = .6) + geom_point(size = 2.5) +\n  scale_colour_viridis_d(end = .9, guide = \"none\") +\n  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +\n  labs(x = \"Session\", y = \"Safe choices\", subtitle = \"One line per chimp\")\n\n\n\n\n\n\n\nMost chimps choose Safe less often over the sessions, but not all of them. And chimps differ hugely in their overall preference.\nThe model we already know: a GLM\nThe response is binary (1 = Safe, 0 = Risky), so we need a logistic GLM (session 10), not a standard linear model.\n\nglm.mod &lt;- glm(choice ~ session_c, family = binomial, data = trials)\nsummary(glm.mod)$coefficients\n\n#&gt;               Estimate Std. Error  z value    Pr(&gt;|z|)\n#&gt; (Intercept)  0.5384698 0.17221221  3.12678 0.001767319\n#&gt; session_c   -0.1761309 0.09099553 -1.93560 0.052916741\n\n\n\n\nRQ1: intercept = 0.54 (63% Safe in session 1), p = .002.\n\nRQ2: slope = -0.18 per session, p = .053: not significant.\nPseudo-replication\nThe GLM treats all 400 choices as 400 independent observations. But each chimp contributes 40 choices, and choices of the same chimp are more similar to each other than to choices of other chimps. 400 choices, but only 10 chimps: pseudo-replication.\nMoreover, for RQ2 we do not care about the chimps’ overall preference, but about how each chimp changes over the sessions. The GLM’s single curve is far away from every chimp’s points.\nTwo solutions: chimp as a fixed factor or as a random effect\n\n# standard solution: chimp as a dummy-coded factor\nglm(choice ~ session_c + chimp, family = binomial, data = trials)\n\n# GLMM solution: chimp as a random effect\nglmer(choice ~ session_c + (1 | chimp), family = binomial, data = trials)\n\nThe standard solution estimates 9 extra coefficients, and its results hold only for these 10 chimps. The GLMM treats the chimps as a sample from the population and needs only one extra parameter: the SD of the chimps’ intercepts.\nA GLMM with random intercepts\n\nri.mod &lt;- glmer(choice ~ session_c + (1 | chimp), family = binomial, data = trials)\nsummary(ri.mod)$coefficients\n\n#&gt;               Estimate Std. Error   z value    Pr(&gt;|z|)\n#&gt; (Intercept)  0.8375910  0.7395825  1.132519 0.257416429\n#&gt; session_c   -0.3286312  0.1242342 -2.645256 0.008162918\n\nVarCorr(ri.mod)\n\n#&gt;  Groups Name        Std.Dev.\n#&gt;  chimp  (Intercept) 2.195\n\n\nEach chimp gets its own intercept: logit(P(Safe)) = achimp + b × session, with achimp = 0.84 + the chimp’s deviation, and deviations ~ N(0, σ = 2.19). The shared slope is now b = -0.33 (p = .008), compared with -0.18 (p = .053) in the GLM: pooling chimps at very different levels flattens the change.\nRandom slopes: each chimp its own slope\n\nrs.mod &lt;- glmer(choice ~ session_c + (1 + session_c | chimp),\n                family = binomial, data = trials,\n                control = glmerControl(optimizer = \"bobyqa\"))\nsummary(rs.mod)$coefficients\n\n#&gt;               Estimate Std. Error   z value   Pr(&gt;|z|)\n#&gt; (Intercept)  0.9113146  0.7856050  1.160016 0.24604218\n#&gt; session_c   -0.3629399  0.1673633 -2.168576 0.03011493\n\nVarCorr(rs.mod)\n\n#&gt;  Groups Name        Std.Dev. Corr  \n#&gt;  chimp  (Intercept) 2.31855        \n#&gt;         session_c   0.30364  -0.256\n\n\n\nCodess &lt;- seq(1, 4, by = .05)\ncurves &lt;- function(ai, bi, model) do.call(rbind, lapply(1:10, function(j)\n  data.frame(model, chimp = factor(j), session = ss, p = plogis(ai[j] + bi[j] * (ss - 1)))))\nlabs3 &lt;- c(\"GLM\", \"GLMM: random intercepts\", \"GLMM: + random slopes\")\nln &lt;- rbind(curves(rep(coef(glm.mod)[1], 10), rep(coef(glm.mod)[2], 10), labs3[1]),\n            curves(coef(ri.mod)$chimp[, 1], coef(ri.mod)$chimp[, 2], labs3[2]),\n            curves(coef(rs.mod)$chimp[, 1], coef(rs.mod)$chimp[, 2], labs3[3]))\nln$model &lt;- factor(ln$model, levels = labs3)\npts &lt;- do.call(rbind, lapply(labs3, function(m) transform(cd, model = factor(m, levels = labs3))))\n\nggplot(ln, aes(session, p, group = chimp)) +\n  geom_point(data = pts, aes(session, p), colour = \"grey70\", size = 1.6) +\n  geom_line(aes(colour = model), alpha = .75) +\n  facet_wrap(~ model) +\n  scale_colour_manual(values = c(col_glm, col_ri, col_glmm), guide = \"none\") +\n  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +\n  labs(x = \"Session\", y = \"P(Safe)\", caption = \"Lines = model-predicted probabilities per chimp; grey dots = observed\")\n\n\n\n\n\n\n\nWhat changes?\n\n\n\n\nModel\nRQ1: intercept\nRQ2: session\n\n\n\nGLM\n0.54 (p = .002)\n-0.18 (p = .053)\n\n\nGLMM: random intercepts\n0.84 (p = .257)\n-0.33 (p = .008)\n\n\nGLMM: + random slopes\n0.91 (p = .246)\n-0.36 (p = .030)\n\n\n\n\n\n\n\nRQ1: only the GLM finds a Safe preference in session 1: it treats 400 choices as independent and is overconfident.\n\nRQ2: the GLM misses the decline; both GLMMs find it. With random slopes, the uncertainty is larger, because chimps also differ in their slopes.\nTake-home\n\nRepeated observations → non-independence → pseudo-replication if ignored.\nRandom intercept: each individual gets its own level, but we estimate only one variance.\nRandom slope: each individual also gets its own response to a predictor.\nIgnoring individual differences can make you miss real effects or be overconfident.\n\nFixed effects → the average chimp · Random effects → how chimps vary around it",
     "crumbs": [
-      "Linear Models",
+      "Relaxing assumptions",
+      "11 · Generalized linear mixed models (GLMM)"
+    ]
+  },
+  {
+    "objectID": "linear-models/sessions/11-glmm.html#practical",
+    "href": "linear-models/sessions/11-glmm.html#practical",
+    "title": "11 · Generalized linear mixed models (GLMM)",
+    "section": "Practical: maternal behaviour in wild Guinea baboons",
+    "text": "Practical: maternal behaviour in wild Guinea baboons\nMothers’ behaviour towards their infants changes as the infants grow up. In this practical, you analyse how often wild Guinea baboon infants receive approaches from their mothers, using real field data from the DPZ field station Simenti (Senegal):\n\nDal Pesco, F., et al. (2026). Maternal style does not predict infant growth and survival in wild Guinea baboons. Animal Behaviour.\n\nThe data are openly available on OSF (https://doi.org/10.17605/OSF.IO/YH2BW). Download the file and save it in your project folder. Please cite the paper and the OSF repository when you use the data.\nDownload dataset_mothering_behaviors_Anonymized.csv\nEach row is one infant in one month: 582 infant-months from 80 infants of 49 mothers. The variables you need:\n\n\n\n\n\n\nVariable\nMeaning\n\n\n\nimmature_ID\ninfant ID\n\n\nmother_ID\nmother ID (some mothers have several infants in the data)\n\n\nage\ninfant age in days\n\n\nimm_focal_duration_sec\nfocal observation time of the infant in this month (seconds)\n\n\nnormal_approach_received_freq\nnumber of approaches received from the mother\n\n\n\n\nxdata &lt;- read.csv(\"dataset_mothering_behaviors_Anonymized.csv\")\n\n\nxdata &lt;- xdata[, !duplicated(names(xdata))]          # 'immature_ID' appears twice\nxdata$approaches &lt;- xdata$normal_approach_received_freq\nxdata$hours      &lt;- xdata$imm_focal_duration_sec / 3600\nxdata$age.months &lt;- xdata$age / 30.44\nxdata$z.age      &lt;- as.numeric(scale(xdata$age))\n\nExercise 1: explore the data\nHow many rows, infants and mothers are there? How many mothers have more than one infant in the data? Plot the rate of approaches (per hour) against age, with one line per infant.\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nnrow(xdata)\n\n#&gt; [1] 582\n\nlength(unique(xdata$immature_ID))\n\n#&gt; [1] 80\n\nlength(unique(xdata$mother_ID))\n\n#&gt; [1] 49\n\nsum(tapply(xdata$immature_ID, xdata$mother_ID, function(x) length(unique(x))) &gt; 1)\n\n#&gt; [1] 19\n\nxdata$rate &lt;- xdata$approaches / xdata$hours\nggplot(xdata, aes(age.months, rate, group = immature_ID)) +\n  geom_line(alpha = .3, colour = \"#1b6f8a\") +\n  labs(x = \"Age (months)\", y = \"Approaches per hour\")\n\n\n\n\n\n\n\nEach infant contributes several months, and several infants share a mother: the rows are not independent, and the data have two nested grouping factors (infants within mothers).\n\n\n\nExercise 2: the model we already know\nFit a Poisson GLM of approaches with z.age as predictor. Why do you need an offset, and what does it look like? Interpret the age effect, and check for overdispersion.\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nglm.mod &lt;- glm(approaches ~ z.age + offset(log(hours)), family = poisson, data = xdata)\nsummary(glm.mod)$coefficients\n\n#&gt;               Estimate Std. Error   z value     Pr(&gt;|z|)\n#&gt; (Intercept) -0.1129134 0.04586247 -2.462001 1.381643e-02\n#&gt; z.age       -0.2442834 0.04642188 -5.262247 1.423057e-07\n\nexp(coef(glm.mod)[\"z.age\"])                                   # rate ratio per SD of age\n\n#&gt;     z.age \n#&gt; 0.7832656\n\nsum(residuals(glm.mod, type = \"pearson\")^2) / df.residual(glm.mod)   # dispersion\n\n#&gt; [1] 1.555269\n\n\nObservation time differs between rows, so we model the rate of approaches: offset(log(hours)) (see offset). The GLM reports a clear decline of approaches with age. The dispersion ratio is above 1: the counts vary more than a Poisson model expects (overdispersion), often a symptom of ignored structure.\n\n\n\nExercise 3: add a random intercept for infants\nFit the same model with a random intercept for immature_ID. What happens to the age effect and its standard error?\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nri.mod &lt;- glmer(approaches ~ z.age + offset(log(hours)) + (1 | immature_ID),\n                family = poisson, data = xdata,\n                control = glmerControl(optimizer = \"bobyqa\"))\nsummary(ri.mod)$coefficients\n\n#&gt;                Estimate Std. Error   z value     Pr(&gt;|z|)\n#&gt; (Intercept) -0.35153921 0.10512521 -3.344005 0.0008257829\n#&gt; z.age       -0.06841068 0.06551286 -1.044233 0.2963776425\n\nVarCorr(ri.mod)\n\n#&gt;  Groups      Name        Std.Dev.\n#&gt;  immature_ID (Intercept) 0.64346\n\n\nThe picture changes completely: the age effect is much smaller and no longer significant. Infants differ strongly in their baseline rate (SD of the random intercept), and because infants are observed at different ages, the GLM mistook differences between infants for a change with age.\n\n\n\nExercise 4: infants within mothers\nSeveral infants share a mother. Add a random intercept for mother_ID. Look at the output: what does the message boundary (singular) fit mean here?\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nri2.mod &lt;- glmer(approaches ~ z.age + offset(log(hours)) + (1 | mother_ID) + (1 | immature_ID),\n                 family = poisson, data = xdata,\n                 control = glmerControl(optimizer = \"bobyqa\"))\nVarCorr(ri2.mod)\n\n#&gt;  Groups      Name        Std.Dev.\n#&gt;  immature_ID (Intercept) 0.64344 \n#&gt;  mother_ID   (Intercept) 0.00000\n\nisSingular(ri2.mod)\n\n#&gt; [1] TRUE\n\n\nThe SD of the mother intercept is estimated as zero: once infants’ baselines are modelled, there is no additional variation between mothers that the data can detect. This is a singular fit. It is not an error, and the fixed effects are unchanged. Whether to keep the term depends on the design, not on the fit: with a nested design, many researchers keep it to represent the structure of the data.\n\n\n\nExercise 5: random slopes, as in the paper\nDal Pesco et al. (2026) included random slopes of age within both mother and infant, without correlations between intercepts and slopes. Fit this model. Which variance components are estimated as (near) zero?\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nrs.mod &lt;- glmer(approaches ~ z.age + offset(log(hours)) +\n                  (1 + z.age || mother_ID) + (1 + z.age || immature_ID),\n                family = poisson, data = xdata,\n                control = glmerControl(optimizer = \"bobyqa\"))\nVarCorr(rs.mod)\n\n#&gt;  Groups        Name        Std.Dev.\n#&gt;  immature_ID   z.age       0.000000\n#&gt;  immature_ID.1 (Intercept) 0.638724\n#&gt;  mother_ID     z.age       0.076766\n#&gt;  mother_ID.1   (Intercept) 0.000000\n\nsummary(rs.mod)$coefficients\n\n#&gt;                Estimate Std. Error   z value     Pr(&gt;|z|)\n#&gt; (Intercept) -0.35100931 0.10487605 -3.346897 0.0008172162\n#&gt; z.age       -0.07138771 0.06946104 -1.027737 0.3040733560\n\n\nAgain some components sit at zero (singular fit), but the estimate of the age effect barely changes. Removing the correlations (||) is a common first step when complex structures do not converge (see convergence failure); the paper reports the same reason.\n\n\n\nExercise 6: test the age effect and check the model\nTest the age effect with a likelihood-ratio test, keeping the random-effects structure. Then check the dispersion of the final model.\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nrs.null &lt;- glmer(approaches ~ 1 + offset(log(hours)) +\n                   (1 + z.age || mother_ID) + (1 + z.age || immature_ID),\n                 family = poisson, data = xdata,\n                 control = glmerControl(optimizer = \"bobyqa\"))\nanova(rs.null, rs.mod)\n\n#&gt; Data: xdata\n#&gt; Models:\n#&gt; rs.null: approaches ~ 1 + offset(log(hours)) + (1 + z.age || mother_ID) + (1 + z.age || immature_ID)\n#&gt; rs.mod: approaches ~ z.age + offset(log(hours)) + (1 + z.age || mother_ID) + (1 + z.age || immature_ID)\n#&gt;         npar    AIC    BIC  logLik deviance  Chisq Df Pr(&gt;Chisq)\n#&gt; rs.null    5 1302.4 1324.2 -646.19   1292.4                     \n#&gt; rs.mod     6 1303.3 1329.5 -645.66   1291.3 1.0623  1     0.3027\n\nsum(residuals(rs.mod, type = \"pearson\")^2) / df.residual(rs.mod)   # dispersion\n\n#&gt; [1] 1.104892\n\n\nNo evidence for a change in maternal approaches with age once the non-independence is modelled. The dispersion ratio is now close to 1: the overdispersion of the GLM was largely due to differences between infants.\n\n\n\nExercise 7: plot the result\nPlot the model-predicted rate of approaches over age: one line per infant, plus the population-average line.\n\n\n\n\n\n\nSolution\n\n\n\n\n\n\nnd &lt;- transform(xdata, hours = 1)                                   # rate per hour\nnd$p_inf &lt;- predict(rs.mod, newdata = nd, type = \"response\")\navg &lt;- data.frame(age.months = seq(0, 18, by = .5), hours = 1)\navg$z.age &lt;- (avg$age.months * 30.44 - mean(xdata$age)) / sd(xdata$age)\navg$p &lt;- predict(rs.mod, newdata = avg, type = \"response\", re.form = NA)  # without random effects\n\nggplot(nd, aes(age.months, p_inf, group = immature_ID)) +\n  geom_line(alpha = .25, colour = \"#1b6f8a\") +\n  geom_line(data = avg, aes(age.months, p), inherit.aes = FALSE, colour = \"#c0392b\", linewidth = 1.3) +\n  labs(x = \"Age (months)\", y = \"Predicted approaches per hour\",\n       caption = \"Blue: infants · red: population average\")\n\n\n\n\n\n\n\n\n\n\nExercise 8: report and compare\nWrite two or three sentences reporting the age effect as you would in a paper, including the model, the effect size on the response scale and the test. Then compare your model with the one described in the methods of Dal Pesco et al. (2026).\n\n\n\n\n\n\nBonus: when the truth is known\n\n\n\n\n\nReal data never tell you the true values. To check how well the model recovers them, repeat Exercises 2–6 with simulated_baboons.csv: simulated data with the same structure (infant IDs only, plus infant sex), generated with an age effect of −0.3 (log scale, per SD of age), no sex effect, an SD of 0.6 for the infant intercept and an SD of 0.25 for the infant age slope.",
+    "crumbs": [
       "Relaxing assumptions",
       "11 · Generalized linear mixed models (GLMM)"
     ]
@@ -1450,7 +1328,6 @@
     "section": "Reading",
     "text": "Reading\n\nBolker, B. M., Brooks, M. E., Clark, C. J., Geange, S. W., Poulsen, J. R., Stevens, M. H. H., & White, J.-S. S. (2009). Generalized linear mixed models: A practical guide for ecology and evolution. Trends in Ecology & Evolution, 24(3), 127–135.\nBolker, B. M. (2015). Linear and generalized linear mixed models. In G. A. Fox, S. Negrete-Yankelevich, & V. J. Sosa (Eds.), Ecological statistics: Contemporary theory and application. Oxford University Press.\nSchielzeth, H., & Forstmeier, W. (2009). Conclusions beyond support: Overconfident estimates in mixed models. Behavioral Ecology, 20(2), 416–420.\nBarr, D. J., Levy, R., Scheepers, C., & Tily, H. J. (2013). Random effects structure for confirmatory hypothesis testing: Keep it maximal. Journal of Memory and Language, 68(3), 255–278.",
     "crumbs": [
-      "Linear Models",
       "Relaxing assumptions",
       "11 · Generalized linear mixed models (GLMM)"
     ]
@@ -1566,12 +1443,5 @@
       "Workshops",
       "Overview"
     ]
-  },
-  {
-    "objectID": "tae/index.html#four-tests-one-dataset",
-    "href": "tae/index.html#four-tests-one-dataset",
-    "title": "Testing for Absence and Equivalence",
-    "section": "Four tests, one dataset",
-    "text": "Four tests, one dataset\nClassical significance tests can do much more than reject an effect of exactly zero. Lakens (2022, ch. 9) distinguishes four kinds of tests. They differ only in which hypothesis is tested, so all four can be applied to the same data: each answers a different question.\n\nThe data\nParticipants solve a puzzle; we measure the solution time in seconds. A control group is compared with a training group (500 participants each). The effect of interest is the time saved by training, Δ = control − training.\n\nThe smallest effect size of interest (SESOI) is 2 seconds: savings below 2 s are too small to matter in practice.\nA theory predicts savings between 0.5 and 2.5 s.\n\n\nset.seed(4)\ncontrol  &lt;- rnorm(500, mean = 20,   sd = 5)\ntraining &lt;- rnorm(500, mean = 18.8, sd = 5)\n\nsesoi &lt;- 2                     # smallest effect size of interest (s)\nlower &lt;- 0.5; upper &lt;- 2.5     # range predicted by the theory (s)\n\nThe observed saving is Δ = 1.25 s, 95% CI [0.65, 1.85], 90% CI [0.75, 1.76].\n\n\nThe four tests at a glance\n\n\nCode\nlim &lt;- c(-4, 4)\npanels &lt;- c(\"A: two-sided null hypothesis test\", \"B: interval hypothesis test\",\n            \"C: equivalence test\", \"D: minimum effect test\")\nreg &lt;- function(panel, xmin, xmax, hyp) data.frame(panel, xmin, xmax, hyp)\nregions &lt;- rbind(\n  reg(panels[1], lim[1], lim[2], \"H1\"),\n  reg(panels[2], c(lim[1], upper), c(lower, lim[2]), \"H0\"), reg(panels[2], lower, upper, \"H1\"),\n  reg(panels[3], c(lim[1], sesoi), c(-sesoi, lim[2]), \"H1\"), reg(panels[3], -sesoi, sesoi, \"H0\"),\n  reg(panels[4], c(lim[1], sesoi), c(-sesoi, lim[2]), \"H1\"), reg(panels[4], -sesoi, sesoi, \"H0\"))\nregions$hyp[regions$panel == panels[3]] &lt;- ifelse(regions$hyp[regions$panel == panels[3]] == \"H0\", \"H1\", \"H0\")\nregions$panel &lt;- factor(regions$panel, levels = panels)\nnil &lt;- data.frame(panel = factor(panels[1], levels = panels), x = 0)\nci  &lt;- data.frame(panel = factor(panels, levels = panels), est = est,\n                  lo = c(t95$conf.int[1], rep(t90$conf.int[1], 3)),\n                  hi = c(t95$conf.int[2], rep(t90$conf.int[2], 3)))\n\nggplot() +\n  geom_rect(data = regions, aes(xmin = xmin, xmax = xmax, ymin = -.4, ymax = .4, fill = hyp), alpha = .35) +\n  geom_segment(data = nil, aes(x = x, xend = x, y = -.4, yend = .4), colour = col_h0, linewidth = 1.6) +\n  geom_errorbarh(data = ci, aes(y = 0, xmin = lo, xmax = hi), height = .25, linewidth = 1, colour = col_navy) +\n  geom_point(data = ci, aes(est, 0), size = 2.6, colour = col_navy) +\n  facet_wrap(~ panel, ncol = 1, strip.position = \"left\", dir = \"v\") +\n  scale_fill_manual(values = c(H0 = col_h0, H1 = col_h1), name = NULL,\n                    labels = c(H0 = \"null hypothesis (H0)\", H1 = \"alternative hypothesis (H1)\")) +\n  scale_x_continuous(breaks = c(-sesoi, 0, lower, sesoi, upper), labels = c(\"-2\", \"0\", \"0.5\", \"2\", \"2.5\"),\n                     limits = lim, expand = c(0, 0)) +\n  labs(x = expression(paste(\"Time saved by training, \", Delta, \" (s)\")), y = NULL) +\n  theme_minimal(base_size = 12) +\n  theme(axis.text.y = element_blank(), panel.grid.major.y = element_blank(), panel.grid.minor = element_blank(),\n        strip.text.y.left = element_text(angle = 0, hjust = 1, face = \"bold\"),\n        legend.position = \"top\")\n\n\n\n\n\n\n\n\nFigure 1: Two-sided null hypothesis test (A), interval hypothesis test (B), equivalence test (C) and minimum effect test (D). Red: values in the null hypothesis; blue: values in the alternative hypothesis. Point and bar: our estimate with 95% CI (A) or 90% CI (B–D). Adapted from Lakens (2022), Fig. 9.1; this figure is licensed CC BY-NC-SA 4.0.\n\n\n\n\n\n\n\nA: two-sided null hypothesis test\nQuestion: Is there any effect at all? H0: Δ = 0. H1: Δ ≠ 0. The classic t-test; significant if the 95% CI excludes 0.\n\nt.test(control, training, var.equal = TRUE)\n\n#&gt; \n#&gt;  Two Sample t-test\n#&gt; \n#&gt; data:  control and training\n#&gt; t = 4.0852, df = 998, p-value = 4.757e-05\n#&gt; alternative hypothesis: true difference in means is not equal to 0\n#&gt; 95 percent confidence interval:\n#&gt;  0.6510149 1.8545975\n#&gt; sample estimates:\n#&gt; mean of x mean of y \n#&gt;  19.85426  18.60146\n\n\nResult: p &lt; .001. Training saves time, but this test says nothing about whether the saving is large enough to matter.\n\n\nB: interval hypothesis test\nQuestion: Does the effect fall within the range the theory predicts? H0: Δ ≤ 0.5 or Δ ≥ 2.5. H1: 0.5 &lt; Δ &lt; 2.5. Two one-sided tests, one against each bound; the prediction is supported if both are significant, i.e. the 90% CI lies inside the predicted range.\n\n# H0a: Delta &lt;= 0.5 (test: greater than the lower bound)\np_lo &lt;- t.test(control, training, mu = lower,\n               alternative = \"greater\", var.equal = TRUE)$p.value\n# H0b: Delta &gt;= 2.5 (test: less than the upper bound)\np_hi &lt;- t.test(control, training, mu = upper,\n               alternative = \"less\", var.equal = TRUE)$p.value\nc(p_lower = p_lo, p_upper = p_hi, p = max(p_lo, p_hi))\n\n#&gt;      p_lower      p_upper            p \n#&gt; 7.133457e-03 2.569832e-05 7.133457e-03\n\n\nResult: p = .007. The saving lies within the predicted range of 0.5 to 2.5 s.\n\n\nC: equivalence test (TOST)\nQuestion: Is the effect too small to matter? H0: Δ ≤ −2 or Δ ≥ 2. H1: −2 &lt; Δ &lt; 2. The same two one-sided tests as in B, now against −SESOI and +SESOI; equivalence is shown if the 90% CI lies inside the equivalence bounds.\n\n# H0a: Delta &lt;= -2 (test: greater than the lower equivalence bound)\np_lo &lt;- t.test(control, training, mu = -sesoi,\n               alternative = \"greater\", var.equal = TRUE)$p.value\n# H0b: Delta &gt;= 2 (test: less than the upper equivalence bound)\np_hi &lt;- t.test(control, training, mu = sesoi,\n               alternative = \"less\", var.equal = TRUE)$p.value\nc(p_lower = p_lo, p_upper = p_hi, p = max(p_lo, p_hi))\n\n#&gt;      p_lower      p_upper            p \n#&gt; 2.791839e-25 7.502522e-03 7.502522e-03\n\n\nResult: p = .008. The saving is statistically equivalent to zero within ±2 s: it is real (test A), but smaller than anything we consider meaningful.\n\n\nD: minimum effect test\nQuestion: Is the effect larger than the smallest effect of interest? H0: −2 ≤ Δ ≤ 2. H1: Δ &lt; −2 or Δ &gt; 2. The reverse of the equivalence test; here we test only the direction the theory predicts (Δ &gt; 2).\n\n# H0: Delta &lt;= 2 (test: greater than the SESOI)\nt.test(control, training, mu = sesoi,\n       alternative = \"greater\", var.equal = TRUE)$p.value\n\n#&gt; [1] 0.9924975\n\n\nResult: p = .992. We cannot claim a saving larger than 2 s.\n\n\nWith the TOSTER package\nThe R package TOSTER runs tests C and D in one call and adds effect sizes and plots:\n\nlibrary(TOSTER)\n# C: equivalence test\nt_TOST(x = control, y = training, eqb = sesoi, var.equal = TRUE)\n# D: minimum effect test\nt_TOST(x = control, y = training, eqb = sesoi, var.equal = TRUE, hypothesis = \"MET\")\n\n\n\nSummary\n\n\n\n\n\n\n\n\n\nTest\nQuestion\nH0\nResult here\n\n\n\n\nA: two-sided null hypothesis test\nAny effect?\nΔ = 0\nrejected: training saves time\n\n\nB: interval hypothesis test\nWithin the predicted range?\nΔ ≤ 0.5 or Δ ≥ 2.5\nrejected: prediction supported\n\n\nC: equivalence test\nToo small to matter?\n|Δ| ≥ 2\nrejected: equivalent to zero\n\n\nD: minimum effect test\nLarger than the SESOI?\n|Δ| ≤ 2\nnot rejected\n\n\n\nThe same data give four different answers because the tests ask four different questions. Which test is appropriate follows from the hypothesis, and should be decided, and preregistered, before the data are seen.\n\nNote: With 500 participants per group, even a saving of about 1 s is detected (A) and shown to be negligible (C). With small samples, typical for animal studies, all four tests are often inconclusive. Planning the sample size for the test you intend to run is part of the course.\n\nReference: Lakens, D. (2022). Improving your statistical inferences (ch. 9: Equivalence testing and interval hypotheses). https://doi.org/10.5281/zenodo.6409077. Licensed CC BY-NC-SA 4.0."
   }
 ]

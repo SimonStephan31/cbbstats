@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.6.42">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
 <title>10 · Generalized linear models (GLM) – Statistics Teaching at CBB</title>
 <style>
 code{white-space: pre-wrap;}
@@ -53,6 +56,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }
 </style>
 
+
 <script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../../site_libs/quarto-nav/headroom.min.js"></script>
 <script src="../../site_libs/clipboard/clipboard.min.js"></script>
@@ -70,7 +74,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-349c9e61a62bda94a3ee0035142f7399.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+<link href="../../site_libs/bootstrap/bootstrap-349c9e61a62bda94a3ee0035142f7399.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
   "collapse-after": 3,
@@ -96,12 +101,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
-}</script><style>html{ scroll-behavior: smooth; }</style>
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+
 </head>
+
 <body class="nav-sidebar docked nav-fixed">
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">Statistics Teaching at CBB</span>
@@ -113,22 +124,33 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
-<li class="nav-item">
+  <li class="nav-item">
     <a class="nav-link" href="../../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link active" href="../../linear-models/index.html" aria-current="page"> 
-<span class="menu-text">Linear Models</span></a>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-courses" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Courses</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-courses">    
+        <li>
+    <a class="dropdown-item" href="../../linear-models/index.html">
+ <span class="dropdown-text">1 · Linear Models in R</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="../../ores/index.html"> 
-<span class="menu-text">ORES</span></a>
+        <li>
+    <a class="dropdown-item" href="../../ores/index.html">
+ <span class="dropdown-text">2 · Open, Replicable, and Ethical Science (ORES)</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="../../tae/index.html"> 
-<span class="menu-text">TAE</span></a>
+        <li>
+    <a class="dropdown-item" href="../../tae/index.html">
+ <span class="dropdown-text">3 · Testing for Absence and Equivalence (TAE)</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../../ibcm/index.html">
+ <span class="dropdown-text">4 · Inference with Bayesian Causal Models (IBCM)</span></a>
+  </li>  
+    </ul>
+  </li>
   <li class="nav-item">
     <a class="nav-link" href="../../workshops/index.html"> 
 <span class="menu-text">Workshops</span></a>
@@ -138,8 +160,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">Consultation</span></a>
   </li>  
 </ul>
-<ul class="navbar-nav navbar-nav-scroll ms-auto">
-<li class="nav-item">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
     <a class="nav-link" href="../../glossary.html"> 
 <span class="menu-text">Glossary</span></a>
   </li>  
@@ -157,11 +179,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text"></span></a>
   </li>  
 </ul>
-</div> <!-- /navcollapse -->
+          </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
 </div>
       </div> <!-- /container-fluid -->
-    </nav><nav class="quarto-secondary-nav"><div class="container-fluid d-flex">
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
@@ -169,11 +193,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
-  </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto"><div class="sidebar-menu-container"> 
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
-<li class="sidebar-item">
+        <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../linear-models/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Course overview</span></a>
@@ -187,8 +215,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../linear-models/sessions/01-introduction.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">01 · Introduction</span></a>
@@ -219,7 +247,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </div>
 </li>
       </ul>
-</li>
+  </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
@@ -228,8 +256,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../linear-models/sessions/06-t-test.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">06 · The t-test as a linear model</span></a>
@@ -242,7 +270,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </div>
 </li>
       </ul>
-</li>
+  </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
@@ -251,8 +279,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../linear-models/sessions/08-model-building.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">08 · Model building</span></a>
@@ -265,7 +293,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </div>
 </li>
       </ul>
-</li>
+  </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
@@ -274,8 +302,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../linear-models/sessions/10-glm.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">10 · Generalized linear models (GLM)</span></a>
@@ -287,14 +315,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">11 · Generalized linear mixed models (GLMM)</span></a>
   </div>
 </li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../../linear-models/exercises/11-glmm.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">11 · Exercises</span></a>
-  </div>
-</li>
       </ul>
-</li>
+  </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../linear-models/final-project.html" class="sidebar-item-text sidebar-link">
@@ -302,22 +324,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </div>
 </li>
     </ul>
-</div>
-</nav><div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
    
   <ul class="collapse">
-<li><a href="#in-this-session" id="toc-in-this-session" class="nav-link active" data-scroll-target="#in-this-session">In this session</a></li>
+  <li><a href="#in-this-session" id="toc-in-this-session" class="nav-link active" data-scroll-target="#in-this-session">In this session</a></li>
   <li><a href="#learning-goals" id="toc-learning-goals" class="nav-link" data-scroll-target="#learning-goals">Learning goals</a></li>
-  <li><a href="#simulate-first" id="toc-simulate-first" class="nav-link" data-scroll-target="#simulate-first">Simulate first</a></li>
   <li><a href="#materials" id="toc-materials" class="nav-link" data-scroll-target="#materials">Materials</a></li>
+  <li><a href="#worked-example-1-who-solves-the-puzzle-box" id="toc-worked-example-1-who-solves-the-puzzle-box" class="nav-link" data-scroll-target="#worked-example-1-who-solves-the-puzzle-box">Worked example 1: who solves the puzzle box?</a></li>
+  <li><a href="#worked-example-2-grunts-in-focal-observations" id="toc-worked-example-2-grunts-in-focal-observations" class="nav-link" data-scroll-target="#worked-example-2-grunts-in-focal-observations">Worked example 2: grunts in focal observations</a></li>
+  <li><a href="#practical" id="toc-practical" class="nav-link" data-scroll-target="#practical">Practical: maternal approaches in wild Guinea baboons</a></li>
   <li><a href="#reading" id="toc-reading" class="nav-link" data-scroll-target="#reading">Reading</a></li>
-  </ul><div class="toc-actions"><ul class="collapse"><li><a href="https://github.com/SimonStephan31/cbbstats/blob/main/linear-models/sessions/10-glm.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/SimonStephan31/cbbstats/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+  </ul>
+<div class="toc-actions"><ul class="collapse"><li><a href="https://github.com/SimonStephan31/cbbstats/blob/main/linear-models/sessions/10-glm.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/SimonStephan31/cbbstats/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../linear-models/sessions/10-glm.html">Relaxing assumptions</a></li><li class="breadcrumb-item"><a href="../../linear-models/sessions/10-glm.html">10 · Generalized linear models (GLM)</a></li></ol></nav><div class="quarto-title">
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../linear-models/sessions/10-glm.html">Relaxing assumptions</a></li><li class="breadcrumb-item"><a href="../../linear-models/sessions/10-glm.html">10 · Generalized linear models (GLM)</a></li></ol></nav>
+<div class="quarto-title">
 <h1 class="title">10 · Generalized linear models (GLM)</h1>
 <p class="subtitle lead">Week 3</p>
 </div>
@@ -333,76 +363,539 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   
 
 
-</header><div class="guiding-q">
+</header>
+
+
+<div class="guiding-q">
 <p>What to do if the DV is not normal?</p>
 </div>
 <p><span class="accent">The first assumption we relax: <strong>normality</strong>.</span></p>
-<section id="in-this-session" class="level2"><h2 class="anchored" data-anchor-id="in-this-session">In this session</h2>
+<section id="in-this-session" class="level2">
+<h2 class="anchored" data-anchor-id="in-this-session">In this session</h2>
 <ul>
-<li>Responses that are counts, proportions or binary choices</li>
+<li>Why the linear model fails for binary data and counts</li>
 <li>The three parts of a GLM: distribution, linear predictor, link function</li>
-<li>Poisson and binomial models; offsets for observation time</li>
-<li>Overdispersion and the negative binomial model</li>
-<li>Interpreting coefficients and plotting predictions on the response scale</li>
+<li>Logistic regression: log-odds, odds ratios, predicted probabilities</li>
+<li>Poisson regression: rate ratios, offsets for different observation times</li>
+<li>Maximum likelihood, deviance and likelihood-ratio tests</li>
+<li>Checking GLMs: simulated residuals, overdispersion, the negative binomial model</li>
+<li>Practical: maternal approaches in wild Guinea baboons (real DPZ field data)</li>
 </ul>
 <div class="key-terms">
-<p><strong>Key terms:</strong> <a href="../../glossary.html#link-function">Link function</a>, <a href="../../glossary.html#log-odds">Log-odds (logit)</a>, <a href="../../glossary.html#offset">Offset</a>, <a href="../../glossary.html#overdispersion">Overdispersion</a>, <a href="../../glossary.html#zero-inflation">Zero-inflation</a>, <a href="../../glossary.html#complete-separation">Complete separation</a></p>
+<p><strong>Key terms:</strong> <a href="../../glossary.html#link-function">Link function</a>, <a href="../../glossary.html#log-odds">Log-odds (logit)</a>, <a href="../../glossary.html#offset">Offset</a>, <a href="../../glossary.html#lrt">Likelihood-ratio test</a>, <a href="../../glossary.html#overdispersion">Overdispersion</a>, <a href="../../glossary.html#zero-inflation">Zero-inflation</a>, <a href="../../glossary.html#complete-separation">Complete separation</a></p>
 </div>
-</section><section id="learning-goals" class="level2"><h2 class="anchored" data-anchor-id="learning-goals">Learning goals</h2>
+</section>
+<section id="learning-goals" class="level2">
+<h2 class="anchored" data-anchor-id="learning-goals">Learning goals</h2>
 <p>After this session you can</p>
+<ol type="1">
+<li>explain why the linear model fails for <strong>binary</strong> and <strong>count</strong> data,</li>
+<li>name the three parts of a GLM: <strong>distribution</strong>, <strong>linear predictor</strong>, <strong>link function</strong>,</li>
+<li>fit and interpret <strong>logistic</strong> and <strong>Poisson</strong> regressions in R, on the <strong>response scale</strong>,</li>
+<li>detect <strong>overdispersion</strong> and know what to do about it.</li>
+</ol>
+</section>
+<section id="materials" class="level2">
+<h2 class="anchored" data-anchor-id="materials">Materials</h2>
+<div class="materials">
 <ul>
-<li>choose a distribution and link function that fit the response,</li>
-<li>fit Poisson and binomial GLMs and interpret them on the response scale,</li>
-<li>detect and handle overdispersion.</li>
-</ul></section><section id="simulate-first" class="level2"><h2 class="anchored" data-anchor-id="simulate-first">Simulate first</h2>
-<p>Counts of approaches per focal observation, increasing with age on the log scale.</p>
+<li><a href="../../slides/10-glm.html" target="_blank">Slides</a> (press <kbd>F</kbd> for full screen, <kbd>S</kbd> for speaker notes)</li>
+<li><a href="../../scripts/10-glm.R">R script</a> for the worked examples below</li>
+<li><a href="#practical">Practical</a> with solutions: maternal approaches in wild Guinea baboons, with the open data of Dal Pesco et al.&nbsp;(2026)</li>
+</ul>
+</div>
+</section>
+<section id="worked-example-1-who-solves-the-puzzle-box" class="level2">
+<h2 class="anchored" data-anchor-id="worked-example-1-who-solves-the-puzzle-box">Worked example 1: who solves the puzzle box?</h2>
+<p>120 monkeys are each tested <strong>once</strong> with a new puzzle box. Do younger monkeys solve novel problems more often? The response is binary: solved (1) or not (0). The data are simulated.</p>
 <div class="cell">
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
-<span><span class="va">age</span>    <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fl">150</span>, <span class="fl">0</span>, <span class="fl">12</span><span class="op">)</span>                    <span class="co"># months</span></span>
-<span><span class="va">mu</span>     <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fl">0.2</span> <span class="op">+</span> <span class="fl">0.12</span> <span class="op">*</span> <span class="va">age</span><span class="op">)</span>                <span class="co"># log link</span></span>
-<span><span class="va">counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html">rpois</a></span><span class="op">(</span><span class="fl">150</span>, <span class="va">mu</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html">glm</a></span><span class="op">(</span><span class="va">counts</span> <span class="op">~</span> <span class="va">age</span>, family <span class="op">=</span> <span class="va">poisson</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>                              <span class="co"># back on the log scale</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>#&gt; (Intercept)         age 
-#&gt;        0.33        0.11</code></pre>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">10</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>puzzle <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">age =</span> <span class="fu">round</span>(<span class="fu">runif</span>(<span class="dv">120</span>, <span class="dv">2</span>, <span class="dv">22</span>), <span class="dv">1</span>))</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>puzzle<span class="sc">$</span>age_c  <span class="ot">&lt;-</span> puzzle<span class="sc">$</span>age <span class="sc">-</span> <span class="dv">10</span>                     <span class="co"># centred at 10 years</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>puzzle<span class="sc">$</span>solved <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(<span class="dv">120</span>, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="fl">0.4</span> <span class="sc">-</span> <span class="fl">0.18</span> <span class="sc">*</span> puzzle<span class="sc">$</span>age_c))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>                      <span class="co"># multiplicative change per month</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<section id="logistic-regression" class="level3">
+<h3 class="anchored" data-anchor-id="logistic-regression">Logistic regression</h3>
+<p>The binomial distribution with the logit link: logit(<em>p</em>) = log(<em>p</em> / (1 − <em>p</em>)) = β<sub>0</sub> + β<sub>1</sub> · age.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>glm1 <span class="ot">&lt;-</span> <span class="fu">glm</span>(solved <span class="sc">~</span> age_c, <span class="at">family =</span> binomial, <span class="at">data =</span> puzzle)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(glm1)<span class="sc">$</span>coefficients</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>#&gt;  age 
-#&gt; 1.11</code></pre>
+<pre><code>#&gt;               Estimate Std. Error   z value     Pr(&gt;|z|)
+#&gt; (Intercept)  0.4815479 0.21833960  2.205500 2.741906e-02
+#&gt; age_c       -0.1982492 0.04362213 -4.544693 5.501545e-06</code></pre>
 </div>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">counts</span>, pch <span class="op">=</span> <span class="fl">19</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/adjustcolor.html">adjustcolor</a></span><span class="op">(</span><span class="st">"#1b6f8a"</span>, <span class="fl">.5</span><span class="op">)</span>,</span>
-<span>     xlab <span class="op">=</span> <span class="st">"Age (months)"</span>, ylab <span class="op">=</span> <span class="st">"Count"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/curve.html">curve</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">m</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>age <span class="op">=</span> <span class="va">x</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"response"</span><span class="op">)</span>,</span>
-<span>      add <span class="op">=</span> <span class="cn">TRUE</span>, col <span class="op">=</span> <span class="st">"#c0392b"</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(<span class="fu">coef</span>(glm1))        <span class="co"># odds ratios</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt; (Intercept)       age_c 
+#&gt;   1.6185778   0.8201655</code></pre>
+</div>
+</div>
+<ul>
+<li><strong>Intercept</strong> 0.48: the log-odds of solving for a 10-year-old, i.e.&nbsp;P(solved) = <code>plogis(0.48)</code> = 62%.</li>
+<li><strong>Slope</strong> -0.20 per year; <strong>odds ratio</strong> 0.82: with each year, the odds of solving are multiplied by 0.82. Odds are not probabilities: how much the probability changes depends on where you are on the S-curve. A rule of thumb: β/4 ≈ -0.05 is the maximum change in probability per year (at 50%).</li>
+</ul>
+</section>
+<section id="predictions-on-the-response-scale" class="level3">
+<h3 class="anchored" data-anchor-id="predictions-on-the-response-scale">Predictions on the response scale</h3>
+<p>Compute the confidence interval on the link scale, then back-transform, so that it stays within 0–1:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>nd <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">age =</span> <span class="fu">seq</span>(<span class="dv">2</span>, <span class="dv">22</span>, <span class="at">by =</span> <span class="fl">0.2</span>)); nd<span class="sc">$</span>age_c <span class="ot">&lt;-</span> nd<span class="sc">$</span>age <span class="sc">-</span> <span class="dv">10</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>pr <span class="ot">&lt;-</span> <span class="fu">predict</span>(glm1, <span class="at">newdata =</span> nd, <span class="at">type =</span> <span class="st">"link"</span>, <span class="at">se.fit =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>nd<span class="sc">$</span>p  <span class="ot">&lt;-</span> <span class="fu">plogis</span>(pr<span class="sc">$</span>fit)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>nd<span class="sc">$</span>lo <span class="ot">&lt;-</span> <span class="fu">plogis</span>(pr<span class="sc">$</span>fit <span class="sc">-</span> <span class="fl">1.96</span> <span class="sc">*</span> pr<span class="sc">$</span>se.fit)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>nd<span class="sc">$</span>hi <span class="ot">&lt;-</span> <span class="fu">plogis</span>(pr<span class="sc">$</span>fit <span class="sc">+</span> <span class="fl">1.96</span> <span class="sc">*</span> pr<span class="sc">$</span>se.fit)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(nd, <span class="fu">aes</span>(age, p)) <span class="sc">+</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">data =</span> puzzle, <span class="fu">aes</span>(age, solved), <span class="at">height =</span> .<span class="dv">03</span>, <span class="at">width =</span> <span class="dv">0</span>, <span class="at">colour =</span> col_lm, <span class="at">alpha =</span> .<span class="dv">5</span>) <span class="sc">+</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> lo, <span class="at">ymax =</span> hi), <span class="at">fill =</span> col_glm, <span class="at">alpha =</span> .<span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">colour =</span> col_glm, <span class="at">linewidth =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>percent) <span class="sc">+</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Age (years)"</span>, <span class="at">y =</span> <span class="st">"P(solved)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="10-glm_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="975"></p>
+<figure class="figure">
+<p><img src="10-glm_files/figure-html/glm1-pred-1.png" class="img-fluid figure-img" width="975"></p>
 </figure>
 </div>
 </div>
 </div>
-</section><section id="materials" class="level2"><h2 class="anchored" data-anchor-id="materials">Materials</h2>
-<div class="materials">
-<ul>
-<li>Slides <span class="tag">coming soon</span>
-</li>
-<li>R script <span class="tag">coming soon</span>
-</li>
-<li>Exercises <span class="tag">coming soon</span>
-</li>
-</ul>
+</section>
+<section id="test-likelihood-ratio-test" class="level3">
+<h3 class="anchored" data-anchor-id="test-likelihood-ratio-test">Test: likelihood-ratio test</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>glm0 <span class="ot">&lt;-</span> <span class="fu">glm</span>(solved <span class="sc">~</span> <span class="dv">1</span>, <span class="at">family =</span> binomial, <span class="at">data =</span> puzzle)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(glm0, glm1, <span class="at">test =</span> <span class="st">"Chisq"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt; Analysis of Deviance Table
+#&gt; 
+#&gt; Model 1: solved ~ 1
+#&gt; Model 2: solved ~ age_c
+#&gt;   Resid. Df Resid. Dev Df Deviance  Pr(&gt;Chi)    
+#&gt; 1       119     165.52                          
+#&gt; 2       118     139.51  1   26.012 3.393e-07 ***
+#&gt; ---
+#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
-</section><section id="reading" class="level2"><h2 class="anchored" data-anchor-id="reading">Reading</h2>
+</div>
+</section>
+</section>
+<section id="worked-example-2-grunts-in-focal-observations" class="level2">
+<h2 class="anchored" data-anchor-id="worked-example-2-grunts-in-focal-observations">Worked example 2: grunts in focal observations</h2>
+<p>90 monkeys are each observed <strong>once</strong>, for 10–60 minutes, and we count their grunts. Do higher-ranking monkeys grunt more? The data are simulated.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">3</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>calls <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">rank_z =</span> <span class="fu">round</span>(<span class="fu">rnorm</span>(<span class="dv">90</span>), <span class="dv">2</span>), <span class="at">minutes =</span> <span class="fu">round</span>(<span class="fu">runif</span>(<span class="dv">90</span>, <span class="dv">10</span>, <span class="dv">60</span>)))</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>mu    <span class="ot">&lt;-</span> calls<span class="sc">$</span>minutes <span class="sc">*</span> <span class="fu">exp</span>(<span class="fu">log</span>(<span class="fl">0.15</span>) <span class="sc">+</span> <span class="fl">0.35</span> <span class="sc">*</span> calls<span class="sc">$</span>rank_z)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>calls<span class="sc">$</span>grunts <span class="ot">&lt;-</span> <span class="fu">rnbinom</span>(<span class="dv">90</span>, <span class="at">mu =</span> mu, <span class="at">size =</span> <span class="dv">2</span>)          <span class="co"># overdispersed counts</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="poisson-regression-with-an-offset" class="level3">
+<h3 class="anchored" data-anchor-id="poisson-regression-with-an-offset">Poisson regression with an offset</h3>
+<p>The Poisson distribution with the log link. Because observation times differ, <code>offset(log(minutes))</code> turns the model of counts into a model of <strong>rates</strong> (grunts per minute).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>pois <span class="ot">&lt;-</span> <span class="fu">glm</span>(grunts <span class="sc">~</span> rank_z <span class="sc">+</span> <span class="fu">offset</span>(<span class="fu">log</span>(minutes)), <span class="at">family =</span> poisson, <span class="at">data =</span> calls)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(pois)<span class="sc">$</span>coefficients</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt;               Estimate Std. Error    z value     Pr(&gt;|z|)
+#&gt; (Intercept) -1.7599468 0.04414725 -39.865381 0.000000e+00
+#&gt; rank_z       0.4046258 0.04999826   8.092797 5.831013e-16</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(<span class="fu">coef</span>(pois))        <span class="co"># rate per minute (intercept) and rate ratio (rank)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt; (Intercept)      rank_z 
+#&gt;    0.172054    1.498742</code></pre>
+</div>
+</div>
+<p>An average-ranking monkey grunts 0.17 times per minute (10.3 per hour); one SD higher rank multiplies the rate by 1.50.</p>
+</section>
+<section id="overdispersion" class="level3">
+<h3 class="anchored" data-anchor-id="overdispersion">Overdispersion</h3>
+<p>The Poisson model assumes that the variance equals the mean. The dispersion ratio should be close to 1:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">residuals</span>(pois, <span class="at">type =</span> <span class="st">"pearson"</span>)<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> <span class="fu">df.residual</span>(pois)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt; [1] 3.968674</code></pre>
+</div>
+</div>
+<p>At 3.97, the counts vary much more than the model expects, so its standard errors are too small. Simulated quantile residuals show the same (<code>plot(DHARMa::simulateResiduals(pois))</code>). A negative binomial model adds a parameter for the extra variance:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>nb <span class="ot">&lt;-</span> <span class="fu">glm.nb</span>(grunts <span class="sc">~</span> rank_z <span class="sc">+</span> <span class="fu">offset</span>(<span class="fu">log</span>(minutes)), <span class="at">data =</span> calls)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(nb)<span class="sc">$</span>coefficients</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt;              Estimate Std. Error    z value     Pr(&gt;|z|)
+#&gt; (Intercept) -1.783289  0.0916880 -19.449539 2.940641e-84
+#&gt; rank_z       0.392227  0.1059704   3.701287 2.145085e-04</code></pre>
+</div>
+</div>
+<p>The estimate for rank hardly changes (0.39 vs.&nbsp;0.40), but its standard error more than doubles (0.106 vs.&nbsp;0.050). Here the effect survives; with a weaker or no effect, the Poisson model could easily produce a false positive (see the simulation in the slides).</p>
+</section>
+</section>
+<section id="practical" class="level2">
+<h2 class="anchored" data-anchor-id="practical">Practical: maternal approaches in wild Guinea baboons</h2>
+<p>How often do mothers approach their infants in the first six months of life, and does this depend on the infant’s sex or on the mother’s age? You use real field data from the DPZ field station Simenti (Senegal):</p>
+<blockquote class="blockquote">
+<p>Dal Pesco, F., et al.&nbsp;(2026). Maternal style does not predict infant growth and survival in wild Guinea baboons. <em>Animal Behaviour</em>.</p>
+</blockquote>
+<p>The data are openly available on OSF (<a href="https://doi.org/10.17605/OSF.IO/YH2BW" class="uri">https://doi.org/10.17605/OSF.IO/YH2BW</a>). Please cite the paper and the repository when you use them.</p>
+<p><a href="../../data/dataset_mothering_behaviors_Anonymized.csv" download="dataset_mothering_behaviors_Anonymized.csv">Download <code>dataset_mothering_behaviors_Anonymized.csv</code></a></p>
+<p>The file has one row per infant and month. To keep the observations independent (the topic of session 11), we first aggregate the data to <strong>one row per infant</strong>: all approaches and all observation time in the first six months. The variables you need:</p>
+<table class="table-striped caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>immature_ID</code></td>
+<td>infant ID</td>
+</tr>
+<tr class="even">
+<td><code>mother_ID</code></td>
+<td>mother ID</td>
+</tr>
+<tr class="odd">
+<td><code>age</code></td>
+<td>infant age in days</td>
+</tr>
+<tr class="even">
+<td><code>immature_sex</code></td>
+<td>infant sex (F, M)</td>
+</tr>
+<tr class="odd">
+<td><code>mother_monthly_age</code></td>
+<td>mother’s age class in this month: young (YAF), middle-aged (MAF), old (OAF) adult female</td>
+</tr>
+<tr class="even">
+<td><code>imm_focal_duration_sec</code></td>
+<td>focal observation time in this month (seconds)</td>
+</tr>
+<tr class="odd">
+<td><code>normal_approach_received_freq</code></td>
+<td>number of approaches received from the mother</td>
+</tr>
+</tbody>
+</table>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>xdata <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"dataset_mothering_behaviors_Anonymized.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="exercise-1-one-row-per-infant" class="level3">
+<h3 class="anchored" data-anchor-id="exercise-1-one-row-per-infant">Exercise 1: one row per infant</h3>
+<p>Keep the months in which the infant was younger than six months (<code>age &lt; 183</code> days). Then aggregate to one row per infant with the total number of approaches, the total observation time in hours, the infant’s sex and the mother’s (most frequent) age class.</p>
+<div class="callout callout-style-default callout-tip callout-titled" title="Solution">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Solution
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>xdata <span class="ot">&lt;-</span> xdata[, <span class="sc">!</span><span class="fu">duplicated</span>(<span class="fu">names</span>(xdata))]          <span class="co"># 'immature_ID' appears twice</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>w <span class="ot">&lt;-</span> xdata[xdata<span class="sc">$</span>age <span class="sc">&lt;</span> <span class="dv">183</span>, ]</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>infants <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">split</span>(w, w<span class="sc">$</span>immature_ID), <span class="cf">function</span>(d) <span class="fu">data.frame</span>(</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">infant     =</span> d<span class="sc">$</span>immature_ID[<span class="dv">1</span>],</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">mother     =</span> d<span class="sc">$</span>mother_ID[<span class="dv">1</span>],</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">sex        =</span> d<span class="sc">$</span>immature_sex[<span class="dv">1</span>],</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">mother_age =</span> <span class="fu">names</span>(<span class="fu">which.max</span>(<span class="fu">table</span>(d<span class="sc">$</span>mother_monthly_age))),</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">hours      =</span> <span class="fu">sum</span>(d<span class="sc">$</span>imm_focal_duration_sec) <span class="sc">/</span> <span class="dv">3600</span>,</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">approaches =</span> <span class="fu">sum</span>(d<span class="sc">$</span>normal_approach_received_freq))))</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>infants<span class="sc">$</span>mother_age <span class="ot">&lt;-</span> <span class="fu">factor</span>(infants<span class="sc">$</span>mother_age, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"MAF"</span>, <span class="st">"YAF"</span>, <span class="st">"OAF"</span>))  <span class="co"># most common class as reference</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>infants<span class="sc">$</span>sex <span class="ot">&lt;-</span> <span class="fu">factor</span>(infants<span class="sc">$</span>sex)</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(infants)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt; [1] 68</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(infants<span class="sc">$</span>sex, infants<span class="sc">$</span>mother_age)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt;    
+#&gt;     MAF YAF OAF
+#&gt;   F  21   9   6
+#&gt;   M  24   4   4</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="exercise-2-explore-the-data" class="level3">
+<h3 class="anchored" data-anchor-id="exercise-2-explore-the-data">Exercise 2: explore the data</h3>
+<p>Plot the number of approaches against observation time, and the rate (approaches per hour) by sex and mother’s age class. What do you notice about the distribution of the counts?</p>
+<div class="callout callout-style-default callout-tip callout-titled" title="Solution">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Solution
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(infants<span class="sc">$</span>approaches)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#&gt;   0.000   0.000   1.000   4.662   5.000  39.000</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(infants<span class="sc">$</span>approaches <span class="sc">==</span> <span class="dv">0</span>)                        <span class="co"># proportion of zeros</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt; [1] 0.3823529</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>infants<span class="sc">$</span>rate <span class="ot">&lt;-</span> infants<span class="sc">$</span>approaches <span class="sc">/</span> infants<span class="sc">$</span>hours</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(infants, <span class="fu">aes</span>(mother_age, rate, <span class="at">colour =</span> sex)) <span class="sc">+</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">width =</span> .<span class="dv">15</span>, <span class="at">alpha =</span> .<span class="dv">7</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(col_glm, col_red)) <span class="sc">+</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Mother's age class"</span>, <span class="at">y =</span> <span class="st">"Approaches per hour"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="10-glm_files/figure-html/ex2-1.png" class="img-fluid figure-img" width="975"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The counts are small, skewed and contain many zeros, and observation time varies a lot between infants: a count model with an offset is needed.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="exercise-3-a-poisson-glm" class="level3">
+<h3 class="anchored" data-anchor-id="exercise-3-a-poisson-glm">Exercise 3: a Poisson GLM</h3>
+<p>Fit a Poisson GLM of <code>approaches</code> with <code>sex</code> and <code>mother_age</code> as predictors and the appropriate offset. Interpret the coefficients as rate ratios and test both predictors with likelihood-ratio tests.</p>
+<div class="callout callout-style-default callout-tip callout-titled" title="Solution">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Solution
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>pois_b <span class="ot">&lt;-</span> <span class="fu">glm</span>(approaches <span class="sc">~</span> sex <span class="sc">+</span> mother_age <span class="sc">+</span> <span class="fu">offset</span>(<span class="fu">log</span>(hours)),</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">family =</span> poisson, <span class="at">data =</span> infants)</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(pois_b)<span class="sc">$</span>coefficients</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt;                  Estimate Std. Error    z value  Pr(&gt;|z|)
+#&gt; (Intercept)    0.19998044 0.09690815  2.0636080 0.0390549
+#&gt; sexM           0.08873380 0.11676871  0.7599107 0.4473079
+#&gt; mother_ageYAF -0.08850002 0.15126632 -0.5850610 0.5585067
+#&gt; mother_ageOAF -0.50930028 0.23206578 -2.1946376 0.0281896</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(<span class="fu">coef</span>(pois_b))                                     <span class="co"># rate ratios</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt;   (Intercept)          sexM mother_ageYAF mother_ageOAF 
+#&gt;     1.2213789     1.0927897     0.9153031     0.6009159</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">drop1</span>(pois_b, <span class="at">test =</span> <span class="st">"Chisq"</span>)                         <span class="co"># LRT for each predictor</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt; Single term deletions
+#&gt; 
+#&gt; Model:
+#&gt; approaches ~ sex + mother_age + offset(log(hours))
+#&gt;            Df Deviance    AIC    LRT Pr(&gt;Chi)  
+#&gt; &lt;none&gt;          173.49 317.28                  
+#&gt; sex         1   174.07 315.86 0.5792   0.4466  
+#&gt; mother_age  2   179.00 318.79 5.5165   0.0634 .
+#&gt; ---
+#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<p>Taken at face value, infants of old mothers (OAF) receive about 40% fewer approaches than infants of middle-aged mothers (MAF; Wald test <em>p</em> &lt; .05), although the overall likelihood-ratio test of <code>mother_age</code> is only marginal. But can we trust these standard errors?</p>
+</div>
+</div>
+</div>
+</section>
+<section id="exercise-4-check-the-model" class="level3">
+<h3 class="anchored" data-anchor-id="exercise-4-check-the-model">Exercise 4: check the model</h3>
+<p>Compute the dispersion ratio. If DHARMa is installed, also look at the simulated residuals.</p>
+<div class="callout callout-style-default callout-tip callout-titled" title="Solution">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Solution
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">residuals</span>(pois_b, <span class="at">type =</span> <span class="st">"pearson"</span>)<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> <span class="fu">df.residual</span>(pois_b)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt; [1] 2.554734</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DHARMa)</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">simulateResiduals</span>(pois_b))</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="fu">testDispersion</span>(<span class="fu">simulateResiduals</span>(pois_b))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The dispersion ratio is well above 1: the data are <strong>overdispersed</strong>, and the Poisson standard errors are too small.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="exercise-5-a-negative-binomial-glm" class="level3">
+<h3 class="anchored" data-anchor-id="exercise-5-a-negative-binomial-glm">Exercise 5: a negative binomial GLM</h3>
+<p>Fit the same model as a negative binomial GLM. Compare the estimates, standard errors and tests with the Poisson model. Does your conclusion change?</p>
+<div class="callout callout-style-default callout-tip callout-titled" title="Solution">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Solution
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>nb_b <span class="ot">&lt;-</span> <span class="fu">glm.nb</span>(approaches <span class="sc">~</span> sex <span class="sc">+</span> mother_age <span class="sc">+</span> <span class="fu">offset</span>(<span class="fu">log</span>(hours)), <span class="at">data =</span> infants)</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(nb_b)<span class="sc">$</span>coefficients</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt;                  Estimate Std. Error     z value  Pr(&gt;|z|)
+#&gt; (Intercept)    0.02966697  0.2120112  0.13993111 0.8887144
+#&gt; sexM           0.02279024  0.2620325  0.08697484 0.9306915
+#&gt; mother_ageYAF -0.03990511  0.3376029 -0.11820133 0.9059081
+#&gt; mother_ageOAF -0.40752939  0.3941762 -1.03387623 0.3011940</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>nb_b<span class="sc">$</span>theta</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt; [1] 1.765522</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">drop1</span>(nb_b, <span class="at">test =</span> <span class="st">"Chisq"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt; Single term deletions
+#&gt; 
+#&gt; Model:
+#&gt; approaches ~ sex + mother_age + offset(log(hours))
+#&gt;            Df Deviance    AIC     LRT Pr(&gt;Chi)
+#&gt; &lt;none&gt;          74.458 274.19                 
+#&gt; sex         1   74.466 272.20 0.00802   0.9287
+#&gt; mother_age  2   75.599 271.33 1.14087   0.5653</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># standard errors side by side</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">cbind</span>(<span class="at">Poisson =</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(<span class="fu">vcov</span>(pois_b))), <span class="at">NegBin =</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(<span class="fu">vcov</span>(nb_b)))), <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt;               Poisson NegBin
+#&gt; (Intercept)     0.097  0.212
+#&gt; sexM            0.117  0.262
+#&gt; mother_ageYAF   0.151  0.338
+#&gt; mother_ageOAF   0.232  0.394</code></pre>
+</div>
+</div>
+<p>The estimates are similar, but the standard errors are roughly twice as large, and the apparent effect of the mother’s age class is no longer supported. The Poisson result relied on standard errors that were too small.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="exercise-6-predictions-on-the-response-scale" class="level3">
+<h3 class="anchored" data-anchor-id="exercise-6-predictions-on-the-response-scale">Exercise 6: predictions on the response scale</h3>
+<p>Compute the predicted number of approaches per hour, with 95% confidence intervals, for each mother’s age class (for female infants), from the negative binomial model.</p>
+<div class="callout callout-style-default callout-tip callout-titled" title="Solution">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Solution
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>nd <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">sex =</span> <span class="fu">factor</span>(<span class="st">"F"</span>, <span class="at">levels =</span> <span class="fu">levels</span>(infants<span class="sc">$</span>sex)),</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>                 <span class="at">mother_age =</span> <span class="fu">factor</span>(<span class="fu">levels</span>(infants<span class="sc">$</span>mother_age), <span class="at">levels =</span> <span class="fu">levels</span>(infants<span class="sc">$</span>mother_age)),</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>                 <span class="at">hours =</span> <span class="dv">1</span>)                                    <span class="co"># rate per hour</span></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>pr <span class="ot">&lt;-</span> <span class="fu">predict</span>(nb_b, <span class="at">newdata =</span> nd, <span class="at">type =</span> <span class="st">"link"</span>, <span class="at">se.fit =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>nd<span class="sc">$</span>rate <span class="ot">&lt;-</span> <span class="fu">exp</span>(pr<span class="sc">$</span>fit)</span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>nd<span class="sc">$</span>lo   <span class="ot">&lt;-</span> <span class="fu">exp</span>(pr<span class="sc">$</span>fit <span class="sc">-</span> <span class="fl">1.96</span> <span class="sc">*</span> pr<span class="sc">$</span>se.fit)</span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>nd<span class="sc">$</span>hi   <span class="ot">&lt;-</span> <span class="fu">exp</span>(pr<span class="sc">$</span>fit <span class="sc">+</span> <span class="fl">1.96</span> <span class="sc">*</span> pr<span class="sc">$</span>se.fit)</span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>nd</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt;   sex mother_age hours      rate        lo       hi
+#&gt; 1   F        MAF     1 1.0301114 0.6798555 1.560816
+#&gt; 2   F        YAF     1 0.9898141 0.5480971 1.787515
+#&gt; 3   F        OAF     1 0.6853248 0.3375195 1.391535</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(nd, <span class="fu">aes</span>(mother_age, rate)) <span class="sc">+</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> lo, <span class="at">ymax =</span> hi), <span class="at">colour =</span> col_glm, <span class="at">size =</span> .<span class="dv">6</span>) <span class="sc">+</span></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Mother's age class"</span>, <span class="at">y =</span> <span class="st">"Approaches per hour (female infants)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="10-glm_files/figure-html/ex6-1.png" class="img-fluid figure-img" width="975"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Alternatively: <code>emmeans::emmeans(nb_b, ~ mother_age, type = "response", offset = 0)</code>.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="exercise-7-report-and-reflect" class="level3">
+<h3 class="anchored" data-anchor-id="exercise-7-report-and-reflect">Exercise 7: report and reflect</h3>
+<p>Write two or three sentences reporting the results. Then check how many mothers contribute more than one infant to the data. Why could this be a problem, and what would you do about it?</p>
+<div class="callout callout-style-default callout-tip callout-titled" title="Solution">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Solution
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-7" class="callout-7-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">table</span>(infants<span class="sc">$</span>mother) <span class="sc">&gt;</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#&gt; [1] 16</code></pre>
+</div>
+</div>
+<p>Infants of the same mother are probably more similar to each other than infants of different mothers, so the observations are not fully independent. This can itself cause overdispersion and too small standard errors. The solution is a random intercept for <code>mother</code>: a GLMM, the topic of <a href="../../linear-models/sessions/11-glmm.html">session 11</a>.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="reading" class="level2">
+<h2 class="anchored" data-anchor-id="reading">Reading</h2>
 <ul>
-<li>Gelman, Hill &amp; Vehtari (2020), ch.&nbsp;13–15.</li>
-<li>Fox (2016), ch.&nbsp;14–15.</li>
+<li>Gelman, A., Hill, J., &amp; Vehtari, A. (2020). <em>Regression and other stories</em>, ch.&nbsp;13–15. Cambridge University Press.</li>
+<li>Fox, J. (2016). <em>Applied regression analysis and generalized linear models</em> (3rd ed.), ch.&nbsp;14–15. Sage.</li>
+<li>O’Hara, R. B., &amp; Kotze, D. J. (2010). Do not log-transform count data. <em>Methods in Ecology and Evolution, 1</em>(2), 118–122.</li>
+<li>Warton, D. I., &amp; Hui, F. K. C. (2011). The arcsine is asinine: The analysis of proportions in ecology. <em>Ecology, 92</em>(1), 3–10.</li>
+<li>Hartig, F. <em>DHARMa: Residual diagnostics for hierarchical (multi-level/mixed) regression models.</em> <a href="https://cran.r-project.org/package=DHARMa" class="uri">https://cran.r-project.org/package=DHARMa</a></li>
 </ul>
 
 
-</section><a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
     const mode = bsSheetEl.getAttribute("data-mode");
@@ -823,7 +1316,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
   }
 });
-</script><nav class="page-navigation"><div class="nav-page nav-page-previous">
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
       <a href="../../linear-models/sessions/09-model-selection.html" class="pagination-link" aria-label="09 · Model selection">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">09 · Model selection</span>
       </a>          
@@ -835,7 +1330,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   </div>
 </nav>
 </div> <!-- /content -->
-<footer class="footer"><div class="nav-footer">
+<footer class="footer">
+  <div class="nav-footer">
     <div class="nav-footer-left">
 <p>Simon Stephan · CBB Göttingen</p>
 </div>   
@@ -847,6 +1343,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </div>
   </div>
 </footer>
+
+
 
 
 <script src="../../site_libs/quarto-html/zenscroll-min.js"></script>

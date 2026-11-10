@@ -5,9 +5,9 @@ project:
     - "*.qmd"
     - "linear-models/*.qmd"
     - "linear-models/sessions/*.qmd"
-    - "linear-models/exercises/*.qmd"
     - "ores/*.qmd"
     - "tae/*.qmd"
+    - "ibcm/*.qmd"
     - "workshops/*.qmd"
   resources:
     - slides/
@@ -28,12 +28,16 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - href: linear-models/index.qmd
-        text: Linear Models
-      - href: ores/index.qmd
-        text: ORES
-      - href: tae/index.qmd
-        text: TAE
+      - text: Courses
+        menu:
+          - href: linear-models/index.qmd
+            text: "1 · Linear Models in R"
+          - href: ores/index.qmd
+            text: "2 · Open, Replicable, and Ethical Science (ORES)"
+          - href: tae/index.qmd
+            text: "3 · Testing for Absence and Equivalence (TAE)"
+          - href: ibcm/index.qmd
+            text: "4 · Inference with Bayesian Causal Models (IBCM)"
       - href: workshops/index.qmd
         text: Workshops
       - href: consultation.qmd
@@ -73,8 +77,6 @@ website:
           contents:
             - linear-models/sessions/10-glm.qmd
             - linear-models/sessions/11-glmm.qmd
-            - text: "11 · Exercises"
-              href: linear-models/exercises/11-glmm.qmd
         - linear-models/final-project.qmd
     - id: workshops
       title: "Short workshops"
